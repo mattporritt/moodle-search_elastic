@@ -28,4 +28,23 @@ defined('MOODLE_INTERNAL') || die();
 
 class engine extends \core_search\engine {
 
+    public function is_server_ready() {
+        return false;
+    }
+
+    public function get_query_total_count() {
+
+    }
+
+    public function add_document($document, $fileindexing = false) {
+
+    }
+
+    public function execute_query($filters, $usercontexts, $limit = 0) {
+
+    }
+
+    public function delete($module = null) {
+
+    }
 }
