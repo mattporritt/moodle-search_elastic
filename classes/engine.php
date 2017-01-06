@@ -127,7 +127,6 @@ class engine extends \core_search\engine {
         if (!$hasindex) {
             $this->create_index();
         }
-        # Check if fields have been added and add them if not
     }
 
     public function get_query_total_count() {
@@ -135,9 +134,23 @@ class engine extends \core_search\engine {
         // Must be implemented to return the number of results that available for the most recent call to execute_query().
         // This is used to determine how many pages will be displayed in the paging bar. For more discussion see MDL-53758.
 
+        // Just do it quick and dirty for the time being
+        return \core_search\manager::MAX_RESULTS;
+
     }
 
     public function add_document($document, $fileindexing = false) {
+        $docdata = $document->export_for_engine();
+        $url = $this->get_url();
+        $docurl = $url . '/'. $this->config->index . '/'.$docdata['id'];
+        $jsondoc = json_encode($docdata);
+
+        $client = new \curl();
+        $response = $client->post($docurl, $jsondoc);
+
+        if ($client->info['http_code'] !== 201) {
+            throw new \moodle_exception('addfail', 'search_elastic', '', '', $response);
+        }
 
     }
 
@@ -145,7 +158,32 @@ class engine extends \core_search\engine {
 
     }
 
-    public function delete($module = null) {
+    public function delete($areaid = false) {
+        if ($areaid === false) {
+            // Delete all your search engine index contents.
+        } else {
+            // Delete all your search engine contents where areaid = $areaid.
+        }
+    }
 
+    public function file_indexing_enabled() {
+        // Defaults to false, overwrite it if your search engine supports file indexing.
+        return false;
+    }
+
+    /**
+     * The force merge operation allows to reduce the number of segments by merging
+     * them and optimizes the index for faster search operations.
+     *
+     * This call will block until the merge is complete. 
+     * If the http connection is lost, the request will continue in the background,
+     * and any new requests will block until the previous force merge is complete.
+     *
+     */
+    public function optimize() {
+        $url = $this->get_url(). $this->config->index . '/_forcemerge';
+        $client = new \curl();
+
+        $client->post($url);
     }
 }
