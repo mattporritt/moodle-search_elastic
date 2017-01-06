@@ -28,12 +28,12 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('search_elastic_settings', '', get_string('pluginname_desc', 'search_elastic')));
 
     if (! during_initial_install ()) {
-        $settings->add(new admin_setting_configtext('search_elastic_hostname',
+        $settings->add(new admin_setting_configtext('search_elastic/hostname',
                 get_string('hostname', 'search_elastic' ),
                 get_string('hostname_desc', 'search_elastic'),
-                'localhost', PARAM_HOST));
+                'http://127.0.0.1', PARAM_URL));
 
-        $settings->add(new admin_setting_configtext('search_elastic_port',
+        $settings->add(new admin_setting_configtext('search_elastic/port',
                 get_string('port', 'search_elastic' ),
                 get_string('port_desc', 'search_elastic'),
                 9200, PARAM_INT));

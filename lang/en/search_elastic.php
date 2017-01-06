@@ -27,5 +27,7 @@ $string['pluginname_desc'] = 'Search backend for the Elasticsearch search engine
 
 $string['hostname'] = 'Hostname';
 $string['hostname_desc'] = 'The FQDN of the Elasticsearch engine endpoint';
+$string['no_config'] = 'Elasticsearch configuration missing';
+$string['no_server'] = 'Elasticsearch endpoint unreachable';
 $string['port'] = 'Port';
 $string['port_desc'] = 'The Port of the Elasticsearch engine endpoint';
