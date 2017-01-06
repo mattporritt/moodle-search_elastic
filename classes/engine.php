@@ -43,16 +43,58 @@ class engine extends \core_search\engine {
      *
      * @return url|bool Returns url if succes or false on error.
      */
-    private function get_url(){
-        $return_val = False;
+    private function get_url() {
+        $returnval = false;
 
         if (!empty($this->config->hostname) && !empty($this->config->port)) {
-            $url = rtrim($this->config->hostname,"/");
+            $url = rtrim($this->config->hostname, "/");
             $port = $this->config->port;
             return $url . ':'. $port;
         }
 
-        return $return_val;
+        return $returnval;
+    }
+
+    /**
+     * Check if index exists in Elasticssearch backend
+     *
+     * @return bool True on success False on failure
+     */
+    private function check_index() {
+        $returnval = false;
+        $response = 404;
+        $url = $this->get_url();
+        $client = new \curl();
+
+        if (!empty($this->config->index) && $url) {
+            $index = $url . '/'. $this->config->index;
+            $client->get($index);
+            $response = $client->info['http_code'];
+        }
+        if($response === 200) {
+            $returnval = true;
+        }
+
+        return $returnval;
+    }
+
+    /**
+     * Create index in Elasticsearch backend
+     */
+    private function create_index(){
+        $url = $this->get_url();
+        $client = new \curl();
+
+        if (!empty($this->config->index) && $url) {
+            $index = $url . '/'. $this->config->index;
+            $response = $client->post($index);
+        } else {
+            throw new \moodle_exception('noconfig', 'search_elastic', '');
+        }
+        if ($client->info['http_code'] !== 200) {
+            throw new \moodle_exception('indexfail', 'search_elastic', '');
+        }
+
     }
 
     /**
@@ -61,40 +103,37 @@ class engine extends \core_search\engine {
      *
      * @return true|string Returns true if all good or an error string.
      */
-    public function is_server_configured() {
+    public function is_server_ready() {
         $url = $this->get_url();
-        $return_val = True;
+        $returnval = true;
         $client = new \curl();
 
         if (!$url) {
-            $return_val = get_string('no_config', 'search_elastic');
-        }
-        elseif (!(bool)json_decode($client->get($url))) {
-            $return_val = get_string('no_server', 'search_elastic');
+            $returnval = get_string('noconfig', 'search_elastic');
+        } else if (!(bool)json_decode($client->get($url))) {
+            $returnval = get_string('noserver', 'search_elastic');
         }
 
-        return $return_val;
+        return $returnval;
     }
 
     /**
-     * Have all the requirements been met for the Elasticsearch server
-     * enpoint to operate correctly. That is is the server configured and
-     * available and is the schema correclty setup.
-     *
-     * @return true|string Returns true on success or a string on failure.
+     * Called when indexing is triggered.
+     * Creates the Index namespace and adds fields if they don't exist.
      */
-    public function is_server_ready() {
-
-        // First check if the server is configured and available
-        return $this->is_server_configured();
-
-        // Now check if the schema is setup
+    public function index_starting($fullindex = false) {
+        # Check if index exists and create it if it doesn't
+        $hasindex = $this->check_index();
+        if (!$hasindex) {
+            $this->create_index();
+        }
+        # Check if fields have been added and add them if not
     }
 
     public function get_query_total_count() {
         // Return an approximate count of total records for the most recently completed execute_query().
         // Must be implemented to return the number of results that available for the most recent call to execute_query().
-        // This is used to determine how many pages will be displayed in the paging bar. For more discussion see MDL-53758. 
+        // This is used to determine how many pages will be displayed in the paging bar. For more discussion see MDL-53758.
 
     }
 

@@ -37,5 +37,11 @@ if ($ADMIN->fulltree) {
                 get_string('port', 'search_elastic' ),
                 get_string('port_desc', 'search_elastic'),
                 9200, PARAM_INT));
+
+        $settings->add(new admin_setting_configtext('search_elastic/index',
+                get_string('index', 'search_elastic' ),
+                get_string('index_desc', 'search_elastic'),
+                'moodle', PARAM_ALPHANUMEXT));
+
     }
 }
