@@ -190,8 +190,21 @@ class engine extends \core_search\engine {
         return $returnval;
     }
 
+    /**
+     * Returns status of if this backend supports indexing of files
+     * and if that support is available and enabled.
+     *
+     * @return bool
+     */
     public function file_indexing_enabled() {
-        // Defaults to false, overwrite it if your search engine supports file indexing.
+        // There are a couple of ways to get this working with Elasticsearch.
+        // There is the Elasticsearch Mapper plugin (https://github.com/elastic/elasticsearch-mapper-attachments)
+        // that requires installing a plugin to elasticsearch. This isn't possible in AWS.
+        // The mapper plugin is just a thing wrapper arround Apache Tika: https://tika.apache.org/ and
+        // Tika exposes a REST API that we can access directly.
+        //
+        // I think we should just query the Tika API directly, this will basically 
+        // involve passing the file off to Tika and indexing the result we get back.
         return false;
     }
 
