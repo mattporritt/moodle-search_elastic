@@ -158,12 +158,36 @@ class engine extends \core_search\engine {
 
     }
 
+    /**
+     * Manage deletion of content out of Elasticsearch.
+     * If an $areaid is not passed this will delete EVERYTHING!
+     */
     public function delete($areaid = false) {
+        $url = $this->get_url();
+        $indexeurl = $url . '/'. $this->config->index;
+        $client = new \curl();
+        $returnval = false;
+
         if ($areaid === false) {
             // Delete all your search engine index contents.
+            // Response will return acknowledged True if deletion worked,
+            // or a status of not found if index doesn't exist.
+            // We'll treat both cases as good
+            $response = json_decode($client->delete($indexeurl));
+            if (isset($response->acknowledged) && ($response->acknowledged == true)){
+                $this->create_index(); // recreate the new index
+                $returnval = true;
+            } else if (isset($response->status) && ($response->status == 404)){
+                $this->create_index();
+                $returnval = true;
+            }
         } else {
-            // Delete all your search engine contents where areaid = $areaid.
+            // TODO: Delete all your search engine contents where areaid = $areaid.
+            // This will probably require getting all the document ids based on a query
+            // of the areaid property then deleting them
+
         }
+        return $returnval;
     }
 
     public function file_indexing_enabled() {
