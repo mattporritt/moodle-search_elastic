@@ -194,6 +194,27 @@ class engine extends \core_search\engine {
         return $contextobj;
     }
 
+    private function construct_value($filters, $key){
+        $valueobj = array('must' => array(array('match' => array($key => $value))));
+
+        return $valueobj;
+    }
+
+    private function construct_array($filters, $key){
+        $arrayobj = array('must' => array());
+
+        foreach ($filters[$key] as $value){
+            $addcontext = array('match' => array($key => $value));
+            array_push ($contextobj['must'], $addcontext);
+        }
+
+        return $arrayobj;
+    }
+
+    private function construct_time_range($filters) {
+
+    }
+
     public function execute_query($filters, $usercontexts, $limit = 0) {
         $docs = array();
 
@@ -208,10 +229,20 @@ class engine extends \core_search\engine {
         if (gettype($usercontexts) == 'array'){
             $contexts = $this->construct_contexts($usercontexts);
         }
-        // Add filters
-        // write two methods one that takes key value where value is string and return match
-        // another that takes key value where value is array and return multiple matches.
-        // Also write method that takes start and end and returns a filter
+        // Add filters.
+        if (isset($filters->title)){
+            $title = $this->construct_value($filters, 'title');
+        }
+        if (isset($filters->areaids)){
+            $areaids = $this->construct_array($filters, 'areaids');
+        }
+        if (isset($filters->courseids)){
+            $courseids = $this->construct_array($filters, 'courseids');
+        }
+        if (isset($filters->timestart) || isset($filters->timeend)){
+            $timerange = $this-construct_time_range($filters);
+        }
+
         error_log(print_r($filters, true));
         //error_log(print_r(json_encode($q), true));
         //error_log(print_r(json_encode($contexts), true));
