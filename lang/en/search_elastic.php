@@ -34,3 +34,9 @@ $string['noconfig'] = 'Elasticsearch configuration missing';
 $string['noserver'] = 'Elasticsearch endpoint unreachable';
 $string['port'] = 'Port';
 $string['port_desc'] = 'The Port of the Elasticsearch engine endpoint';
+$string['searchinfo'] = 'Search queries';
+$string['searchinfo_help'] = 'The field to be searched may be specified by prefixing the search query with \'title:\', \'content:\', \'name:\', or \'intro:\'. For example, searching for \'title:news\' would return results with the word \'news\' in the title.
+
+Boolean operators (\'AND\', \'OR\') may be used to combine or exclude keywords.
+
+Wildcard characters (\'*\' or \'?\' ) may be used to represent characters in the search query.';

@@ -154,8 +154,76 @@ class engine extends \core_search\engine {
 
     }
 
-    public function execute_query($filters, $usercontexts, $limit = 0) {
+    /**
+     * Get s an array of fields to search.
+     * The returned fields are what the 'q' string is matched against in a search.
+     * It makes sense to not search every field here, so some are removed.
+     *
+     * @return array
+     */
+    private function get_search_fields(){
+        $allfields = array_keys( \core_search\document::get_default_fields_definition());
+        $excludedfields = array('itemid',
+                                'contextid',
+                                'userid',
+                                'owneruserid',
+                                'modified',
+                                'type'
+        );
+        $searchfields = array_diff($allfields, $excludedfields);
 
+        return array_values($searchfields);
+    }
+
+    private function construct_q($q) {
+
+        $searchfields = $this->get_search_fields();
+        $qobj = array('must' => array('query_string' => array('query' => $q, 'fields' => $searchfields)));
+
+        return $qobj;
+    }
+
+    private function construct_contexts($usercontexts) {
+        $contextobj = array('must' => array());
+
+        foreach ($usercontexts as $context){
+            $addcontext = array('match' => array('contextid' => $context));
+            array_push ($contextobj['must'], $addcontext);
+        }
+
+        return $contextobj;
+    }
+
+    public function execute_query($filters, $usercontexts, $limit = 0) {
+        $docs = array();
+
+        // Basic object to build query from
+        $query = array('query' => array('bool' => array()));
+        //$query = $query->bool = new \stdClass();
+        $usercontexts = array(27,33);
+
+        // Add query text
+        $q = $this->construct_q($filters->q);
+        // Add contexts
+        if (gettype($usercontexts) == 'array'){
+            $contexts = $this->construct_contexts($usercontexts);
+        }
+        // Add filters
+        // write two methods one that takes key value where value is string and return match
+        // another that takes key value where value is array and return multiple matches.
+        // Also write method that takes start and end and returns a filter
+        error_log(print_r($filters, true));
+        //error_log(print_r(json_encode($q), true));
+        //error_log(print_r(json_encode($contexts), true));
+
+        // Include $usercontexts as a filter to contextid field.
+        // Send a request to the server.
+        // Iterate through results.
+        // Check user access, read https://docs.moodle.org/dev/Search_engines#Security for more info
+        // Convert results to '''\core_search\document''' type objects using '''\core_search\document::set_data_from_engine'''
+
+        // Return an array of '''\core_search\document''' objects, limiting to $limit or \core_search\manager::MAX_RESULTS if empty.
+        return $docs;
     }
 
     /**
