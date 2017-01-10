@@ -218,10 +218,10 @@ class engine extends \core_search\engine {
     private function construct_time_range($filters) {
         $contextobj = array('range' => array('modified' => array()));
 
-        if (isset($filters->timestart) || isset($filters->timestart)){
+        if (isset($filters->timestart) && $filters->timestart !=0){
             $contextobj['range']['modified']['gte'] = $filters->timestart;
         }
-        if (isset($filters->timesend) || isset($filters->timeend)){
+        if (isset($filters->timesend) && $filters->timeend !=0){
             $contextobj['range']['modified']['lte'] = $filters->timeend;
         }
 
@@ -230,11 +230,11 @@ class engine extends \core_search\engine {
 
     public function execute_query($filters, $usercontexts, $limit = 0) {
         $docs = array();
+        $url = $this->get_url(). $this->config->index . '/_search?pretty';
+        $client = new \curl();
 
         // Basic object to build query from
         $query = array('query' => array('bool' => array('must' => array())));
-        //$query = $query->bool = new \stdClass();
-        $usercontexts = array(27,33);
 
         // Add query text
         $q = $this->construct_q($filters->q);
@@ -247,7 +247,7 @@ class engine extends \core_search\engine {
             }
         }
         // Add filters.
-        if (isset($filters->title)){
+        if (isset($filters->title) && $filters->title != null){
             $title = $this->construct_value($filters, 'title');
             array_push ($query['query']['bool']['must'], $title);
         }
@@ -257,28 +257,24 @@ class engine extends \core_search\engine {
                 array_push ($query['query']['bool']['must'], $areaid);
             }
         }
-        if (isset($filters->courseids)){
+        if (isset($filters->courseids) && $filters->courseids != null){
             $courseids = $this->construct_array($filters, 'courseids');
             foreach ($courseids as $courseid){
                 array_push ($query['query']['bool']['must'], $courseid);
             }
         }
-        if (isset($filters->timestart) || isset($filters->timeend)){
+        if ($filters->timestart != 0  || $filters->timeend != 0){
             $timerange = $this->construct_time_range($filters);
             $query['query']['bool']['filter'] = $timerange;
         }
 
-       error_log(print_r(json_encode($query), true));
-        // error_log(print_r(json_encode($q), true));
-//         error_log(print_r(json_encode($contexts), true));
-//         error_log(print_r(json_encode($title), true));
-//         error_log(print_r(json_encode($areaids), true));
-//         error_log(print_r(json_encode($courseids), true));
-//         error_log(print_r(json_encode($timerange), true));
+        error_log(print_r(json_encode($query), true));
 
-        // Include $usercontexts as a filter to contextid field.
         // Send a request to the server.
+        $results = $client->post($url, json_encode($query));
+        error_log(print_r($results, true));
         // Iterate through results.
+
         // Check user access, read https://docs.moodle.org/dev/Search_engines#Security for more info
         // Convert results to '''\core_search\document''' type objects using '''\core_search\document::set_data_from_engine'''
 
