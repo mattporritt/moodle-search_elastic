@@ -164,6 +164,8 @@ class engine extends \core_search\engine {
     private function get_search_fields(){
         $allfields = array_keys( \core_search\document::get_default_fields_definition());
         $excludedfields = array('itemid',
+                                'areaid',
+                                'courseid',
                                 'contextid',
                                 'userid',
                                 'owneruserid',
@@ -178,74 +180,101 @@ class engine extends \core_search\engine {
     private function construct_q($q) {
 
         $searchfields = $this->get_search_fields();
-        $qobj = array('must' => array('query_string' => array('query' => $q, 'fields' => $searchfields)));
+        $qobj = array('query_string' => array('query' => $q, 'fields' => $searchfields));
 
         return $qobj;
     }
 
     private function construct_contexts($usercontexts) {
-        $contextobj = array('must' => array());
+        $contextobj = array();
 
         foreach ($usercontexts as $context){
             $addcontext = array('match' => array('contextid' => $context));
-            array_push ($contextobj['must'], $addcontext);
+            array_push ($contextobj, $addcontext);
         }
 
         return $contextobj;
     }
 
     private function construct_value($filters, $key){
-        $valueobj = array('must' => array(array('match' => array($key => $value))));
+        $value = $filters->$key;
+        $valueobj =array('match' => array($key => $value));
 
         return $valueobj;
     }
 
     private function construct_array($filters, $key){
-        $arrayobj = array('must' => array());
+        $arrayobj = array();
+        $values = $filters->$key;
 
-        foreach ($filters[$key] as $value){
+        foreach ($values as $value){
             $addcontext = array('match' => array($key => $value));
-            array_push ($contextobj['must'], $addcontext);
+            array_push ($arrayobj, $addcontext);
         }
 
         return $arrayobj;
     }
 
     private function construct_time_range($filters) {
+        $contextobj = array('range' => array('modified' => array()));
 
+        if (isset($filters->timestart) || isset($filters->timestart)){
+            $contextobj['range']['modified']['gte'] = $filters->timestart;
+        }
+        if (isset($filters->timesend) || isset($filters->timeend)){
+            $contextobj['range']['modified']['lte'] = $filters->timeend;
+        }
+
+        return $contextobj;
     }
 
     public function execute_query($filters, $usercontexts, $limit = 0) {
         $docs = array();
 
         // Basic object to build query from
-        $query = array('query' => array('bool' => array()));
+        $query = array('query' => array('bool' => array('must' => array())));
         //$query = $query->bool = new \stdClass();
         $usercontexts = array(27,33);
 
         // Add query text
         $q = $this->construct_q($filters->q);
+        array_push ($query['query']['bool']['must'], $q);
         // Add contexts
         if (gettype($usercontexts) == 'array'){
             $contexts = $this->construct_contexts($usercontexts);
+            foreach ($contexts as $context){
+                array_push ($query['query']['bool']['must'], $context);
+            }
         }
         // Add filters.
         if (isset($filters->title)){
             $title = $this->construct_value($filters, 'title');
+            array_push ($query['query']['bool']['must'], $title);
         }
         if (isset($filters->areaids)){
             $areaids = $this->construct_array($filters, 'areaids');
+            foreach ($areaids as $areaid){
+                array_push ($query['query']['bool']['must'], $areaid);
+            }
         }
         if (isset($filters->courseids)){
             $courseids = $this->construct_array($filters, 'courseids');
+            foreach ($courseids as $courseid){
+                array_push ($query['query']['bool']['must'], $courseid);
+            }
         }
         if (isset($filters->timestart) || isset($filters->timeend)){
-            $timerange = $this-construct_time_range($filters);
+            $timerange = $this->construct_time_range($filters);
+            $query['query']['bool']['filter'] = $timerange;
         }
 
-        error_log(print_r($filters, true));
-        //error_log(print_r(json_encode($q), true));
-        //error_log(print_r(json_encode($contexts), true));
+       error_log(print_r(json_encode($query), true));
+        // error_log(print_r(json_encode($q), true));
+//         error_log(print_r(json_encode($contexts), true));
+//         error_log(print_r(json_encode($title), true));
+//         error_log(print_r(json_encode($areaids), true));
+//         error_log(print_r(json_encode($courseids), true));
+//         error_log(print_r(json_encode($timerange), true));
 
         // Include $usercontexts as a filter to contextid field.
         // Send a request to the server.
