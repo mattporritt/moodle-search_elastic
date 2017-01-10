@@ -30,6 +30,11 @@ require_once($CFG->dirroot.'/lib/filelib.php');
 class engine extends \core_search\engine {
 
     /**
+     * @var int Factor to multiply fetch limit by when getting results.
+     */
+    const RETURN_LIMIT_FACTOR = 5;
+
+    /**
      * Constructor.
      */
     public function __construct() {
@@ -233,8 +238,20 @@ class engine extends \core_search\engine {
         $url = $this->get_url(). $this->config->index . '/_search?pretty';
         $client = new \curl();
 
+        if ($limit == 0){
+            $limit = \core_search\manager::MAX_RESULTS;
+        }
+
+        // We assume that out of the number of results retruned by the search engine
+        // there will be a high percentage that the user will not have access to
+        // and thus will be filtered out.
+        // As a dirty way to combat this and to avoid getting all the matches
+        // from the search engine we mulitple the requested limit by a set
+        // factor
+        $returnlimit = $limit * static::RETURN_LIMIT_FACTOR;
+
         // Basic object to build query from
-        $query = array('query' => array('bool' => array('must' => array())));
+        $query = array('query' => array('bool' => array('must' => array())), 'size' => $returnlimit);
 
         // Add query text
         $q = $this->construct_q($filters->q);
@@ -271,14 +288,28 @@ class engine extends \core_search\engine {
         error_log(print_r(json_encode($query), true));
 
         // Send a request to the server.
-        $results = $client->post($url, json_encode($query));
-        error_log(print_r($results, true));
+        $results = json_decode($client->post($url, json_encode($query)));
+        // error_log(print_r($results, true));
+
         // Iterate through results.
+        if (isset($results->hits)) {
+            foreach ($results->hits->hits as $result) {
+                $searcharea = $this->get_search_area($result->_source->areaid);
+                if (!$searcharea) {
+                    continue;
+                }
+                $access = $searcharea->check_access($result->_source->itemid);
+                if ($access == \core_search\manager::ACCESS_GRANTED){
+                    $docs[] = $this->to_document($searcharea, (array)$result->_source);
+                }
 
-        // Check user access, read https://docs.moodle.org/dev/Search_engines#Security for more info
-        // Convert results to '''\core_search\document''' type objects using '''\core_search\document::set_data_from_engine'''
+            }
 
-        // Return an array of '''\core_search\document''' objects, limiting to $limit or \core_search\manager::MAX_RESULTS if empty.
+        } else {
+            // TODO: handle negatrive cases
+            error_log('NO RESULTS OR ERROR');
+        }
+
         return $docs;
     }
 
