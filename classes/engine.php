@@ -68,7 +68,7 @@ class engine extends \core_search\engine {
             $client->get($index);
             $response = $client->info['http_code'];
         }
-        if($response === 200) {
+        if ($response === 200) {
             $returnval = true;
         }
 
@@ -78,7 +78,7 @@ class engine extends \core_search\engine {
     /**
      * Create index in Elasticsearch backend
      */
-    private function create_index(){
+    private function create_index() {
         $url = $this->get_url();
         $client = new \curl();
 
@@ -119,7 +119,7 @@ class engine extends \core_search\engine {
      * Creates the Index namespace and adds fields if they don't exist.
      */
     public function index_starting($fullindex = false) {
-        # Check if index exists and create it if it doesn't
+        // Check if index exists and create it if it doesn't.
         $hasindex = $this->check_index();
         if (!$hasindex) {
             $this->create_index();
@@ -157,7 +157,7 @@ class engine extends \core_search\engine {
      *
      * @return array
      */
-    private function get_search_fields(){
+    private function get_search_fields() {
         $allfields = array_keys( \core_search\document::get_default_fields_definition());
         $excludedfields = array('itemid',
                                 'areaid',
@@ -184,7 +184,7 @@ class engine extends \core_search\engine {
     private function construct_contexts($usercontexts) {
         $contextobj = array();
 
-        foreach ($usercontexts as $context){
+        foreach ($usercontexts as $context) {
             $addcontext = array('match' => array('contextid' => $context));
             array_push ($contextobj, $addcontext);
         }
@@ -192,18 +192,18 @@ class engine extends \core_search\engine {
         return $contextobj;
     }
 
-    private function construct_value($filters, $key){
+    private function construct_value($filters, $key) {
         $value = $filters->$key;
-        $valueobj =array('match' => array($key => $value));
+        $valueobj = array('match' => array($key => $value));
 
         return $valueobj;
     }
 
-    private function construct_array($filters, $key){
+    private function construct_array($filters, $key) {
         $arrayobj = array();
         $values = $filters->$key;
 
-        foreach ($values as $value){
+        foreach ($values as $value) {
             $addcontext = array('match' => array($key => $value));
             array_push ($arrayobj, $addcontext);
         }
@@ -214,10 +214,10 @@ class engine extends \core_search\engine {
     private function construct_time_range($filters) {
         $contextobj = array('range' => array('modified' => array()));
 
-        if (isset($filters->timestart) && $filters->timestart !=0){
+        if (isset($filters->timestart) && $filters->timestart != 0) {
             $contextobj['range']['modified']['gte'] = $filters->timestart;
         }
-        if (isset($filters->timesend) && $filters->timeend !=0){
+        if (isset($filters->timesend) && $filters->timeend != 0) {
             $contextobj['range']['modified']['lte'] = $filters->timeend;
         }
 
@@ -232,46 +232,43 @@ class engine extends \core_search\engine {
 
         $returnlimit = \core_search\manager::MAX_RESULTS;
 
-        // Basic object to build query from
+        // Basic object to build query from.
         $query = array('query' => array('bool' => array('must' => array())), 'size' => $returnlimit);
 
-        // Add query text
+        // Add query text.
         $q = $this->construct_q($filters->q);
         array_push ($query['query']['bool']['must'], $q);
-        // Add contexts
-        if (gettype($usercontexts) == 'array'){
+        // Add contexts.
+        if (gettype($usercontexts) == 'array') {
             $contexts = $this->construct_contexts($usercontexts);
-            foreach ($contexts as $context){
+            foreach ($contexts as $context) {
                 array_push ($query['query']['bool']['must'], $context);
             }
         }
         // Add filters.
-        if (isset($filters->title) && $filters->title != null){
+        if (isset($filters->title) && $filters->title != null) {
             $title = $this->construct_value($filters, 'title');
             array_push ($query['query']['bool']['must'], $title);
         }
-        if (isset($filters->areaids)){
+        if (isset($filters->areaids)) {
             $areaids = $this->construct_array($filters, 'areaids');
-            foreach ($areaids as $areaid){
-                array_push ($query['query']['bool']['must'], $areaid);
+            foreach ($areaids as $areaid) {
+                array_push ($query['quer y']['bool']['must'], $areaid);
             }
         }
-        if (isset($filters->courseids) && $filters->courseids != null){
+        if (isset($filters->courseids) && $filters->courseids != null) {
             $courseids = $this->construct_array($filters, 'courseids');
-            foreach ($courseids as $courseid){
+            foreach ($courseids as $courseid) {
                 array_push ($query['query']['bool']['must'], $courseid);
             }
         }
-        if ($filters->timestart != 0  || $filters->timeend != 0){
+        if ($filters->timestart != 0  || $filters->timeend != 0) {
             $timerange = $this->construct_time_range($filters);
             $query['query']['bool']['filter'] = $timerange;
         }
 
-        error_log(print_r(json_encode($query), true));
-
         // Send a request to the server.
         $results = json_decode($client->post($url, json_encode($query)));
-        // error_log(print_r($results, true));
 
         // Iterate through results.
         if (isset($results->hits)) {
@@ -282,23 +279,20 @@ class engine extends \core_search\engine {
                 }
                 $access = $searcharea->check_access($result->_source->itemid);
 
-                if ($access == \core_search\manager::ACCESS_DELETED){
+                if ($access == \core_search\manager::ACCESS_DELETED) {
                     $this->delete_by__typeid($result->_type, $result->_id);
-                } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit){
+                } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit) {
                     $docs[] = $this->to_document($searcharea, (array)$result->_source);
                     $doccount++;
                 }
-                if ($access == \core_search\manager::ACCESS_GRANTED){
+                if ($access == \core_search\manager::ACCESS_GRANTED) {
                     $this->totalresultdocs++;
                 }
 
             }
 
-        } else {
-            // TODO: handle negatrive cases
-            error_log('NO RESULTS OR ERROR');
         }
-
+        // TODO: handle negative cases and errors.
         return $docs;
     }
 
@@ -330,18 +324,25 @@ class engine extends \core_search\engine {
             // Delete all your search engine index contents.
             // Response will return acknowledged True if deletion worked,
             // or a status of not found if index doesn't exist.
-            // We'll treat both cases as good
+            // We'll treat both cases as good.
             $response = json_decode($client->delete($indexeurl));
-            if (isset($response->acknowledged) && ($response->acknowledged == true)){
-                $this->create_index(); // recreate the new index
+            if (isset($response->acknowledged) && ($response->acknowledged == true)) {
+                $this->create_index(); // Recreate the new index.
                 $returnval = true;
-            } else if (isset($response->status) && ($response->status == 404)){
+            } else if (isset($response->status) && ($response->status == 404)) {
                 $this->create_index();
                 $returnval = true;
             }
         } else {
             $url = $url . '/_search?pretty';
-            $query = array('query' => array('bool' => array('must' => array('match'=>array('areaid'=> $areaid)))), 'fields' => array());
+            $query = array('query' => array(
+                                'bool' => array(
+                                    'must' => array(
+                                        'match ' => array('areaid' => $areaid)
+                                    )
+                                )
+                            ),
+                           'fields' => array());
             $results = json_decode($client->post($url, json_encode($query)));
             foreach ($results->hits->hits as $result) {
                 $this->delete_by_type_id($result->_type, $result->_id);
@@ -363,7 +364,7 @@ class engine extends \core_search\engine {
         // The mapper plugin is just a thing wrapper arround Apache Tika: https://tika.apache.org/ and
         // Tika exposes a REST API that we can access directly.
         //
-        // I think we should just query the Tika API directly, this will basically 
+        // I think we should just query the Tika API directly, this will basically
         // involve passing the file off to Tika and indexing the result we get back.
         return false;
     }
@@ -372,7 +373,7 @@ class engine extends \core_search\engine {
      * The force merge operation allows to reduce the number of segments by merging
      * them and optimizes the index for faster search operations.
      *
-     * This call will block until the merge is complete. 
+     * This call will block until the merge is complete.
      * If the http connection is lost, the request will continue in the background,
      * and any new requests will block until the previous force merge is complete.
      *
