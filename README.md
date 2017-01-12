@@ -1,6 +1,8 @@
+[![Build Status](https://travis-ci.org/mattporritt/moodle-search_elastic.svg?branch=master)](https://travis-ci.org/mattporritt/moodle-search_elastic)
+
 # Moodle Global Search - Elasticsearch Backend
 
-This plugin allows Moodle to use Elasticsearch as the search enging for Moodle's Global Search.
+This plugin allows Moodle to use Elasticsearch as the search engine for Moodle's Global Search.
 
 ## Installation
 **NOTE:** Complete all of these steps before trying to enable the Global Search functionality in Moodle.
