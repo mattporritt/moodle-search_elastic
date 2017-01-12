@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/mattporritt/moodle-search_elastic.svg?branch=master)](https://travis-ci.org/mattporritt/moodle-search_elastic)
+[![Build Status](https://travis-ci.org/catalyst/moodle-search_elastic.svg?branch=master)](https://travis-ci.org/catalyst/moodle-search_elastic)
 
 # Moodle Global Search - Elasticsearch Backend
 
