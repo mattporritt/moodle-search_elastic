@@ -35,14 +35,6 @@ class engine extends \core_search\engine {
     protected $totalresultdocs = 0;
 
     /**
-     * Constructor.
-     */
-    public function __construct() {
-        global $CFG;
-        $this->config = get_config('search_elastic');
-    }
-
-    /**
      * Generates the Elasticsearch server endpoint URL from
      * the config hostname and port.
      *
@@ -289,7 +281,10 @@ class engine extends \core_search\engine {
                     continue;
                 }
                 $access = $searcharea->check_access($result->_source->itemid);
-                if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit){
+
+                if ($access == \core_search\manager::ACCESS_DELETED){
+                    $this->delete_by__typeid($result->_type, $result->_id);
+                } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit){
                     $docs[] = $this->to_document($searcharea, (array)$result->_source);
                     $doccount++;
                 }
@@ -305,6 +300,20 @@ class engine extends \core_search\engine {
         }
 
         return $docs;
+    }
+
+    /**
+     * Deletes the specified document.
+     *
+     * @param string $id The document id to delete
+     * @return void
+     */
+    public function delete_by_type_id($type, $id) {
+        $url = $this->get_url();
+        $deleteurl = $url . '/'. $this->config->index . '/'. $type . '/'. $id;
+        $client = new \curl();
+
+        $client->delete($deleteurl);
     }
 
     /**
@@ -331,10 +340,12 @@ class engine extends \core_search\engine {
                 $returnval = true;
             }
         } else {
-            // TODO: Delete all your search engine contents where areaid = $areaid.
-            // This will probably require getting all the document ids based on a query
-            // of the areaid property then deleting them
-
+            $url = $url . '/_search?pretty';
+            $query = array('query' => array('bool' => array('must' => array('match'=>array('areaid'=> $areaid)))), 'fields' => array());
+            $results = json_decode($client->post($url, json_encode($query)));
+            foreach ($results->hits->hits as $result) {
+                $this->delete_by_type_id($result->_type, $result->_id);
+            }
         }
         return $returnval;
     }
