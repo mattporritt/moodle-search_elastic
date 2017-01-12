@@ -32,7 +32,7 @@ class engine extends \core_search\engine {
     /**
      * @var int Factor to multiply fetch limit by when getting results.
      */
-    const RETURN_LIMIT_FACTOR = 5;
+    protected $totalresultdocs = 0;
 
     /**
      * Constructor.
@@ -139,8 +139,7 @@ class engine extends \core_search\engine {
         // Must be implemented to return the number of results that available for the most recent call to execute_query().
         // This is used to determine how many pages will be displayed in the paging bar. For more discussion see MDL-53758.
 
-        // Just do it quick and dirty for the time being
-        return \core_search\manager::MAX_RESULTS;
+        return $this->totalresultdocs;
 
     }
 
@@ -235,20 +234,11 @@ class engine extends \core_search\engine {
 
     public function execute_query($filters, $usercontexts, $limit = 0) {
         $docs = array();
+        $doccount = 0;
         $url = $this->get_url(). $this->config->index . '/_search?pretty';
         $client = new \curl();
 
-        if ($limit == 0){
-            $limit = \core_search\manager::MAX_RESULTS;
-        }
-
-        // We assume that out of the number of results retruned by the search engine
-        // there will be a high percentage that the user will not have access to
-        // and thus will be filtered out.
-        // As a dirty way to combat this and to avoid getting all the matches
-        // from the search engine we mulitple the requested limit by a set
-        // factor
-        $returnlimit = $limit * static::RETURN_LIMIT_FACTOR;
+        $returnlimit = \core_search\manager::MAX_RESULTS;
 
         // Basic object to build query from
         $query = array('query' => array('bool' => array('must' => array())), 'size' => $returnlimit);
@@ -299,8 +289,12 @@ class engine extends \core_search\engine {
                     continue;
                 }
                 $access = $searcharea->check_access($result->_source->itemid);
-                if ($access == \core_search\manager::ACCESS_GRANTED){
+                if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit){
                     $docs[] = $this->to_document($searcharea, (array)$result->_source);
+                    $doccount++;
+                }
+                if ($access == \core_search\manager::ACCESS_GRANTED){
+                    $this->totalresultdocs++;
                 }
 
             }
