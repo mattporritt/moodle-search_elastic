@@ -6,7 +6,7 @@ notifications:
     recipients:
     - mattp@catalyst-au.net
 
-sudo: true
+sudo: required
 
 cache:
   directories:
