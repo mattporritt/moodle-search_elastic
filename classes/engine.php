@@ -227,10 +227,14 @@ class engine extends \core_search\engine {
     public function execute_query($filters, $usercontexts, $limit = 0) {
         $docs = array();
         $doccount = 0;
-        $url = $this->get_url(). $this->config->index . '/_search?pretty';
+        $url = $this->get_url() . '/'.  $this->config->index . '/_search?pretty';
         $client = new \curl();
 
         $returnlimit = \core_search\manager::MAX_RESULTS;
+
+        if ($limit == 0) {
+            $limit = $returnlimit;
+        }
 
         // Basic object to build query from.
         $query = array('query' => array('bool' => array('must' => array())), 'size' => $returnlimit);
@@ -280,7 +284,7 @@ class engine extends \core_search\engine {
                 $access = $searcharea->check_access($result->_source->itemid);
 
                 if ($access == \core_search\manager::ACCESS_DELETED) {
-                    $this->delete_by__typeid($result->_type, $result->_id);
+                    $this->delete_by_type_id($result->_type, $result->_id);
                 } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit) {
                     $docs[] = $this->to_document($searcharea, (array)$result->_source);
                     $doccount++;
@@ -338,14 +342,16 @@ class engine extends \core_search\engine {
             $query = array('query' => array(
                                 'bool' => array(
                                     'must' => array(
-                                        'match ' => array('areaid' => $areaid)
+                                        'match' => array('areaid' => $areaid)
                                     )
                                 )
                             ),
                            'fields' => array());
             $results = json_decode($client->post($url, json_encode($query)));
-            foreach ($results->hits->hits as $result) {
-                $this->delete_by_type_id($result->_type, $result->_id);
+            if (isset($results->hits)) {
+                foreach ($results->hits->hits as $result) {
+                    $this->delete_by_type_id($result->_type, $result->_id);
+                }
             }
         }
         return $returnval;

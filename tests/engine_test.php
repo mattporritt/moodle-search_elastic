@@ -53,7 +53,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
                 !defined('TEST_SEARCH_ELASTIC_PORT') ||
                 !defined('TEST_SEARCH_ELASTIC_INDEX')) {
                     $this->markTestSkipped('Elastic extension test server not set.');
-                }
+        }
 
         set_config('hostname', TEST_SEARCH_ELASTIC_HOSTNAME, 'search_elastic');
         set_config('port', TEST_SEARCH_ELASTIC_PORT, 'search_elastic');
@@ -68,10 +68,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $this->search->add_search_area($areaid, new core_mocksearch\search\mock_search_area());
 
         $this->setAdminUser();
-
-        // Cleanup before doing anything on it as the index it is out of this test control.
-        $this->search->delete_index();
-
+        $this->search->index(true);
     }
 
     public function tearDown() {
@@ -81,6 +78,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
             $this->generator->teardown();
             $this->generator = null;
         }
+        $this->engine->delete('core_mocksearch-mock_search_area');
     }
 
     /**
@@ -92,8 +90,43 @@ class search_elastic_engine_testcase extends advanced_testcase {
         );
     }
 
+    /**
+     * Basic ready state test,
+     * mostly for sanity checking
+     */
     public function test_connection() {
         $this->assertTrue($this->engine->is_server_ready());
+    }
+
+    /**
+     * Test the actual search functionality.
+     */
+    public function test_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "elastic";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'elastic';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        // Execute the search.
+        $results = $this->search->search($querydata);
+
+        // Check the results.
+        $this->assertEquals($results[0]->get('content'), $querydata->q);
+
     }
 
 }

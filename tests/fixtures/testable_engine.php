@@ -27,9 +27,6 @@ namespace search_elastic;
 defined('MOODLE_INTERNAL') || die;
 
 class testable_engine extends \search_elastic\engine {
-    /**
-     * Function that lets us update the internally cached config object of the engine.
-     */
     public function test_set_config($name, $value) {
         $this->config->$name = $value;
     }
