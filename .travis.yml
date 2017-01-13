@@ -50,7 +50,7 @@ before_install:
   - composer selfupdate
   - composer create-project -n --no-dev moodlerooms/moodle-plugin-ci ci ^1
   - export PATH="$(cd ci/bin; pwd):$(cd ci/vendor/bin; pwd):$PATH"
-  - curl -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/$ESVER/elasticsearch-$ESVER.deb && sudo dpkg -i --force-confnew elasticsearch-$ESVER.deb && sudo service elasticsearch restart
+  - curl -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/${ESVER}/elasticsearch-${ESVER}.deb && sudo dpkg -i --force-confnew elasticsearch-${ESVER}.deb && sudo service elasticsearch restart
 
 install:
   - moodle-plugin-ci install -vvv
