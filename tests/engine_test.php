@@ -51,20 +51,27 @@ class search_elastic_engine_testcase extends advanced_testcase {
 
         // Allow setting of test server info via Env Var or define
         // to cater for mulitiple test setups.
-        $hostname = defined('TEST_SEARCH_ELASTIC_HOSTNAME') ||
-                    $_ENV['TEST_SEARCH_ELASTIC_HOSTNAME'];
-        $port = defined('TEST_SEARCH_ELASTIC_PORT') ||
-                    $_ENV['TEST_SEARCH_ELASTIC_PORT'];
-        $index = defined('TEST_SEARCH_ELASTIC_INDEX') ||
-                    $_ENV['TEST_SEARCH_ELASTIC_INDEX'];
+        $hostname = getenv('TEST_SEARCH_ELASTIC_HOSTNAME');
+        $port = getenv('TEST_SEARCH_ELASTIC_PORT');
+        $index = getenv('TEST_SEARCH_ELASTIC_INDEX');
+
+        if(!$hostname && defined('TEST_SEARCH_ELASTIC_HOSTNAME')){
+            $hostname = TEST_SEARCH_ELASTIC_HOSTNAME;
+        }
+        if(!$port &&defined('TEST_SEARCH_ELASTIC_PORT')){
+            $port = TEST_SEARCH_ELASTIC_PORT;
+        }
+        if(!$index && defined('TEST_SEARCH_ELASTIC_INDEX')){
+            $index = TEST_SEARCH_ELASTIC_INDEX;
+        }
 
         if (!$hostname || !$port || !$index) {
             $this->markTestSkipped('Elastic extension test server not set.');
         }
 
-        set_config('hostname', TEST_SEARCH_ELASTIC_HOSTNAME, 'search_elastic');
-        set_config('port', TEST_SEARCH_ELASTIC_PORT, 'search_elastic');
-        set_config('index', TEST_SEARCH_ELASTIC_INDEX, 'search_elastic');
+        set_config('hostname', $hostname, 'search_elastic');
+        set_config('port', $port, 'search_elastic');
+        set_config('index', $index, 'search_elastic');
 
         $this->generator = self::getDataGenerator()->get_plugin_generator('core_search');
         $this->generator->setup();
