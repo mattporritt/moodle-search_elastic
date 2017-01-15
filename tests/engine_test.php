@@ -55,13 +55,13 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $port = getenv('TEST_SEARCH_ELASTIC_PORT');
         $index = getenv('TEST_SEARCH_ELASTIC_INDEX');
 
-        if(!$hostname && defined('TEST_SEARCH_ELASTIC_HOSTNAME')){
+        if (!$hostname && defined('TEST_SEARCH_ELASTIC_HOSTNAME')) {
             $hostname = TEST_SEARCH_ELASTIC_HOSTNAME;
         }
-        if(!$port &&defined('TEST_SEARCH_ELASTIC_PORT')){
+        if (!$port &&defined('TEST_SEARCH_ELASTIC_PORT')) {
             $port = TEST_SEARCH_ELASTIC_PORT;
         }
-        if(!$index && defined('TEST_SEARCH_ELASTIC_INDEX')){
+        if (!$index && defined('TEST_SEARCH_ELASTIC_INDEX')) {
             $index = TEST_SEARCH_ELASTIC_INDEX;
         }
 
