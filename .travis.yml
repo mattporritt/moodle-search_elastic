@@ -16,19 +16,29 @@ php:
  - 5.6
 
 env:
+ global:
+   - TEST_SEARCH_ELASTIC_HOSTNAME=http://127.0.0.1
+   - TEST_SEARCH_ELASTIC_PORT=9200
+   - TEST_SEARCH_ELASTIC_INDEX=moodle_test
  matrix:
-  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.3.4
-  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.4.4
-  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.3.4
-  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.4.4
-  - DB=pgsql MOODLE_BRANCH=master ESVER=2.3.4
-  - DB=pgsql MOODLE_BRANCH=master ESVER=2.4.4
-  - DB=mysqli MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.3.4
-  - DB=mysqli MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.4.4
-  - DB=mysqli MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.3.4
-  - DB=mysqli MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.4.4
-  - DB=mysqli MOODLE_BRANCH=master ESVER=2.3.4
-  - DB=mysqli MOODLE_BRANCH=master ESVER=2.4.4
+  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
+  - DB=pgsql MOODLE_BRANCH=master ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+  - DB=pgsql MOODLE_BRANCH=master ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
+  - DB=pgsql MOODLE_BRANCH=master ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
+  - DB=mysqli MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+  - DB=mysqli MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
+  - DB=mysqli MOODLE_BRANCH=MOODLE_31_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
+  - DB=mysqli MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+  - DB=mysqli MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
+  - DB=mysqli MOODLE_BRANCH=MOODLE_32_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
+  - DB=mysqli MOODLE_BRANCH=master ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+  - DB=mysqli MOODLE_BRANCH=master ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
+  - DB=mysqli MOODLE_BRANCH=master ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
 
 matrix:
   include:
@@ -50,7 +60,7 @@ before_install:
   - composer selfupdate
   - composer create-project -n --no-dev moodlerooms/moodle-plugin-ci ci ^1
   - export PATH="$(cd ci/bin; pwd):$(cd ci/vendor/bin; pwd):$PATH"
-  - curl -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/${ESVER}/elasticsearch-${ESVER}.deb && sudo dpkg -i --force-confnew elasticsearch-${ESVER}.deb && sudo service elasticsearch restart
+  - curl -O ${ESURL} && sudo dpkg -i --force-confnew elasticsearch-${ESVER}.deb && sudo service elasticsearch restart
 
 install:
   - moodle-plugin-ci install -vvv

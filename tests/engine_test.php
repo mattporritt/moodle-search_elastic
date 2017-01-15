@@ -49,19 +49,22 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $this->resetAfterTest();
         set_config('enableglobalsearch', true);
 
-//         if (!defined('TEST_SEARCH_ELASTIC_HOSTNAME') ||
-//                 !defined('TEST_SEARCH_ELASTIC_PORT') ||
-//                 !defined('TEST_SEARCH_ELASTIC_INDEX')) {
-//                     $this->markTestSkipped('Elastic extension test server not set.');
-//         }
+        // Allow setting of test server info via Env Var or define
+        // to cater for mulitiple test setups.
+        $hostname = defined('TEST_SEARCH_ELASTIC_HOSTNAME') ||
+                    $_ENV['TEST_SEARCH_ELASTIC_HOSTNAME'];
+        $port = defined('TEST_SEARCH_ELASTIC_PORT') ||
+                    $_ENV['TEST_SEARCH_ELASTIC_PORT'];
+        $index = defined('TEST_SEARCH_ELASTIC_INDEX') ||
+                    $_ENV['TEST_SEARCH_ELASTIC_INDEX'];
 
-//         set_config('hostname', TEST_SEARCH_ELASTIC_HOSTNAME, 'search_elastic');
-//         set_config('port', TEST_SEARCH_ELASTIC_PORT, 'search_elastic');
-//         set_config('index', TEST_SEARCH_ELASTIC_INDEX, 'search_elastic');
+        if (!$hostname || !$port || !$index) {
+            $this->markTestSkipped('Elastic extension test server not set.');
+        }
 
-        set_config('hostname', 'http://127.0.0.1', 'search_elastic');
-        set_config('port', 9200, 'search_elastic');
-        set_config('index', 'moodle_test', 'search_elastic');
+        set_config('hostname', TEST_SEARCH_ELASTIC_HOSTNAME, 'search_elastic');
+        set_config('port', TEST_SEARCH_ELASTIC_PORT, 'search_elastic');
+        set_config('index', TEST_SEARCH_ELASTIC_INDEX, 'search_elastic');
 
         $this->generator = self::getDataGenerator()->get_plugin_generator('core_search');
         $this->generator->setup();
