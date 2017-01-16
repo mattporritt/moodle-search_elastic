@@ -1,5 +1,9 @@
 
 language: php
+addons:
+  apt:
+    packages:
+      - oracle-java8-set-default
 
 notifications:
   email:
@@ -54,7 +58,6 @@ matrix:
 
 
 before_install:
-  - sudo apt-get install openjdk-8-jre
   - curl -O ${ESURL} && sudo dpkg -i --force-confnew elasticsearch-${ESVER}.deb && sudo service elasticsearch restart
   - cd ../..
   - composer selfupdate
