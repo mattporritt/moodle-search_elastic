@@ -206,7 +206,7 @@ class engine extends \core_search\engine {
      * Takes supplied user contexts from Moodle search core
      * and constructs the corresponding part of the
      * search query.
-     * 
+     *
      * @param array $usercontexts
      * @return array
      */
