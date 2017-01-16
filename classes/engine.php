@@ -17,6 +17,13 @@
 /**
  * Elasticsearch engine.
  *
+ * Provides an interface between Moodles Global search functionality
+ * and the Elasticsearch (https://www.elastic.co/products/elasticsearch)
+ * search engine.
+ *
+ * Elasticsearch presents a REST Webservice API that we communicate with
+ * via Curl.
+ *
  * @package     search_elastic
  * @copyright   Matt Porritt <mattp@catalyst-au.net>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -124,15 +131,23 @@ class engine extends \core_search\engine {
         }
     }
 
+    /**
+     * Return a count of total records for the most recently completed
+     * execute_query().
+     * Must be implemented to return the number of results that available
+     * for the most recent call to execute_query().
+     * This is used to determine how many pages will be displayed in the paging bar.
+     * For more discussion see MDL-53758.
+     *
+     * @return int
+     */
     public function get_query_total_count() {
-        // Return an approximate count of total records for the most recently completed execute_query().
-        // Must be implemented to return the number of results that available for the most recent call to execute_query().
-        // This is used to determine how many pages will be displayed in the paging bar. For more discussion see MDL-53758.
-
         return $this->totalresultdocs;
-
     }
 
+    /**
+     * Add a document to the index
+     */
     public function add_document($document, $fileindexing = false) {
         $docdata = $document->export_for_engine();
         $url = $this->get_url();
@@ -149,7 +164,7 @@ class engine extends \core_search\engine {
     }
 
     /**
-     * Get s an array of fields to search.
+     * Gets an array of fields to search.
      * The returned fields are what the 'q' string is matched against in a search.
      * It makes sense to not search every field here, so some are removed.
      *
@@ -171,6 +186,14 @@ class engine extends \core_search\engine {
         return array_values($searchfields);
     }
 
+    /**
+     * Takes the search string the user has entered
+     * and constructs the corresponding part of the
+     * search query.
+     *
+     * @param string $q
+     * @return array
+     */
     private function construct_q($q) {
 
         $searchfields = $this->get_search_fields();
@@ -179,6 +202,14 @@ class engine extends \core_search\engine {
         return $qobj;
     }
 
+    /**
+     * Takes supplied user contexts from Moodle search core
+     * and constructs the corresponding part of the
+     * search query.
+     * 
+     * @param array $usercontexts
+     * @return array
+     */
     private function construct_contexts($usercontexts) {
         $contextobj = array();
 
@@ -190,6 +221,14 @@ class engine extends \core_search\engine {
         return $contextobj;
     }
 
+    /**
+     * Takes the form submission filter data and given a key value
+     * constructs a single match component for the search query.
+     *
+     * @param array $filters
+     * @param string $key
+     * @return array
+     */
     private function construct_value($filters, $key) {
         $value = $filters->$key;
         $valueobj = array('match' => array($key => $value));
@@ -197,6 +236,14 @@ class engine extends \core_search\engine {
         return $valueobj;
     }
 
+    /**
+     * Takes the form submission filter data and given a key value
+     * constructs an array of match components for the search query.
+     *
+     * @param array $filters
+     * @param string $key
+     * @return array
+     */
     private function construct_array($filters, $key) {
         $arrayobj = array();
         $values = $filters->$key;
@@ -209,6 +256,13 @@ class engine extends \core_search\engine {
         return $arrayobj;
     }
 
+    /**
+     * Takes the form submission filter data and
+     * constructs the time range components for the search query.
+     *
+     * @param array $filters
+     * @return array
+     */
     private function construct_time_range($filters) {
         $contextobj = array('range' => array('modified' => array()));
 
@@ -222,6 +276,17 @@ class engine extends \core_search\engine {
         return $contextobj;
     }
 
+    /**
+     * Takes the user supplied query as well as data from Moodle global
+     * search core to construct the search query and execute the query
+     * against the search engine.
+     * Returns an array of matching result documents.
+     *
+     * @param array $filters
+     * @param array $usercontexts
+     * @param int $limit
+     * @return array $docs
+     */
     public function execute_query($filters, $usercontexts, $limit = 0) {
         $docs = array();
         $doccount = 0;
