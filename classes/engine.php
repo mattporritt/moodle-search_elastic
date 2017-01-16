@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Solr engine.
+ * Elasticsearch engine.
  *
  * @package     search_elastic
  * @copyright   Matt Porritt <mattp@catalyst-au.net>
@@ -25,7 +25,6 @@
 namespace search_elastic;
 
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot.'/lib/filelib.php');
 
 class engine extends \core_search\engine {
 
@@ -61,14 +60,14 @@ class engine extends \core_search\engine {
         $returnval = false;
         $response = 404;
         $url = $this->get_url();
-        $client = new \curl();
+        $client = new elastic_curl();
 
         if (!empty($this->config->index) && $url) {
             $index = $url . '/'. $this->config->index;
             $client->get($index);
             $response = $client->info['http_code'];
         }
-        if ($response === 200) {
+        if ($response == 200) {
             $returnval = true;
         }
 
@@ -80,11 +79,10 @@ class engine extends \core_search\engine {
      */
     private function create_index() {
         $url = $this->get_url();
-        $client = new \curl();
-
+        $client = new elastic_curl();
         if (!empty($this->config->index) && $url) {
             $index = $url . '/'. $this->config->index;
-            $response = $client->post($index);
+            $response = $client->put($index);
         } else {
             throw new \moodle_exception('noconfig', 'search_elastic', '');
         }
@@ -103,7 +101,7 @@ class engine extends \core_search\engine {
     public function is_server_ready() {
         $url = $this->get_url();
         $returnval = true;
-        $client = new \curl();
+        $client = new elastic_curl();
 
         if (!$url) {
             $returnval = get_string('noconfig', 'search_elastic');
@@ -141,7 +139,7 @@ class engine extends \core_search\engine {
         $docurl = $url . '/'. $this->config->index . '/'.$docdata['id'];
         $jsondoc = json_encode($docdata);
 
-        $client = new \curl();
+        $client = new elastic_curl();
         $response = $client->post($docurl, $jsondoc);
 
         if ($client->info['http_code'] !== 201) {
@@ -228,7 +226,7 @@ class engine extends \core_search\engine {
         $docs = array();
         $doccount = 0;
         $url = $this->get_url() . '/'.  $this->config->index . '/_search?pretty';
-        $client = new \curl();
+        $client = new elastic_curl();
 
         $returnlimit = \core_search\manager::MAX_RESULTS;
 
@@ -309,7 +307,7 @@ class engine extends \core_search\engine {
     public function delete_by_type_id($type, $id) {
         $url = $this->get_url();
         $deleteurl = $url . '/'. $this->config->index . '/'. $type . '/'. $id;
-        $client = new \curl();
+        $client = new elastic_curl();
 
         $client->delete($deleteurl);
     }
@@ -321,7 +319,7 @@ class engine extends \core_search\engine {
     public function delete($areaid = false) {
         $url = $this->get_url();
         $indexeurl = $url . '/'. $this->config->index;
-        $client = new \curl();
+        $client = new elastic_curl();
         $returnval = false;
 
         if ($areaid === false) {
@@ -386,7 +384,7 @@ class engine extends \core_search\engine {
      */
     public function optimize() {
         $url = $this->get_url(). $this->config->index . '/_forcemerge';
-        $client = new \curl();
+        $client = new elastic_curl();
 
         $client->post($url);
     }
