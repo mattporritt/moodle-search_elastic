@@ -1,6 +1,9 @@
 
 language: php
 
+jdk:
+  - openjdk8
+
 notifications:
   email:
     recipients:
