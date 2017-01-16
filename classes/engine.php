@@ -60,7 +60,7 @@ class engine extends \core_search\engine {
         $returnval = false;
         $response = 404;
         $url = $this->get_url();
-        $client = new elastic_curl();
+        $client = new \search_elastic\elastic_curl();
 
         if (!empty($this->config->index) && $url) {
             $index = $url . '/'. $this->config->index;
@@ -79,7 +79,7 @@ class engine extends \core_search\engine {
      */
     private function create_index() {
         $url = $this->get_url();
-        $client = new elastic_curl();
+        $client = new \search_elastic\elastic_curl();
         if (!empty($this->config->index) && $url) {
             $index = $url . '/'. $this->config->index;
             $response = $client->put($index);
@@ -101,7 +101,7 @@ class engine extends \core_search\engine {
     public function is_server_ready() {
         $url = $this->get_url();
         $returnval = true;
-        $client = new elastic_curl();
+        $client = new \search_elastic\elastic_curl();
 
         if (!$url) {
             $returnval = get_string('noconfig', 'search_elastic');
@@ -139,7 +139,7 @@ class engine extends \core_search\engine {
         $docurl = $url . '/'. $this->config->index . '/'.$docdata['id'];
         $jsondoc = json_encode($docdata);
 
-        $client = new elastic_curl();
+        $client = new \search_elastic\elastic_curl();
         $response = $client->post($docurl, $jsondoc);
 
         if ($client->info['http_code'] !== 201) {
@@ -226,7 +226,7 @@ class engine extends \core_search\engine {
         $docs = array();
         $doccount = 0;
         $url = $this->get_url() . '/'.  $this->config->index . '/_search?pretty';
-        $client = new elastic_curl();
+        $client = new \search_elastic\elastic_curl();
 
         $returnlimit = \core_search\manager::MAX_RESULTS;
 
@@ -307,7 +307,7 @@ class engine extends \core_search\engine {
     public function delete_by_type_id($type, $id) {
         $url = $this->get_url();
         $deleteurl = $url . '/'. $this->config->index . '/'. $type . '/'. $id;
-        $client = new elastic_curl();
+        $client = new \search_elastic\elastic_curl();
 
         $client->delete($deleteurl);
     }
@@ -319,7 +319,7 @@ class engine extends \core_search\engine {
     public function delete($areaid = false) {
         $url = $this->get_url();
         $indexeurl = $url . '/'. $this->config->index;
-        $client = new elastic_curl();
+        $client = new \search_elastic\elastic_curl();
         $returnval = false;
 
         if ($areaid === false) {
@@ -384,7 +384,7 @@ class engine extends \core_search\engine {
      */
     public function optimize() {
         $url = $this->get_url(). $this->config->index . '/_forcemerge';
-        $client = new elastic_curl();
+        $client = new \search_elastic\elastic_curl();
 
         $client->post($url);
     }

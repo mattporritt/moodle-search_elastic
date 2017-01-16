@@ -65,6 +65,9 @@ before_install:
 install:
   - moodle-plugin-ci install -vvv
 
+before_script:
+  - sleep 10
+
 script:
   - moodle-plugin-ci phplint
   - moodle-plugin-ci phpcpd
