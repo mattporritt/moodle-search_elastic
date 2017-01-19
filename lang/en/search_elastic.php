@@ -25,6 +25,10 @@
 $string['pluginname'] = 'Elastic';
 $string['pluginname_desc'] = 'Search backend for the Elasticsearch search engine';
 
+$string['fileindexing'] = 'Enable file indexing';
+$string['fileindexing_help'] = 'If your Elasticsearch install supports it, this feature allows Moodle to send files to be indexed.';
+$string['fileindexsettings'] = 'File indexing settings';
+$string['fileindexsettings_desc'] = 'Configure file indexing for the Elasticsearch search engine';
 $string['hostname'] = 'Hostname';
 $string['hostname_desc'] = 'The FQDN of the Elasticsearch engine endpoint';
 $string['index'] = 'Index';
@@ -40,3 +44,7 @@ $string['searchinfo_help'] = 'The field to be searched may be specified by prefi
 Boolean operators (\'AND\', \'OR\') may be used to combine or exclude keywords.
 
 Wildcard characters (\'*\' or \'?\' ) may be used to represent characters in the search query.';
+$string['tikahostname'] = 'Tika Hostname';
+$string['tikahostname_desc'] = 'The FQDN of the Apache Tika endpoint';
+$string['tikaport'] = 'Tika Port';
+$string['tikaport_desc'] = 'The Port of the Apache Tika endpoint';

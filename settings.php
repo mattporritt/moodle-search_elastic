@@ -43,5 +43,23 @@ if ($ADMIN->fulltree) {
                 get_string('index_desc', 'search_elastic'),
                 'moodle', PARAM_ALPHANUMEXT));
 
+        $settings->add(new admin_setting_heading('search_elastic_fileindexing',
+                get_string('fileindexsettings', 'search_elastic'),
+                get_string('fileindexsettings_desc', 'search_elastic')
+                ));
+        $settings->add(new admin_setting_configcheckbox('search_elastic/fileindexing',
+                get_string('fileindexing', 'search_elastic'),
+                get_string('fileindexing_help', 'search_elastic'), 1));
+
+        $settings->add(new admin_setting_configtext('search_elastic/tikahostname',
+                get_string('tikahostname', 'search_elastic' ),
+                get_string('tikahostname_desc', 'search_elastic'),
+                'http://127.0.0.1', PARAM_URL));
+
+        $settings->add(new admin_setting_configtext('search_elastic/tikaport',
+                get_string('tikaport', 'search_elastic' ),
+                get_string('tikaport_desc', 'search_elastic'),
+                9998, PARAM_INT));
+
     }
 }

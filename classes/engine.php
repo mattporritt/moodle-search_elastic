@@ -132,6 +132,45 @@ class engine extends \core_search\engine {
     }
 
     /**
+     * Get the currently indexed files for a particular document, returns the total count, and a subset of files.
+     *
+     * @param document $document
+     * @param int      $start The row to start the results on. Zero indexed.
+     * @param int      $rows The number of rows to fetch
+     * @return array   A two element array, the first is the total number of availble results, the second is an array
+     *                 of documents for the current request.
+     */
+    private function get_indexed_files($document, $start = 0, $rows = 500) {
+        $url = $this->get_url();
+        $indexeurl = $url . '/'. $this->config->index. '/_search?pretty';
+        $client = new \search_elastic\elastic_curl();
+
+        $query = array('query' => array(
+                'bool' => array(
+                        'must' => array(
+                                'match' => array('type' => 2)
+                                )
+                        )
+                ),
+                'fields' => array('id',
+                                  'modified',
+                                  'filecontenthash',
+                                  'title'),
+                'from' => $start,
+                'size' => $rows,
+                );
+        $results = json_decode($client->post($indexeurl, json_encode($query)));
+
+        if (!isset($results->hits)) {
+            $returnarray = array(0, array());
+        } else {
+            $returnarray = array($results->hits->total, $results->hits->hits);
+        }
+
+        return $returnarray;
+
+    }
+    /**
      * Return a count of total records for the most recently completed
      * execute_query().
      * Must be implemented to return the number of results that available
@@ -143,6 +182,75 @@ class engine extends \core_search\engine {
      */
     public function get_query_total_count() {
         return $this->totalresultdocs;
+    }
+
+    /**
+     * Add files to the index
+     */
+    private function process_document_files($document) {
+        // TODO: refactor this whole nested mess of code.
+
+        $url = $this->get_url();
+        $rows = 500; // Maximum rows to process at a time.
+        $files = $document->get_files(); // Get the attached files.
+
+        // Handle already indexed Files.
+        // If this isn't a new document, we need to check the exiting indexed files.
+        if (!$document->get_is_new()) {
+
+            // We do this progressively, so we can handle lots of files cleanly.
+            list($numfound, $indexedfiles) = $this->get_indexed_files($document, 0, $rows);
+            $count = 0;
+            $idstodelete = array();
+
+            do {
+                // Go through each indexed file. We want to not index any stored and unchanged ones, delete any missing ones.
+                foreach ($indexedfiles as $indexedfile) {
+                    $fileid = $indexedfile->fields->id[0];
+
+                    if (isset($files[$fileid])) {
+                        // Check for changes that would mean we need to re-index the file. If so, just leave in $files.
+                        // Filelib does not guarantee time modified is updated, so we will check important values.
+                        if ($indexedfile->fields->modified[0] != $files[$fileid]->get_timemodified()) {
+                            continue;
+                        }
+                        if (strcmp($indexedfile->fields->title[0], $files[$fileid]->get_filename()) !== 0) {
+                            continue;
+                        }
+                        if ($indexedfile->fields->filecontenthash[0] != $files[$fileid]->get_contenthash()) {
+                            continue;
+                        }
+                        // If the file is already indexed, we can just remove it from the files array and skip it.
+                        unset($files[$fileid]);
+                    } else {
+                        // This means we have found a file that is no longer attached, so we need to delete from the index.
+                        // We do it later, since this is progressive, and it could reorder results.
+                        $idstodelete[] = $indexedfile->fields->id[0];
+                    }
+                }
+                $count += $rows;
+
+                if ($count < $numfound) {
+                    // If we haven't hit the total count yet, fetch the next batch.
+                    list($numfound, $indexedfiles) = $this->get_indexed_files($document, $count, $rows);
+                }
+            } while ($count < $numfound);
+
+            // Delete files that are no longer attached.
+            foreach ($idstodelete as $id) {
+                // We directly delete the item using the client, as the engine delete_by_id won't work on file docs.
+                $this->delete_by_type_id($id, $id);
+            }
+
+        }
+
+        foreach ($files as $file) {
+            $filedoc = $document->export_file_for_engine($file);
+            $docurl = $url . '/'. $this->config->index . '/'.$filedoc['id'];
+            $jsondoc = json_encode($filedoc);
+            $client = new \search_elastic\elastic_curl();
+            $response = $client->post($docurl, $jsondoc);
+        }
     }
 
     /**
@@ -161,6 +269,11 @@ class engine extends \core_search\engine {
             throw new \moodle_exception('addfail', 'search_elastic', '', '', $response);
         }
 
+        if ($fileindexing) {
+            // This will take care of updating all attached files in the index.
+            $this->process_document_files($document);
+        }
+
     }
 
     /**
@@ -172,6 +285,7 @@ class engine extends \core_search\engine {
      */
     private function get_search_fields() {
         $allfields = array_keys( \core_search\document::get_default_fields_definition());
+        array_push($allfields, 'filetext');
         $excludedfields = array('itemid',
                                 'areaid',
                                 'courseid',
@@ -300,7 +414,10 @@ class engine extends \core_search\engine {
         }
 
         // Basic object to build query from.
-        $query = array('query' => array('bool' => array('must' => array())), 'size' => $returnlimit);
+        $query = array('query' => array('bool' => array('must' => array())),
+                       'size' => $returnlimit,
+                       '_source' => array('excludes' => array('filetext'))
+        );
 
         // Add query text.
         $q = $this->construct_q($filters->q);
@@ -427,15 +544,27 @@ class engine extends \core_search\engine {
      * @return bool
      */
     public function file_indexing_enabled() {
-        // There are a couple of ways to get this working with Elasticsearch.
-        // There is the Elasticsearch Mapper plugin (https://github.com/elastic/elasticsearch-mapper-attachments)
-        // that requires installing a plugin to elasticsearch. This isn't possible in AWS.
-        // The mapper plugin is just a thing wrapper arround Apache Tika: https://tika.apache.org/ and
-        // Tika exposes a REST API that we can access directly.
-        //
-        // I think we should just query the Tika API directly, this will basically
-        // involve passing the file off to Tika and indexing the result we get back.
-        return false;
+        $returnval = false;
+        $client = new \search_elastic\elastic_curl();
+        $url = '';
+        // Check if we have a valid set of config.
+        if (!empty($this->config->tikahostname) &&
+            !empty($this->config->tikaport &&
+            (bool)$this->config->fileindexing)) {
+                $port = $this->config->port;
+                $hostname = rtrim($this->config->hostname, "/");
+                $url = $hostname . ':'. $port;
+        }
+
+        // Check we can reach Tika server.
+        if ($url !== '') {
+            $client->get($url);
+            if ($client->info['http_code'] == 200) {
+                $returnval = true;
+            }
+        }
+
+        return $returnval;
     }
 
     /**
