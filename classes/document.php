@@ -65,6 +65,7 @@ class document extends \core_search\document {
         $data['title'] = $file->get_filename();
         $data['modified'] = $file->get_timemodified();
         $data['filetext'] = $filetext;
+        $data['filecontenthash'] = $file->get_contenthash();
 
         return $data;
     }
