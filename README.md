@@ -23,7 +23,36 @@ Currently this plugin is tested to work against the following versions of Elasti
 * 5.1.2
 
 ## File Indexing Support
-File indexing is currently not supported by this plugin.
+This plugin uses [Apache Tika](https://tika.apache.org/) for file indexing support. Tika parses files, extracts the text, and return it via a REST API.
+
+### Tika Setup
+Seting up a Tika test service is straight forward. In most cases on a Linux environment, you can simply download the Java JAR then run the service.
+`wget http://apache.mirror.amaze.com.au/tika/tika-server-1.14.jar`
+`java -jar tika-server-1.14.jar`
+This will start Tika on the host. By default the Tika service is available on: `http://localhost:9998`
+
+### Enabling File indexing support in Moodle
+Once a Tika service is available the Elasticsearch plugin in Moodle needs to be configure for file indexing support.
+Assuming you have already followed the basic installation steps, to enable file indexing support:
+1. Configure the Elasticsearch plugin at: *Site administration > Plugins > Search > Elastic*
+2. Select the *Enable file indexing* checkbox.
+3. Set *Tika hostname* and *Tika port* of your Tika service. If you followed the basic Tika setup instructions the defaults should not need changing.
+4. Click the *Save Changes* button.
+
+### What is Tika
+From the [Apache Tika](https://tika.apache.org/) website:
+<blockquote>
+The Apache Tika™ toolkit detects and extracts metadata and text from over a thousand different file types (such as PPT, XLS, and PDF). All of these file types can be parsed through a single interface, making Tika useful for search engine indexing, content analysis, translation, and much more. You can find the latest release on the download page. Please see the Getting Started page for more information on how to start using Tika.
+</blockquote>
+
+### Why use Tika as a standalone service?
+It is common to see Elasticsearch implementations using an Elasticsearch file indexing plugin rather than a standalone service. Current Elasticsearch plugins are a wrapper arround Tika. (The Solr search engine also uses Tika).
+Using Tika as a standalone service has the following advantages:
+
+* Can support file indexing for Elasticsearch setups that don't support file indexing plugins such as AWS.
+* No need to chagne setup or plugins based on Elasticsearch version.
+* You can share one Tika service across multiple Elasticsearch clusters.
+* Can run Tika on dedicated infrastrucutre that is not part of your search nodes.
 
 ## Test Setup
 In order to run the PHP Unit tests for this plugin you need to setup and configure an Elasticsearch instance as will as supply the instance details to Moodle.

@@ -49,7 +49,7 @@ if ($ADMIN->fulltree) {
                 ));
         $settings->add(new admin_setting_configcheckbox('search_elastic/fileindexing',
                 get_string('fileindexing', 'search_elastic'),
-                get_string('fileindexing_help', 'search_elastic'), 1));
+                get_string('fileindexing_help', 'search_elastic'), 0));
 
         $settings->add(new admin_setting_configtext('search_elastic/tikahostname',
                 get_string('tikahostname', 'search_elastic' ),
