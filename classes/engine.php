@@ -146,6 +146,22 @@ class engine extends \core_search\engine {
     }
 
     /**
+     * Add files to the index
+     */
+    private function process_document_files($document) {
+        $url = $this->get_url();
+
+        $files = $document->get_files();
+        foreach ($files as $file) {
+            $filedoc = $document->export_file_for_engine($file);
+            $docurl = $url . '/'. $this->config->index . '/'.$filedoc['id'];
+            $jsondoc = json_encode($filedoc);
+            $client = new \search_elastic\elastic_curl();
+            $response = $client->post($docurl, $jsondoc);
+        }
+    }
+
+    /**
      * Add a document to the index
      */
     public function add_document($document, $fileindexing = false) {
@@ -161,6 +177,11 @@ class engine extends \core_search\engine {
             throw new \moodle_exception('addfail', 'search_elastic', '', '', $response);
         }
 
+        if ($fileindexing) {
+            // This will take care of updating all attached files in the index.
+            $this->process_document_files($document);
+        }
+
     }
 
     /**
@@ -172,6 +193,7 @@ class engine extends \core_search\engine {
      */
     private function get_search_fields() {
         $allfields = array_keys( \core_search\document::get_default_fields_definition());
+        array_push($allfields, 'filetext');
         $excludedfields = array('itemid',
                                 'areaid',
                                 'courseid',
@@ -206,7 +228,7 @@ class engine extends \core_search\engine {
      * Takes supplied user contexts from Moodle search core
      * and constructs the corresponding part of the
      * search query.
-     * 
+     *
      * @param array $usercontexts
      * @return array
      */
@@ -300,7 +322,10 @@ class engine extends \core_search\engine {
         }
 
         // Basic object to build query from.
-        $query = array('query' => array('bool' => array('must' => array())), 'size' => $returnlimit);
+        $query = array('query' => array('bool' => array('must' => array())),
+                       'size' => $returnlimit,
+                       '_source' => array('excludes' => array('filetext'))
+        );
 
         // Add query text.
         $q = $this->construct_q($filters->q);
@@ -427,15 +452,27 @@ class engine extends \core_search\engine {
      * @return bool
      */
     public function file_indexing_enabled() {
-        // There are a couple of ways to get this working with Elasticsearch.
-        // There is the Elasticsearch Mapper plugin (https://github.com/elastic/elasticsearch-mapper-attachments)
-        // that requires installing a plugin to elasticsearch. This isn't possible in AWS.
-        // The mapper plugin is just a thing wrapper arround Apache Tika: https://tika.apache.org/ and
-        // Tika exposes a REST API that we can access directly.
-        //
-        // I think we should just query the Tika API directly, this will basically
-        // involve passing the file off to Tika and indexing the result we get back.
-        return false;
+        $returnval = false;
+        $client = new \search_elastic\elastic_curl();
+        $url = '';
+        // Check if we have a valid set of config.
+        if (!empty($this->config->tikahostname) &&
+            !empty($this->config->tikaport &&
+            (bool)$this->config->fileindexing)) {
+                $port = $this->config->port;
+                $hostname = rtrim($this->config->hostname, "/");
+                $url = $hostname . ':'. $port;
+        }
+
+        // Check we can reach Tika server.
+        if ($url !== '') {
+            $client->get($url);
+            if ($client->info['http_code'] == 200) {
+                $returnval = true;
+            }
+        }
+
+        return $returnval;
     }
 
     /**
