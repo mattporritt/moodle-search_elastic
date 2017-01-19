@@ -61,6 +61,7 @@ class document extends \core_search\document {
         unset($data['description1']);
         unset($data['description2']);
 
+        $data['id'] = $file->get_id();
         $data['type'] = \core_search\manager::TYPE_FILE;
         $data['title'] = $file->get_filename();
         $data['modified'] = $file->get_timemodified();
