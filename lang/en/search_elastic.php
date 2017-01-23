@@ -44,6 +44,18 @@ $string['searchinfo_help'] = 'The field to be searched may be specified by prefi
 Boolean operators (\'AND\', \'OR\') may be used to combine or exclude keywords.
 
 Wildcard characters (\'*\' or \'?\' ) may be used to represent characters in the search query.';
+$string['signing'] = 'Enable request signing';
+$string['signing_desc'] = 'When enabled Moodle will sign each request to Elasticsearch with the credentials below';
+$string['signingkeyid'] = 'Key ID';
+$string['signingkeyid_desc'] = 'The ID of the key to use for signing requests.';
+$string['signingsecretkey'] = 'Secret Key';
+$string['signingsecretkey_desc'] = 'The secret key to use to sign requests.';
+$string['signingsettings'] = 'Request signing settings';
+$string['signingsettings_desc'] = 'If your Elasticsearch setup uses Request Signing enable and configure it below. 
+
+This generally only applies if you are using Amaxon Web Service (AWS) to provide your Elasticsearch Endpoint';
+$string['region'] = 'Region';
+$string['region_desc'] = 'The AWS region the Elasticsearch instance is in, e.g. ap-southeast-2';
 $string['tikahostname'] = 'Tika Hostname';
 $string['tikahostname_desc'] = 'The FQDN of the Apache Tika endpoint';
 $string['tikaport'] = 'Tika Port';

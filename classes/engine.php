@@ -67,14 +67,15 @@ class engine extends \core_search\engine {
         $returnval = false;
         $response = 404;
         $url = $this->get_url();
-        $client = new \search_elastic\elastic_curl();
+        $client = new \search_elastic\esrequest();
 
         if (!empty($this->config->index) && $url) {
             $index = $url . '/'. $this->config->index;
-            $client->get($index);
-            $response = $client->info['http_code'];
+            $response = $client->get($index);
+            $responsecode = $response->getStatusCode();
+
         }
-        if ($response == 200) {
+        if ($responsecode == 200) {
             $returnval = true;
         }
 
@@ -86,14 +87,15 @@ class engine extends \core_search\engine {
      */
     private function create_index() {
         $url = $this->get_url();
-        $client = new \search_elastic\elastic_curl();
+        $client = new \search_elastic\esrequest();
         if (!empty($this->config->index) && $url) {
             $index = $url . '/'. $this->config->index;
             $response = $client->put($index);
+            $responsecode = $response->getStatusCode();
         } else {
             throw new \moodle_exception('noconfig', 'search_elastic', '');
         }
-        if ($client->info['http_code'] !== 200) {
+        if ($responsecode !== 200) {
             throw new \moodle_exception('indexfail', 'search_elastic', '');
         }
 
@@ -108,11 +110,13 @@ class engine extends \core_search\engine {
     public function is_server_ready() {
         $url = $this->get_url();
         $returnval = true;
-        $client = new \search_elastic\elastic_curl();
+        $client = new \search_elastic\esrequest();
+        $response = $client->get($url);
+        $responsebody = $response->getBody(true);
 
         if (!$url) {
             $returnval = get_string('noconfig', 'search_elastic');
-        } else if (!(bool)json_decode($client->get($url))) {
+        } else if (!(bool)json_decode($responsebody)) {
             $returnval = get_string('noserver', 'search_elastic');
         }
 

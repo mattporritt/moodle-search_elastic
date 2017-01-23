@@ -28,6 +28,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('search_elastic_settings', '', get_string('pluginname_desc', 'search_elastic')));
 
     if (! during_initial_install ()) {
+        // Basic settings.
         $settings->add(new admin_setting_configtext('search_elastic/hostname',
                 get_string('hostname', 'search_elastic' ),
                 get_string('hostname_desc', 'search_elastic'),
@@ -43,6 +44,7 @@ if ($ADMIN->fulltree) {
                 get_string('index_desc', 'search_elastic'),
                 'moodle', PARAM_ALPHANUMEXT));
 
+        // File indexing settings.
         $settings->add(new admin_setting_heading('search_elastic_fileindexing',
                 get_string('fileindexsettings', 'search_elastic'),
                 get_string('fileindexsettings_desc', 'search_elastic')
@@ -60,6 +62,29 @@ if ($ADMIN->fulltree) {
                 get_string('tikaport', 'search_elastic' ),
                 get_string('tikaport_desc', 'search_elastic'),
                 9998, PARAM_INT));
+
+        // Request Signing settings.
+        $settings->add(new admin_setting_heading('search_elastic_signing',
+                get_string('signingsettings', 'search_elastic'),
+                get_string('signingsettings_desc', 'search_elastic')
+                ));
+        $settings->add(new admin_setting_configcheckbox('search_elastic/signing',
+                get_string('signing', 'search_elastic'),
+                get_string('signing_desc', 'search_elastic'), 0));
+
+        $settings->add(new admin_setting_configtext('search_elastic/keyid',
+                get_string('signingkeyid', 'search_elastic' ),
+                get_string('signingkeyid_desc', 'search_elastic'),
+                '', PARAM_TEXT));
+
+        $settings->add(new admin_setting_configtext('search_elastic/secretkey',
+                 get_string('signingsecretkey', 'search_elastic' ),
+                 get_string('signingsecretkey_desc', 'search_elastic'),
+                 '', PARAM_TEXT));
+        $settings->add(new admin_setting_configtext('search_elastic/region',
+                 get_string('region', 'search_elastic' ),
+                 get_string('region_desc', 'search_elastic'),
+                 '', PARAM_TEXT));
 
     }
 }

@@ -15,15 +15,27 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info.
- *
- * @package     search_elastic
- * @copyright   Matt Porritt <mattp@catalyst-au.net>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+ * Elastic search engine unit tests.
+*
+* @package    search_elastic
+* @copyright  Matt Porritt <mattp@catalyst-au.net>
+* @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+*/
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 20170123003;
-$plugin->requires = 2016052304;
-$plugin->component = 'search_elastic';
+global $CFG;
+require_once($CFG->dirroot . '/search/tests/fixtures/testable_core_search.php');
+require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
+require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_engine.php');
+
+/**
+ * Tests for request signature signing
+ *
+ */
+class search_elastic_signature_testcase extends advanced_testcase {
+
+    public function test_create_cannonical(){
+        error_log('foo');
+    }
+}
