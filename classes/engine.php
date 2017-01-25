@@ -442,14 +442,14 @@ class engine extends \core_search\engine {
             $title = $this->construct_value($filters, 'title');
             array_push ($query['query']['bool']['must'], $title);
         }
-        if (isset($filters->areaids)) {
-            $areaids = $this->construct_array($filters, 'areaids');
+        if (isset($filters->areaid)) {
+            $areaids = $this->construct_array($filters, 'areaid');
             foreach ($areaids as $areaid) {
                 array_push ($query['query']['bool']['must'], $areaid);
             }
         }
-        if (isset($filters->courseids) && $filters->courseids != null) {
-            $courseids = $this->construct_array($filters, 'courseids');
+        if (isset($filters->courseid) && $filters->courseids != null) {
+            $courseids = $this->construct_array($filters, 'courseid');
             foreach ($courseids as $courseid) {
                 array_push ($query['query']['bool']['must'], $courseid);
             }
