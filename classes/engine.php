@@ -391,7 +391,7 @@ class engine extends \core_search\engine {
         if (isset($filters->timestart) && $filters->timestart != 0) {
             $contextobj['range']['modified']['gte'] = $filters->timestart;
         }
-        if (isset($filters->timesend) && $filters->timeend != 0) {
+        if (isset($filters->timeend) && $filters->timeend != 0) {
             $contextobj['range']['modified']['lte'] = $filters->timeend;
         }
 
@@ -445,7 +445,7 @@ class engine extends \core_search\engine {
         if (isset($filters->areaids)) {
             $areaids = $this->construct_array($filters, 'areaids');
             foreach ($areaids as $areaid) {
-                array_push ($query['quer y']['bool']['must'], $areaid);
+                array_push ($query['query']['bool']['must'], $areaid);
             }
         }
         if (isset($filters->courseids) && $filters->courseids != null) {

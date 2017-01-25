@@ -8,7 +8,7 @@ This plugin allows Moodle to use Elasticsearch as the search engine for Moodle's
 **NOTE:** Complete all of these steps before trying to enable the Global Search functionality in Moodle.
 
 1. Get the code and copy/ install it to: `<moodledir>/search/engine/elastic`
-2. Run the upgrade: `sudo -u www-run php admin/cli/upgrade`
+2. Run the upgrade: `sudo -u www-data php admin/cli/upgrade` '''Note:''' the user may be different to www-data on your system.
 3. Set up the plugin in *Site administration > Plugins > Search > Manage global search* by selecting *elastic* as the search engine.
 4. Configure the Elasticsearch plugin at: *Site administration > Plugins > Search > Elastic*
     4.1 Set *hostname* and *port* of your Elasticsearch server
