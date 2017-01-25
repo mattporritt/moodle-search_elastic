@@ -2,8 +2,8 @@
 namespace Aws;
 
 use Aws\Api\Parser\Exception\ParserException;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Promise\FulfilledPromise;
+use GuzzleHttpv6\Promise;
+use GuzzleHttpv6\Promise\FulfilledPromise;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 

@@ -8,7 +8,7 @@ use Aws\Api\Shape;
 use Aws\Api\StructureShape;
 use Aws\Api\TimestampShape;
 use Aws\CommandInterface;
-use GuzzleHttp\Psr7;
+use GuzzleHttpv6\Psr7;
 use Psr\Http\Message\RequestInterface;
 
 /**

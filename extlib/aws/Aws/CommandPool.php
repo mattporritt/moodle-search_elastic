@@ -1,8 +1,8 @@
 <?php
 namespace Aws;
 
-use GuzzleHttp\Promise\PromisorInterface;
-use GuzzleHttp\Promise\EachPromise;
+use GuzzleHttpv6\Promise\PromisorInterface;
+use GuzzleHttpv6\Promise\EachPromise;
 
 /**
  * Sends and iterator of commands concurrently using a capped pool size.
@@ -66,7 +66,7 @@ class CommandPool implements PromisorInterface
     }
 
     /**
-     * @return \GuzzleHttp\Promise\PromiseInterface
+     * @return \GuzzleHttpv6\Promise\PromiseInterface
      */
     public function promise()
     {

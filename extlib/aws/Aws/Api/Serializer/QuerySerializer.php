@@ -3,7 +3,7 @@ namespace Aws\Api\Serializer;
 
 use Aws\Api\Service;
 use Aws\CommandInterface;
-use GuzzleHttp\Psr7\Request;
+use GuzzleHttpv6\Psr7\Request;
 use Psr\Http\Message\RequestInterface;
 
 /**

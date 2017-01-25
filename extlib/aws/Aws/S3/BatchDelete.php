@@ -3,9 +3,9 @@ namespace Aws\S3;
 
 use Aws\AwsClientInterface;
 use Aws\S3\Exception\DeleteMultipleObjectsException;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Promise\PromisorInterface;
-use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttpv6\Promise;
+use GuzzleHttpv6\Promise\PromisorInterface;
+use GuzzleHttpv6\Promise\PromiseInterface;
 
 /**
  * Efficiently deletes many objects from a single Amazon S3 bucket using an
@@ -100,7 +100,7 @@ class BatchDelete implements PromisorInterface
         array $options = []
     ) {
         $fn = function (BatchDelete $that) use ($iter) {
-            return \GuzzleHttp\Promise\coroutine(function () use ($that, $iter) {
+            return \GuzzleHttpv6\Promise\coroutine(function () use ($that, $iter) {
                 foreach ($iter as $obj) {
                     if ($promise = $that->enqueue($obj)) {
                         yield $promise;

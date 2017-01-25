@@ -1,8 +1,8 @@
 <?php
 namespace Aws\S3;
 
-use GuzzleHttp\Promise\PromisorInterface;
-use GuzzleHttp\Psr7;
+use GuzzleHttpv6\Promise\PromisorInterface;
+use GuzzleHttpv6\Psr7;
 use Psr\Http\Message\StreamInterface;
 
 /**

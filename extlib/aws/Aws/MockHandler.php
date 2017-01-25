@@ -2,8 +2,8 @@
 namespace Aws;
 
 use Aws\Exception\AwsException;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Promise\RejectedPromise;
+use GuzzleHttpv6\Promise;
+use GuzzleHttpv6\Promise\RejectedPromise;
 use Psr\Http\Message\RequestInterface;
 
 /**

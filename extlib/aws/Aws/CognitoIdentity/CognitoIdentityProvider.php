@@ -2,7 +2,7 @@
 namespace Aws\CognitoIdentity;
 
 use Aws\Credentials\Credentials;
-use GuzzleHttp\Promise;
+use GuzzleHttpv6\Promise;
 
 class CognitoIdentityProvider
 {

@@ -161,7 +161,7 @@ class Validator
         if (!isset($valid[$type])) {
             if ($type != 'object' || !method_exists($value, '__toString')) {
                 $this->addError('must be an fopen resource, a '
-                    . 'GuzzleHttp\Stream\StreamInterface object, or something '
+                    . 'GuzzleHttpv6\Stream\StreamInterface object, or something '
                     . 'that can be cast to a string. Found '
                     . Aws\describe_type($value));
             }

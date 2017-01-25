@@ -3,14 +3,14 @@ namespace Aws\Handler\GuzzleV5;
 
 use Aws\Sdk;
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Event\EndEvent;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Message\ResponseInterface as GuzzleResponse;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Psr7\Response as Psr7Response;
+use GuzzleHttpv6\Client;
+use GuzzleHttpv6\ClientInterface;
+use GuzzleHttpv6\Event\EndEvent;
+use GuzzleHttpv6\Exception\ConnectException;
+use GuzzleHttpv6\Exception\RequestException;
+use GuzzleHttpv6\Message\ResponseInterface as GuzzleResponse;
+use GuzzleHttpv6\Promise;
+use GuzzleHttpv6\Psr7\Response as Psr7Response;
 use Psr\Http\Message\RequestInterface as Psr7Request;
 use Psr\Http\Message\StreamInterface as Psr7StreamInterface;
 

@@ -5,9 +5,9 @@ use Aws\Api\Service;
 use Aws\Api\Validator;
 use Aws\Credentials\CredentialsInterface;
 use Aws\Exception\AwsException;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Psr7;
-use GuzzleHttp\Psr7\LazyOpenStream;
+use GuzzleHttpv6\Promise;
+use GuzzleHttpv6\Psr7;
+use GuzzleHttpv6\Psr7\LazyOpenStream;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 

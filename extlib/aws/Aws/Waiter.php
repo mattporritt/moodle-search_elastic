@@ -2,9 +2,9 @@
 namespace Aws;
 
 use Aws\Exception\AwsException;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Promise\PromisorInterface;
-use GuzzleHttp\Promise\RejectedPromise;
+use GuzzleHttpv6\Promise;
+use GuzzleHttpv6\Promise\PromisorInterface;
+use GuzzleHttpv6\Promise\RejectedPromise;
 
 /**
  * "Waiters" are associated with an AWS resource (e.g., EC2 instance), and poll

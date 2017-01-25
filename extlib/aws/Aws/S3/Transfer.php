@@ -3,9 +3,9 @@ namespace Aws\S3;
 
 use Aws;
 use Aws\CommandInterface;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Psr7;
-use GuzzleHttp\Promise\PromisorInterface;
+use GuzzleHttpv6\Promise;
+use GuzzleHttpv6\Psr7;
+use GuzzleHttpv6\Promise\PromisorInterface;
 use Iterator;
 
 /**

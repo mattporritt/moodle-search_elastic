@@ -2,7 +2,7 @@
 namespace Aws\S3;
 
 use Aws\Credentials\CredentialsInterface;
-use GuzzleHttp\Psr7\Uri;
+use GuzzleHttpv6\Psr7\Uri;
 
 /**
  * @deprecated

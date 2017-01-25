@@ -5,9 +5,9 @@ use Aws\CacheInterface;
 use Aws\LruArrayCache;
 use Aws\Result;
 use Aws\S3\Exception\S3Exception;
-use GuzzleHttp\Psr7;
-use GuzzleHttp\Psr7\Stream;
-use GuzzleHttp\Psr7\CachingStream;
+use GuzzleHttpv6\Psr7;
+use GuzzleHttpv6\Psr7\Stream;
+use GuzzleHttpv6\Psr7\CachingStream;
 use Psr\Http\Message\StreamInterface;
 
 /**

@@ -7,7 +7,7 @@ use Aws\Multipart\AbstractUploader;
 use Aws\Multipart\UploadState;
 use Aws\PhpHash;
 use Aws\ResultInterface;
-use GuzzleHttp\Psr7;
+use GuzzleHttpv6\Psr7;
 use Psr\Http\Message\StreamInterface as Stream;
 
 /**

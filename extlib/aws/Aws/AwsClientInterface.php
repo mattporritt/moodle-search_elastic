@@ -2,7 +2,7 @@
 namespace Aws;
 
 use Psr\Http\Message\UriInterface;
-use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttpv6\Promise\PromiseInterface;
 
 /**
  * Represents an AWS client.
@@ -57,7 +57,7 @@ interface AwsClientInterface
      *
      * @param CommandInterface $command Command to execute
      *
-     * @return \GuzzleHttp\Promise\PromiseInterface
+     * @return \GuzzleHttpv6\Promise\PromiseInterface
      */
     public function executeAsync(CommandInterface $command);
 

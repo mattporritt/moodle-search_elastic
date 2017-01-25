@@ -2,7 +2,7 @@
 namespace Aws;
 
 use Aws\Api\Service;
-use GuzzleHttp\Promise\Promise;
+use GuzzleHttpv6\Promise\Promise;
 
 /**
  * A trait providing generic functionality for interacting with Amazon Web

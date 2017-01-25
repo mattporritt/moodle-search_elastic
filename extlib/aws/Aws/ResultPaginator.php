@@ -1,7 +1,7 @@
 <?php
 namespace Aws;
 
-use GuzzleHttp\Promise;
+use GuzzleHttpv6\Promise;
 
 /**
  * Iterator that yields each page of results of a pageable operation.

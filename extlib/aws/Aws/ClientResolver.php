@@ -12,7 +12,7 @@ use Aws\Endpoint\PartitionProviderInterface;
 use Aws\Signature\SignatureProvider;
 use Aws\Endpoint\EndpointProvider;
 use Aws\Credentials\CredentialProvider;
-use GuzzleHttp\Promise;
+use GuzzleHttpv6\Promise;
 use InvalidArgumentException as IAE;
 use Psr\Http\Message\RequestInterface;
 
@@ -129,7 +129,7 @@ class ClientResolver
             'type'  => 'value',
             'valid' => ['bool', 'array'],
             'default' => false,
-            'doc'   => 'Set to true to gather transfer statistics on requests sent. Alternatively, you can provide an associative array with the following keys: retries: (bool) Set to false to disable reporting on retries attempted; http: (bool) Set to true to enable collecting statistics from lower level HTTP adapters (e.g., values returned in GuzzleHttp\TransferStats). HTTP handlers must support an http_stats_receiver option for this to have an effect; timer: (bool) Set to true to enable a command timer that reports the total wall clock time spent on an operation in seconds.',
+            'doc'   => 'Set to true to gather transfer statistics on requests sent. Alternatively, you can provide an associative array with the following keys: retries: (bool) Set to false to disable reporting on retries attempted; http: (bool) Set to true to enable collecting statistics from lower level HTTP adapters (e.g., values returned in GuzzleHttpv6\TransferStats). HTTP handlers must support an http_stats_receiver option for this to have an effect; timer: (bool) Set to true to enable a command timer that reports the total wall clock time spent on an operation in seconds.',
             'fn'    => [__CLASS__, '_apply_stats'],
         ],
         'retries' => [

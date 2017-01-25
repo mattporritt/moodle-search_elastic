@@ -1,8 +1,8 @@
 <?php
 namespace Aws\Handler\GuzzleV5;
 
-use GuzzleHttp\Stream\StreamDecoratorTrait;
-use GuzzleHttp\Stream\StreamInterface as GuzzleStreamInterface;
+use GuzzleHttpv6\Stream\StreamDecoratorTrait;
+use GuzzleHttpv6\Stream\StreamInterface as GuzzleStreamInterface;
 use Psr\Http\Message\StreamInterface as Psr7StreamInterface;
 
 /**

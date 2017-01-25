@@ -55,9 +55,9 @@ class esrequest {
      * Signs a request with the supplied credentials.
      * This is used for access control to the Elasticsearch endpoint.
      *
-     * @param \GuzzleHttp\Psr7\Request $request
+     * @param \GuzzleHttpv6\Psr7\Request $request
      * @throws \moodle_exception
-     * @return \GuzzleHttp\Psr7\Request
+     * @return \GuzzleHttpv6\Psr7\Request
      */
     private function signrequest($request) {
         // Check we are all configured for request signing.
@@ -85,15 +85,15 @@ class esrequest {
      * Process GET requests to Elasticsearch.
      *
      * @param string $url
-     * @return \GuzzleHttp\Psr7\Response
+     * @return \GuzzleHttpv6\Psr7\Response
      */
     public function get($url) {
-        $psr7request = new \GuzzleHttp\Psr7\Request('GET', $url);
+        $psr7request = new \GuzzleHttpv6\Psr7\Request('GET', $url);
         if ($this->signing) {
             $psr7request = $this->signrequest($psr7request);
         }
 
-        $client = new \GuzzleHttp\Client();
+        $client = new \GuzzleHttpv6\Client();
 
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
@@ -102,7 +102,7 @@ class esrequest {
         // resposne.
         try {
             $response = $client->send($psr7request);
-        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+        } catch (\GuzzleHttpv6\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
 
@@ -114,15 +114,15 @@ class esrequest {
      * Process PUT requests to Elasticsearch.
      *
      * @param string $url
-     * @return \GuzzleHttp\Psr7\Response
+     * @return \GuzzleHttpv6\Psr7\Response
      */
     public function put($url) {
-        $psr7request = new \GuzzleHttp\Psr7\Request('PUT', $url);
+        $psr7request = new \GuzzleHttpv6\Psr7\Request('PUT', $url);
         if ($this->signing) {
             $psr7request = $this->signrequest($psr7request);
         }
 
-        $client = new \GuzzleHttp\Client();
+        $client = new \GuzzleHttpv6\Client();
 
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
@@ -131,7 +131,7 @@ class esrequest {
         // resposne.
         try {
             $response = $client->send($psr7request);
-        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+        } catch (\GuzzleHttpv6\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
 
@@ -147,12 +147,12 @@ class esrequest {
      */
     public function post($url, $params) {
         $headers = ['content-type' => 'application/x-www-form-urlencoded'];
-        $psr7request = new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $params);
+        $psr7request = new \GuzzleHttpv6\Psr7\Request('POST', $url, $headers, $params);
         if ($this->signing) {
             $psr7request = $this->signrequest($psr7request);
         }
 
-        $client = new \GuzzleHttp\Client();
+        $client = new \GuzzleHttpv6\Client();
 
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
@@ -161,7 +161,7 @@ class esrequest {
         // resposne.
         try {
             $response = $client->send($psr7request);
-        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+        } catch (\GuzzleHttpv6\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
 
@@ -175,12 +175,12 @@ class esrequest {
      * @return \Psr\Http\Message\ResponseInterface|NULL
      */
     public function delete($url) {
-        $psr7request = new \GuzzleHttp\Psr7\Request('DELETE', $url);
+        $psr7request = new \GuzzleHttpv6\Psr7\Request('DELETE', $url);
         if ($this->signing) {
             $psr7request = $this->signrequest($psr7request);
         }
 
-        $client = new \GuzzleHttp\Client();
+        $client = new \GuzzleHttpv6\Client();
 
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
@@ -189,7 +189,7 @@ class esrequest {
         // resposne.
         try {
             $response = $client->send($psr7request);
-        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+        } catch (\GuzzleHttpv6\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
 

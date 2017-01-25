@@ -4,24 +4,24 @@ namespace Aws\Polly;
 use Aws\Api\Serializer\JsonBody;
 use Aws\AwsClient;
 use Aws\Signature\SignatureV4;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Uri;
-use GuzzleHttp\Psr7;
+use GuzzleHttpv6\Psr7\Request;
+use GuzzleHttpv6\Psr7\Uri;
+use GuzzleHttpv6\Psr7;
 
 /**
  * This client is used to interact with the **Amazon Polly** service.
  * @method \Aws\Result deleteLexicon(array $args = [])
- * @method \GuzzleHttp\Promise\Promise deleteLexiconAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise deleteLexiconAsync(array $args = [])
  * @method \Aws\Result describeVoices(array $args = [])
- * @method \GuzzleHttp\Promise\Promise describeVoicesAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise describeVoicesAsync(array $args = [])
  * @method \Aws\Result getLexicon(array $args = [])
- * @method \GuzzleHttp\Promise\Promise getLexiconAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise getLexiconAsync(array $args = [])
  * @method \Aws\Result listLexicons(array $args = [])
- * @method \GuzzleHttp\Promise\Promise listLexiconsAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise listLexiconsAsync(array $args = [])
  * @method \Aws\Result putLexicon(array $args = [])
- * @method \GuzzleHttp\Promise\Promise putLexiconAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise putLexiconAsync(array $args = [])
  * @method \Aws\Result synthesizeSpeech(array $args = [])
- * @method \GuzzleHttp\Promise\Promise synthesizeSpeechAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise synthesizeSpeechAsync(array $args = [])
  */
 class PollyClient extends AwsClient
 {

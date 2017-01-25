@@ -2,7 +2,7 @@
 namespace Aws\Multipart;
 
 use Aws\AwsClientInterface as Client;
-use GuzzleHttp\Psr7;
+use GuzzleHttpv6\Psr7;
 use InvalidArgumentException as IAE;
 use Psr\Http\Message\StreamInterface as Stream;
 

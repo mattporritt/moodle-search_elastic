@@ -2,8 +2,8 @@
 namespace Aws;
 
 use Psr\Http\Message\RequestInterface;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Promise\FulfilledPromise;
+use GuzzleHttpv6\ClientInterface;
+use GuzzleHttpv6\Promise\FulfilledPromise;
 
 //-----------------------------------------------------------------------------
 // Functional functions

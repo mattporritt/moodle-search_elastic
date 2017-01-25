@@ -3,7 +3,7 @@ namespace Aws\S3;
 
 use Aws\Multipart\AbstractUploadManager;
 use Aws\ResultInterface;
-use GuzzleHttp\Psr7;
+use GuzzleHttpv6\Psr7;
 
 class MultipartCopy extends AbstractUploadManager
 {

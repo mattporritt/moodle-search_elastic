@@ -1,8 +1,8 @@
 <?php
 namespace Aws\CloudFront;
 
-use GuzzleHttp\Psr7;
-use GuzzleHttp\Psr7\Uri;
+use GuzzleHttpv6\Psr7;
+use GuzzleHttpv6\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
 
 /**

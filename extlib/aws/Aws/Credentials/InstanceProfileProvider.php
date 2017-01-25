@@ -2,9 +2,9 @@
 namespace Aws\Credentials;
 
 use Aws\Exception\CredentialsException;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttpv6\Promise;
+use GuzzleHttpv6\Psr7\Request;
+use GuzzleHttpv6\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**

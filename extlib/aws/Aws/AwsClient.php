@@ -5,7 +5,7 @@ use Aws\Api\ApiProvider;
 use Aws\Api\DocModel;
 use Aws\Api\Service;
 use Aws\Signature\SignatureProvider;
-use GuzzleHttp\Psr7\Uri;
+use GuzzleHttpv6\Psr7\Uri;
 
 /**
  * Default AWS client implementation
@@ -78,7 +78,7 @@ class AwsClient implements AwsClientInterface
      *   the following keys: retries: (bool) Set to false to disable reporting
      *   on retries attempted; http: (bool) Set to true to enable collecting
      *   statistics from lower level HTTP adapters (e.g., values returned in
-     *   GuzzleHttp\TransferStats). HTTP handlers must support an
+     *   GuzzleHttpv6\TransferStats). HTTP handlers must support an
      *   `http_stats_receiver` option for this to have an effect; timer: (bool)
      *   Set to true to enable a command timer that reports the total wall clock
      *   time spent on an operation in seconds.

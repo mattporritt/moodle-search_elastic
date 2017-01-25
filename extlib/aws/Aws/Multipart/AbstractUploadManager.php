@@ -8,9 +8,9 @@ use Aws\Exception\AwsException;
 use Aws\Exception\MultipartUploadException;
 use Aws\Result;
 use Aws\ResultInterface;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Promise\PromiseInterface;
-use GuzzleHttp\Psr7;
+use GuzzleHttpv6\Promise;
+use GuzzleHttpv6\Promise\PromiseInterface;
+use GuzzleHttpv6\Psr7;
 use InvalidArgumentException as IAE;
 use Psr\Http\Message\RequestInterface;
 

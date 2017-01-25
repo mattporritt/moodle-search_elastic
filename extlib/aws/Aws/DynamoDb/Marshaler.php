@@ -45,7 +45,7 @@ class Marshaler
      * @param mixed $value A binary value compatible with Guzzle streams.
      *
      * @return BinaryValue
-     * @see GuzzleHttp\Stream\Stream::factory
+     * @see GuzzleHttpv6\Stream\Stream::factory
      */
     public function binary($value)
     {

@@ -6,8 +6,8 @@ use Aws\Exception\AwsException;
 use Aws\HandlerList;
 use Aws\ResultInterface;
 use Aws\S3\Exception\S3Exception;
-use GuzzleHttp\Promise\PromiseInterface;
-use GuzzleHttp\Promise\RejectedPromise;
+use GuzzleHttpv6\Promise\PromiseInterface;
+use GuzzleHttpv6\Promise\RejectedPromise;
 
 /**
  * A trait providing S3-specific functionality. This is meant to be used in

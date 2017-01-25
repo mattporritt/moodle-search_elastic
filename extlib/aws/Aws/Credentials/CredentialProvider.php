@@ -4,7 +4,7 @@ namespace Aws\Credentials;
 use Aws;
 use Aws\CacheInterface;
 use Aws\Exception\CredentialsException;
-use GuzzleHttp\Promise;
+use GuzzleHttpv6\Promise;
 
 /**
  * Credential providers are functions that accept no arguments and return a

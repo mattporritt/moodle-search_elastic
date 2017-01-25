@@ -3,12 +3,12 @@ namespace Aws\Handler\GuzzleV6;
 
 use Aws\Sdk;
 use Exception;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\TransferStats;
+use GuzzleHttpv6\Exception\ConnectException;
+use GuzzleHttpv6\Exception\RequestException;
+use GuzzleHttpv6\Promise;
+use GuzzleHttpv6\Client;
+use GuzzleHttpv6\ClientInterface;
+use GuzzleHttpv6\TransferStats;
 use Psr\Http\Message\RequestInterface as Psr7Request;
 
 /**
@@ -38,7 +38,7 @@ class GuzzleHandler
         $request = $request->withHeader(
             'User-Agent',
             $request->getHeaderLine('User-Agent')
-                . ' ' . \GuzzleHttp\default_user_agent()
+                . ' ' . \GuzzleHttpv6\default_user_agent()
         );
 
         return $this->client->sendAsync($request, $this->parseOptions($options))

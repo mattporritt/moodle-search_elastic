@@ -4,7 +4,7 @@ namespace Aws\S3;
 use Aws\Exception\MultipartUploadException;
 use Aws\Result;
 use Aws\S3\Exception\S3Exception;
-use GuzzleHttp\Promise\PromisorInterface;
+use GuzzleHttpv6\Promise\PromisorInterface;
 use InvalidArgumentException;
 
 /**
@@ -71,11 +71,11 @@ class ObjectCopier implements PromisorInterface
      * fulfilled with the result of the CompleteMultipartUpload or CopyObject
      * operation or rejected with an exception.
      *
-     * @return \GuzzleHttp\Promise\Promise
+     * @return \GuzzleHttpv6\Promise\Promise
      */
     public function promise()
     {
-        return \GuzzleHttp\Promise\coroutine(function () {
+        return \GuzzleHttpv6\Promise\coroutine(function () {
             $objectStats = (yield $this->client->executeAsync(
                 $this->client->getCommand('HeadObject', $this->source)
             ));

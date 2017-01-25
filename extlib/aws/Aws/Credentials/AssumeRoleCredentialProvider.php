@@ -5,10 +5,10 @@ use Aws\Exception\AwsException;
 use Aws\Exception\CredentialsException;
 use Aws\Result;
 use Aws\Sts\StsClient;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Promise\PromiseInterface;
-use GuzzleHttp\Psr7\Response;
+use GuzzleHttpv6\Promise;
+use GuzzleHttpv6\Psr7\Request;
+use GuzzleHttpv6\Promise\PromiseInterface;
+use GuzzleHttpv6\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 
 /**

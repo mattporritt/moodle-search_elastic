@@ -9,19 +9,19 @@ use Aws\Credentials\Credentials;
  * This client is used to interact with the **AWS Security Token Service (AWS STS)**.
  *
  * @method \Aws\Result assumeRole(array $args = [])
- * @method \GuzzleHttp\Promise\Promise assumeRoleAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise assumeRoleAsync(array $args = [])
  * @method \Aws\Result assumeRoleWithSAML(array $args = [])
- * @method \GuzzleHttp\Promise\Promise assumeRoleWithSAMLAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise assumeRoleWithSAMLAsync(array $args = [])
  * @method \Aws\Result assumeRoleWithWebIdentity(array $args = [])
- * @method \GuzzleHttp\Promise\Promise assumeRoleWithWebIdentityAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise assumeRoleWithWebIdentityAsync(array $args = [])
  * @method \Aws\Result decodeAuthorizationMessage(array $args = [])
- * @method \GuzzleHttp\Promise\Promise decodeAuthorizationMessageAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise decodeAuthorizationMessageAsync(array $args = [])
  * @method \Aws\Result getCallerIdentity(array $args = [])
- * @method \GuzzleHttp\Promise\Promise getCallerIdentityAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise getCallerIdentityAsync(array $args = [])
  * @method \Aws\Result getFederationToken(array $args = [])
- * @method \GuzzleHttp\Promise\Promise getFederationTokenAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise getFederationTokenAsync(array $args = [])
  * @method \Aws\Result getSessionToken(array $args = [])
- * @method \GuzzleHttp\Promise\Promise getSessionTokenAsync(array $args = [])
+ * @method \GuzzleHttpv6\Promise\Promise getSessionTokenAsync(array $args = [])
  */
 class StsClient extends AwsClient
 {

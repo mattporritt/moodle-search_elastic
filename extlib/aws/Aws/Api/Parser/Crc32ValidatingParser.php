@@ -4,7 +4,7 @@ namespace Aws\Api\Parser;
 use Aws\CommandInterface;
 use Aws\Exception\AwsException;
 use Psr\Http\Message\ResponseInterface;
-use GuzzleHttp\Psr7;
+use GuzzleHttpv6\Psr7;
 
 /**
  * @internal Decorates a parser and validates the x-amz-crc32 header.
