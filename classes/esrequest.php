@@ -69,8 +69,8 @@ class esrequest {
 
         // Pull credentials from the default provider chain
         $credentials = new \Aws\Credentials\Credentials(
-                $this->$config->keyid,
-                $this->$config->secretkey
+                $this->config->keyid,
+                $this->config->secretkey
                 );
         // Create a signer with the service's signing name and region
         $signer = new \Aws\Signature\SignatureV4('es', $this->config->region);
