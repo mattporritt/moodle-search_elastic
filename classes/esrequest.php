@@ -24,9 +24,9 @@
 
 namespace search_elastic;
 
-require $CFG->dirroot .'/search/engine/elastic/extlib/aws/aws-autoloader.php';
-
 defined('MOODLE_INTERNAL') || die();
+
+require($CFG->dirroot .'/search/engine/elastic/extlib/aws/aws-autoloader.php');
 
 class esrequest {
     /**
@@ -38,7 +38,7 @@ class esrequest {
      * @var elasticsearch plugin config.
      */
     private $config = null;
- 
+
     /**
      * Initialises the search engine configuration.
      *
@@ -59,26 +59,26 @@ class esrequest {
      * @throws \moodle_exception
      * @return \GuzzleHttp\Psr7\Request
      */
-    private function signRequest($request){
-        // Check we are all configured for request signing
+    private function signrequest($request) {
+        // Check we are all configured for request signing.
         if (empty($this->config->keyid) ||
                 empty($this->config->secretkey) ||
                 empty($this->config->region)) {
             throw new \moodle_exception('noconfig', 'search_elastic', '');
         }
 
-        // Pull credentials from the default provider chain
+        // Pull credentials from the default provider chain.
         $credentials = new \Aws\Credentials\Credentials(
                 $this->config->keyid,
                 $this->config->secretkey
                 );
-        // Create a signer with the service's signing name and region
+        // Create a signer with the service's signing name and region.
         $signer = new \Aws\Signature\SignatureV4('es', $this->config->region);
 
-        // Sign your request
-        $signedRequest = $signer->signRequest($request, $credentials);
+        // Sign your request.
+        $signedrequest = $signer->signRequest($request, $credentials);
 
-        return $signedRequest;
+        return $signedrequest;
     }
 
     /**
@@ -87,10 +87,10 @@ class esrequest {
      * @param string $url
      * @return \GuzzleHttp\Psr7\Response
      */
-    public function get($url){
-        $psr7Request= new \GuzzleHttp\Psr7\Request('GET', $url);
-        if($this->signing){
-            $psr7Request= $this->signRequest($psr7Request);
+    public function get($url) {
+        $psr7request = new \GuzzleHttp\Psr7\Request('GET', $url);
+        if ($this->signing) {
+            $psr7request = $this->signrequest($psr7request);
         }
 
         $client = new \GuzzleHttp\Client();
@@ -101,7 +101,7 @@ class esrequest {
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7Request);
+            $response = $client->send($psr7request);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -116,10 +116,10 @@ class esrequest {
      * @param string $url
      * @return \GuzzleHttp\Psr7\Response
      */
-    public function put($url){
-        $psr7Request= new \GuzzleHttp\Psr7\Request('PUT', $url);
-        if($this->signing){
-            $psr7Request= $this->signRequest($psr7Request);
+    public function put($url) {
+        $psr7request = new \GuzzleHttp\Psr7\Request('PUT', $url);
+        if ($this->signing) {
+            $psr7request = $this->signrequest($psr7request);
         }
 
         $client = new \GuzzleHttp\Client();
@@ -130,7 +130,7 @@ class esrequest {
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7Request);
+            $response = $client->send($psr7request);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -145,11 +145,11 @@ class esrequest {
      * @param unknown $params
      * @return \Psr\Http\Message\ResponseInterface|NULL
      */
-    public function post($url, $params){
+    public function post($url, $params) {
         $headers = ['content-type' => 'application/x-www-form-urlencoded'];
-        $psr7Request= new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $params);
-        if($this->signing){
-            $psr7Request= $this->signRequest($psr7Request);
+        $psr7request = new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $params);
+        if ($this->signing) {
+            $psr7request = $this->signrequest($psr7request);
         }
 
         $client = new \GuzzleHttp\Client();
@@ -160,7 +160,7 @@ class esrequest {
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7Request);
+            $response = $client->send($psr7request);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -174,10 +174,10 @@ class esrequest {
      * @param unknown $url
      * @return \Psr\Http\Message\ResponseInterface|NULL
      */
-    public function delete($url){
-        $psr7Request= new \GuzzleHttp\Psr7\Request('DELETE', $url);
-        if($this->signing){
-            $psr7Request= $this->signRequest($psr7Request);
+    public function delete($url) {
+        $psr7request = new \GuzzleHttp\Psr7\Request('DELETE', $url);
+        if ($this->signing) {
+            $psr7request = $this->signrequest($psr7request);
         }
 
         $client = new \GuzzleHttp\Client();
@@ -188,7 +188,7 @@ class esrequest {
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7Request);
+            $response = $client->send($psr7request);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }

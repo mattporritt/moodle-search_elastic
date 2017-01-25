@@ -116,7 +116,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
      * Test we can get the index
      */
     public function test_get_index() {
-       // $this->assertTrue($this->engine->check_index());
+
     }
 
     /**
