@@ -146,7 +146,7 @@ class engine extends \core_search\engine {
      */
     private function get_indexed_files($document, $start = 0, $rows = 500) {
         $url = $this->get_url();
-        $indexeurl = $url . '/'. $this->config->index. '/_search?pretty';
+        $indexeurl = $url . '/'. $this->config->index. '/_search';
         $client = new \search_elastic\esrequest();
 
         $query = array('query' => array(
@@ -156,7 +156,7 @@ class engine extends \core_search\engine {
                                 )
                         )
                 ),
-                'fields' => array('id',
+                '_source' => array('id',
                                   'modified',
                                   'filecontenthash',
                                   'title'),
@@ -166,7 +166,6 @@ class engine extends \core_search\engine {
         $jsonquery = json_encode($query);
         $response = $client->post($indexeurl, $jsonquery)->getBody();
         $results = json_decode($response);
-
 
         if (!isset($results->hits)) {
             $returnarray = array(0, array());
@@ -213,18 +212,18 @@ class engine extends \core_search\engine {
             do {
                 // Go through each indexed file. We want to not index any stored and unchanged ones, delete any missing ones.
                 foreach ($indexedfiles as $indexedfile) {
-                    $fileid = $indexedfile->fields->id[0];
+                    $fileid = $indexedfile->_source->id;
 
                     if (isset($files[$fileid])) {
                         // Check for changes that would mean we need to re-index the file. If so, just leave in $files.
                         // Filelib does not guarantee time modified is updated, so we will check important values.
-                        if ($indexedfile->fields->modified[0] != $files[$fileid]->get_timemodified()) {
+                        if ($indexedfile->_source->modified != $files[$fileid]->get_timemodified()) {
                             continue;
                         }
-                        if (strcmp($indexedfile->fields->title[0], $files[$fileid]->get_filename()) !== 0) {
+                        if (strcmp($indexedfile->_source->title, $files[$fileid]->get_filename()) !== 0) {
                             continue;
                         }
-                        if ($indexedfile->fields->filecontenthash[0] != $files[$fileid]->get_contenthash()) {
+                        if ($indexedfile->_source->filecontenthash != $files[$fileid]->get_contenthash()) {
                             continue;
                         }
                         // If the file is already indexed, we can just remove it from the files array and skip it.
@@ -232,7 +231,7 @@ class engine extends \core_search\engine {
                     } else {
                         // This means we have found a file that is no longer attached, so we need to delete from the index.
                         // We do it later, since this is progressive, and it could reorder results.
-                        $idstodelete[] = $indexedfile->fields->id[0];
+                        $idstodelete[] = $indexedfile->_source->id;
                     }
                 }
                 $count += $rows;
@@ -413,7 +412,7 @@ class engine extends \core_search\engine {
     public function execute_query($filters, $usercontexts, $limit = 0) {
         $docs = array();
         $doccount = 0;
-        $url = $this->get_url() . '/'.  $this->config->index . '/_search?pretty';
+        $url = $this->get_url() . '/'.  $this->config->index . '/_search';
         $client = new \search_elastic\esrequest();
 
         $returnlimit = \core_search\manager::MAX_RESULTS;
@@ -527,7 +526,7 @@ class engine extends \core_search\engine {
                 $returnval = true;
             }
         } else {
-            $url = $url . '/_search?pretty';
+            $url = $url . '/_search';
             $query = array('query' => array(
                                 'bool' => array(
                                     'must' => array(
