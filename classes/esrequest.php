@@ -102,7 +102,7 @@ class esrequest {
         // resposne.
         try {
             $response = $client->send($psr7Request);
-        } catch (Guzzle\Http\Exception\BadResponseException $e) {
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
 
@@ -131,7 +131,65 @@ class esrequest {
         // resposne.
         try {
             $response = $client->send($psr7Request);
-        } catch (Guzzle\Http\Exception\BadResponseException $e) {
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+            $response = $e->getResponse();
+        }
+
+        return $response;
+
+    }
+
+    /**
+     *
+     * @param unknown $url
+     * @param unknown $params
+     * @return \Psr\Http\Message\ResponseInterface|NULL
+     */
+    public function post($url, $params){
+        $headers = ['content-type' => 'application/x-www-form-urlencoded'];
+        $psr7Request= new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $params);
+        if($this->signing){
+            $psr7Request= $this->signRequest($psr7Request);
+        }
+
+        $client = new \GuzzleHttp\Client();
+
+        // Requests that receive a 4xx or 5xx response will throw a
+        // Guzzle\Http\Exception\BadResponseException. We want to
+        // handle this in a sane way and provide the caller with
+        // a useful response. So we catch the error and return the
+        // resposne.
+        try {
+            $response = $client->send($psr7Request);
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+            $response = $e->getResponse();
+        }
+
+        return $response;
+
+    }
+
+    /**
+     *
+     * @param unknown $url
+     * @return \Psr\Http\Message\ResponseInterface|NULL
+     */
+    public function delete($url){
+        $psr7Request= new \GuzzleHttp\Psr7\Request('DELETE', $url);
+        if($this->signing){
+            $psr7Request= $this->signRequest($psr7Request);
+        }
+
+        $client = new \GuzzleHttp\Client();
+
+        // Requests that receive a 4xx or 5xx response will throw a
+        // Guzzle\Http\Exception\BadResponseException. We want to
+        // handle this in a sane way and provide the caller with
+        // a useful response. So we catch the error and return the
+        // resposne.
+        try {
+            $response = $client->send($psr7Request);
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
 
