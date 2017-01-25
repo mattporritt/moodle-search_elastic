@@ -147,7 +147,7 @@ class engine extends \core_search\engine {
     private function get_indexed_files($document, $start = 0, $rows = 500) {
         $url = $this->get_url();
         $indexeurl = $url . '/'. $this->config->index. '/_search?pretty';
-        $client = new \search_elastic\elastic_curl();
+        $client = new \search_elastic\esrequest();
 
         $query = array('query' => array(
                 'bool' => array(
@@ -163,7 +163,10 @@ class engine extends \core_search\engine {
                 'from' => $start,
                 'size' => $rows,
                 );
-        $results = json_decode($client->post($indexeurl, json_encode($query)));
+        $jsonquery = json_encode($query);
+        $response = $client->post($indexeurl, $jsonquery)->getBody();
+        $results = json_decode($response);
+
 
         if (!isset($results->hits)) {
             $returnarray = array(0, array());
@@ -252,8 +255,9 @@ class engine extends \core_search\engine {
             $filedoc = $document->export_file_for_engine($file);
             $docurl = $url . '/'. $this->config->index . '/'.$filedoc['id'];
             $jsondoc = json_encode($filedoc);
-            $client = new \search_elastic\elastic_curl();
-            $response = $client->post($docurl, $jsondoc);
+            $client = new \search_elastic\esrequest();
+            $response = $client->post($docurl, $jsondoc)->getBody();
+            $results = json_decode($response);
         }
     }
 
@@ -266,11 +270,12 @@ class engine extends \core_search\engine {
         $docurl = $url . '/'. $this->config->index . '/'.$docdata['id'];
         $jsondoc = json_encode($docdata);
 
-        $client = new \search_elastic\elastic_curl();
+        $client = new \search_elastic\esrequest();
         $response = $client->post($docurl, $jsondoc);
+        $responsecode = $response->getStatusCode();
 
-        if ($client->info['http_code'] !== 201) {
-            throw new \moodle_exception('addfail', 'search_elastic', '', '', $response);
+        if ($responsecode !== 201) {
+            throw new \moodle_exception('addfail', 'search_elastic', '', '', $response->getBody());
         }
 
         if ($fileindexing) {
@@ -409,7 +414,7 @@ class engine extends \core_search\engine {
         $docs = array();
         $doccount = 0;
         $url = $this->get_url() . '/'.  $this->config->index . '/_search?pretty';
-        $client = new \search_elastic\elastic_curl();
+        $client = new \search_elastic\esrequest();
 
         $returnlimit = \core_search\manager::MAX_RESULTS;
 
@@ -456,7 +461,7 @@ class engine extends \core_search\engine {
         }
 
         // Send a request to the server.
-        $results = json_decode($client->post($url, json_encode($query)));
+        $results = json_decode($client->post($url, json_encode($query))->getBody());
 
         // Iterate through results.
         if (isset($results->hits)) {
@@ -493,7 +498,7 @@ class engine extends \core_search\engine {
     public function delete_by_type_id($type, $id) {
         $url = $this->get_url();
         $deleteurl = $url . '/'. $this->config->index . '/'. $type . '/'. $id;
-        $client = new \search_elastic\elastic_curl();
+        $client = new \search_elastic\esrequest();
 
         $client->delete($deleteurl);
     }
@@ -505,7 +510,7 @@ class engine extends \core_search\engine {
     public function delete($areaid = false) {
         $url = $this->get_url();
         $indexeurl = $url . '/'. $this->config->index;
-        $client = new \search_elastic\elastic_curl();
+        $client = new \search_elastic\esrequest();
         $returnval = false;
 
         if ($areaid === false) {
@@ -513,7 +518,7 @@ class engine extends \core_search\engine {
             // Response will return acknowledged True if deletion worked,
             // or a status of not found if index doesn't exist.
             // We'll treat both cases as good.
-            $response = json_decode($client->delete($indexeurl));
+            $response = json_decode($client->delete($indexeurl)->getBody());
             if (isset($response->acknowledged) && ($response->acknowledged == true)) {
                 $this->create_index(); // Recreate the new index.
                 $returnval = true;
@@ -531,7 +536,7 @@ class engine extends \core_search\engine {
                                 )
                             ),
                            'fields' => array());
-            $results = json_decode($client->post($url, json_encode($query)));
+            $results = json_decode($client->post($url, json_encode($query))->getBody());
             if (isset($results->hits)) {
                 foreach ($results->hits->hits as $result) {
                     $this->delete_by_type_id($result->_type, $result->_id);
@@ -549,7 +554,7 @@ class engine extends \core_search\engine {
      */
     public function file_indexing_enabled() {
         $returnval = false;
-        $client = new \search_elastic\elastic_curl();
+        $client = new \search_elastic\esrequest();
         $url = '';
         // Check if we have a valid set of config.
         if (!empty($this->config->tikahostname) &&
@@ -562,8 +567,9 @@ class engine extends \core_search\engine {
 
         // Check we can reach Tika server.
         if ($url !== '') {
-            $client->get($url);
-            if ($client->info['http_code'] == 200) {
+            $response = $client->get($url);
+            $responsecode = $response->getStatusCode();
+            if ($responsecode == 200) {
                 $returnval = true;
             }
         }
@@ -581,9 +587,9 @@ class engine extends \core_search\engine {
      *
      */
     public function optimize() {
-        $url = $this->get_url(). $this->config->index . '/_forcemerge';
-        $client = new \search_elastic\elastic_curl();
+        $url = $this->get_url() . '/' . $this->config->index . '/_forcemerge';
+        $client = new \search_elastic\esrequest();
 
-        $client->post($url);
+        $client->post($url, '');
     }
 }
