@@ -51,7 +51,7 @@ $string['signingkeyid_desc'] = 'The ID of the key to use for signing requests.';
 $string['signingsecretkey'] = 'Secret Key';
 $string['signingsecretkey_desc'] = 'The secret key to use to sign requests.';
 $string['signingsettings'] = 'Request signing settings';
-$string['signingsettings_desc'] = 'If your Elasticsearch setup uses Request Signing enable and configure it below. 
+$string['signingsettings_desc'] = 'If your Elasticsearch setup uses Request Signing enable and configure it below.
 
 This generally only applies if you are using Amaxon Web Service (AWS) to provide your Elasticsearch Endpoint';
 $string['region'] = 'Region';

@@ -16,11 +16,11 @@
 
 /**
  * Elastic search engine unit tests.
-*
-* @package    search_elastic
-* @copyright  Matt Porritt <mattp@catalyst-au.net>
-* @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
-*/
+ *
+ * @package    search_elastic
+ * @copyright  Matt Porritt <mattp@catalyst-au.net>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -35,7 +35,7 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_eng
  */
 class search_elastic_signature_testcase extends advanced_testcase {
 
-    public function test_create_cannonical(){
-        error_log('foo');
+    public function test_create_cannonical() {
+
     }
 }
