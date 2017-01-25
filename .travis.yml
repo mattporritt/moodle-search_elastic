@@ -18,7 +18,7 @@ cache:
 
 php:
  - 5.6
-
+ - 7.0
 env:
  global:
    - TEST_SEARCH_ELASTIC_HOSTNAME=http://127.0.0.1
@@ -34,28 +34,6 @@ env:
   - DB=pgsql MOODLE_BRANCH=master ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
   - DB=pgsql MOODLE_BRANCH=master ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
   - DB=pgsql MOODLE_BRANCH=master ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
-
-matrix:
-  include:
-    - php: 7.0
-      env: DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
-    - php: 7.0
-      env: DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
-    - php: 7.0
-      env: DB=pgsql MOODLE_BRANCH=master ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
-    - php: 7.0
-      env: DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
-    - php: 7.0
-      env: DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
-    - php: 7.0
-      env: DB=pgsql MOODLE_BRANCH=master ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
-    - php: 7.0
-      env: DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
-    - php: 7.0
-      env: DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
-    - php: 7.0
-      env: DB=pgsql MOODLE_BRANCH=master ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
-
 
 before_install:
   - curl -O ${ESURL} && sudo dpkg -i --force-confnew elasticsearch-${ESVER}.deb && sudo service elasticsearch restart
