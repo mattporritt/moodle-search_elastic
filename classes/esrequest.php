@@ -116,8 +116,9 @@ class esrequest {
      * @param string $url
      * @return \GuzzleHttpv6\Psr7\Response
      */
-    public function put($url) {
-        $psr7request = new \GuzzleHttpv6\Psr7\Request('PUT', $url);
+    public function put($url, $params=null) {
+        $headers = ['content-type' => 'application/x-www-form-urlencoded'];
+        $psr7request = new \GuzzleHttpv6\Psr7\Request('PUT', $url, $headers, $params);
         if ($this->signing) {
             $psr7request = $this->signrequest($psr7request);
         }

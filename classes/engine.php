@@ -128,11 +128,26 @@ class engine extends \core_search\engine {
      * Creates the Index namespace and adds fields if they don't exist.
      */
     public function index_starting($fullindex = false) {
+        // If we are doing a reindex then delete old index first.
+        $this->delete();
+
         // Check if index exists and create it if it doesn't.
         $hasindex = $this->check_index();
         if (!$hasindex) {
             $this->create_index();
         }
+    }
+
+    public function area_index_starting($searcharea, $fullindex = false) {
+        $requiredfields = \search_elastic\document::get_required_fields_definition();
+        $url = $this->get_url();
+        $mappingeurl = $url . '/'. $this->config->index. '/_mapping/'.$searcharea->get_area_id();
+        $mapping = array('properties' => $requiredfields);
+        $client = new \search_elastic\esrequest();
+
+        $client->put($mappingeurl, json_encode($mapping));
+
+
     }
 
     /**
@@ -266,7 +281,7 @@ class engine extends \core_search\engine {
     public function add_document($document, $fileindexing = false) {
         $docdata = $document->export_for_engine();
         $url = $this->get_url();
-        $docurl = $url . '/'. $this->config->index . '/'.$docdata['id'];
+        $docurl = $url . '/'. $this->config->index . '/'.$docdata['areaid'];
         $jsondoc = json_encode($docdata);
 
         $client = new \search_elastic\esrequest();

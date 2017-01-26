@@ -28,6 +28,53 @@ defined('MOODLE_INTERNAL') || die();
 
 class document extends \core_search\document {
 
+    /**
+     * All required fields any doc should contain.
+     *
+     * Search engine plugins are responsible of setting their appropriate field types and map these naming to whatever format
+     * they need.
+     * 
+     * This format suits Elasticsearh mapping
+     *
+     * @var array
+     */
+    protected static $requiredfields = array(
+            'id' => array(
+                    'type' => 'string',
+                    'index' => 'not_analyzed'
+            ),
+            'itemid' => array(
+                    'type' => 'integer'
+            ),
+            'title' => array(
+                    'type' => 'string'
+            ),
+            'content' => array(
+                    'type' => 'string'
+
+            ),
+            'contextid' => array(
+                    'type' => 'integer'
+            ),
+            'areaid' => array(
+                    'type' => 'string',
+                    'index' => 'not_analyzed'
+            ),
+            'type' => array(
+                    'type' => 'integer'
+            ),
+            'courseid' => array(
+                    'type' => 'integer'
+            ),
+            'owneruserid' => array(
+                    'type' => 'integer'
+            ),
+            'modified' => array(
+                    'type' => 'date',
+                    'format' => 'epoch_second'
+            ),
+    );
+
     private function extract_text($file) {
         $config = get_config('search_elastic');
         $extractedtext = '';
@@ -69,5 +116,14 @@ class document extends \core_search\document {
         $data['filecontenthash'] = $file->get_contenthash();
 
         return $data;
+    }
+
+    /**
+     * Returns all required fields definitions.
+     *
+     * @return array
+     */
+    public static function get_required_fields_definition() {
+        return static::$requiredfields;
     }
 }
