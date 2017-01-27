@@ -348,11 +348,10 @@ class engine extends \core_search\engine {
      * @return array
      */
     private function construct_contexts($usercontexts) {
-        $contextobj = array();
+        $contextobj = array('terms' => array('contextid' =>  array()));
 
-        foreach ($usercontexts as $context) {
-            $addcontext = array('match' => array('contextid' => $context));
-            array_push ($contextobj, $addcontext);
+        foreach ($usercontexts as $key => $value) {
+            array_push ($contextobj['terms']['contextid'], $value);
         }
 
         return $contextobj;
@@ -368,7 +367,7 @@ class engine extends \core_search\engine {
      */
     private function construct_value($filters, $key) {
         $value = $filters->$key;
-        $valueobj = array('match' => array($key => $value));
+        $valueobj = array('term' => array($key => $value));
 
         return $valueobj;
     }
@@ -381,13 +380,12 @@ class engine extends \core_search\engine {
      * @param string $key
      * @return array
      */
-    private function construct_array($filters, $key) {
-        $arrayobj = array();
+    private function construct_array($filters, $key, $match) {
+        $arrayobj = array('terms' => array($match => array()));
         $values = $filters->$key;
 
         foreach ($values as $value) {
-            $addcontext = array('match' => array($key => $value));
-            array_push ($arrayobj, $addcontext);
+            array_push ($arrayobj['terms'][$match], $value);
         }
 
         return $arrayobj;
@@ -437,43 +435,39 @@ class engine extends \core_search\engine {
         }
 
         // Basic object to build query from.
-        $query = array('query' => array('bool' => array('must' => array())),
+        $query = array('query' => array('filtered' => array('filter' => array('bool' => array('must' => array())),'query' => array())),
                        'size' => $returnlimit,
                        '_source' => array('excludes' => array('filetext'))
         );
 
         // Add query text.
         $q = $this->construct_q($filters->q);
-        array_push ($query['query']['bool']['must'], $q);
+        array_push ($query['query']['filtered']['query'], $q);
+
         // Add contexts.
         if (gettype($usercontexts) == 'array') {
             $contexts = $this->construct_contexts($usercontexts);
-            foreach ($contexts as $context) {
-                array_push ($query['query']['bool']['must'], $context);
-            }
+            array_push ($query['query']['filtered']['filter']['bool']['must'], $contexts);
         }
+
         // Add filters.
         if (isset($filters->title) && $filters->title != null) {
             $title = $this->construct_value($filters, 'title');
-            array_push ($query['query']['bool']['must'], $title);
+            array_push ($query['query']['filtered']['filter']['bool']['must'], $title);
         }
-        if (isset($filters->areaid)) {
-            $areaids = $this->construct_array($filters, 'areaid');
-            foreach ($areaids as $areaid) {
-                array_push ($query['query']['bool']['must'], $areaid);
-            }
+        if (isset($filters->areaids)) {
+            $areaids = $this->construct_array($filters, 'areaids', 'areaid');
+             array_push ($query['query']['filtered']['filter']['bool']['must'], $areaids);
         }
-        if (isset($filters->courseid) && $filters->courseids != null) {
-            $courseids = $this->construct_array($filters, 'courseid');
-            foreach ($courseids as $courseid) {
-                array_push ($query['query']['bool']['must'], $courseid);
-            }
+        if (isset($filters->courseids) && $filters->courseids != null) {
+            $courseids = $this->construct_array($filters, 'courseids', 'courseid');
+            array_push ($query['query']['filtered']['filter']['bool']['must'], $courseids);
         }
         if ($filters->timestart != 0  || $filters->timeend != 0) {
             $timerange = $this->construct_time_range($filters);
-            $query['query']['bool']['filter'] = $timerange;
+            array_push ($query['query']['filtered']['filter']['bool']['must'], $timerange);
         }
-
+    error_log(json_encode($query));
         // Send a request to the server.
         $results = json_decode($client->post($url, json_encode($query))->getBody());
 
