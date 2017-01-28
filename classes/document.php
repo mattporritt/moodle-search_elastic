@@ -33,7 +33,7 @@ class document extends \core_search\document {
      *
      * Search engine plugins are responsible of setting their appropriate field types and map these naming to whatever format
      * they need.
-     * 
+     *
      * This format suits Elasticsearh mapping
      *
      * @var array

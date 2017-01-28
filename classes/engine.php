@@ -146,8 +146,6 @@ class engine extends \core_search\engine {
         $client = new \search_elastic\esrequest();
 
         $client->put($mappingeurl, json_encode($mapping));
-
-
     }
 
     /**
@@ -348,7 +346,7 @@ class engine extends \core_search\engine {
      * @return array
      */
     private function construct_contexts($usercontexts) {
-        $contextobj = array('terms' => array('contextid' =>  array()));
+        $contextobj = array('terms' => array('contextid' => array()));
         $contexts = array();
         $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($usercontexts));
 
@@ -438,7 +436,8 @@ class engine extends \core_search\engine {
         }
 
         // Basic object to build query from.
-        $query = array('query' => array('filtered' => array('filter' => array('bool' => array('must' => array())),'query' => array())),
+        $query = array('query' => array('filtered' => array('filter' => array('bool' => array('must' => array())),
+                                                            'query' => array())),
                        'size' => $returnlimit,
                        '_source' => array('excludes' => array('filetext'))
         );
