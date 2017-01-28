@@ -349,11 +349,14 @@ class engine extends \core_search\engine {
      */
     private function construct_contexts($usercontexts) {
         $contextobj = array('terms' => array('contextid' =>  array()));
+        $contexts = array();
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($usercontexts));
 
-        foreach ($usercontexts as $key => $value) {
-            array_push ($contextobj['terms']['contextid'], $value);
+        foreach ($iterator as $key => $value) {
+            array_push ($contexts, $value);
         }
-
+        $contexts = array_values(array_unique ($contexts));
+        $contextobj['terms']['contextid'] = $contexts;
         return $contextobj;
     }
 
@@ -467,7 +470,7 @@ class engine extends \core_search\engine {
             $timerange = $this->construct_time_range($filters);
             array_push ($query['query']['filtered']['filter']['bool']['must'], $timerange);
         }
-    error_log(json_encode($query));
+
         // Send a request to the server.
         $results = json_decode($client->post($url, json_encode($query))->getBody());
 
