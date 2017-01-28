@@ -327,7 +327,7 @@ class engine extends \core_search\engine {
         $results = json_decode($client->post($url, json_encode($esquery))->getBody());
 
         // Iterate through results.
-        // TODO: refactor this into its own method
+        // TODO: refactor this into its own method.
         if (isset($results->hits)) {
             foreach ($results->hits->hits as $result) {
                 $searcharea = $this->get_search_area($result->_source->areaid);
