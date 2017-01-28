@@ -161,7 +161,7 @@ class engine extends \core_search\engine {
         $url = $this->get_url();
         $indexeurl = $url . '/'. $this->config->index. '/_search';
         $client = new \search_elastic\esrequest();
-
+        // TODO: move this to request class and check query construction.
         $query = array('query' => array(
                 'bool' => array(
                         'must' => array(
@@ -298,121 +298,6 @@ class engine extends \core_search\engine {
     }
 
     /**
-     * Gets an array of fields to search.
-     * The returned fields are what the 'q' string is matched against in a search.
-     * It makes sense to not search every field here, so some are removed.
-     *
-     * @return array
-     */
-    private function get_search_fields() {
-        $allfields = array_keys( \core_search\document::get_default_fields_definition());
-        array_push($allfields, 'filetext');
-        $excludedfields = array('itemid',
-                                'areaid',
-                                'courseid',
-                                'contextid',
-                                'userid',
-                                'owneruserid',
-                                'modified',
-                                'type'
-        );
-        $searchfields = array_diff($allfields, $excludedfields);
-
-        return array_values($searchfields);
-    }
-
-    /**
-     * Takes the search string the user has entered
-     * and constructs the corresponding part of the
-     * search query.
-     *
-     * @param string $q
-     * @return array
-     */
-    private function construct_q($q) {
-
-        $searchfields = $this->get_search_fields();
-        $qobj = array('query_string' => array('query' => $q, 'fields' => $searchfields));
-
-        return $qobj;
-    }
-
-    /**
-     * Takes supplied user contexts from Moodle search core
-     * and constructs the corresponding part of the
-     * search query.
-     *
-     * @param array $usercontexts
-     * @return array
-     */
-    private function construct_contexts($usercontexts) {
-        $contextobj = array('terms' => array('contextid' => array()));
-        $contexts = array();
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($usercontexts));
-
-        foreach ($iterator as $key => $value) {
-            array_push ($contexts, $value);
-        }
-        $contexts = array_values(array_unique ($contexts));
-        $contextobj['terms']['contextid'] = $contexts;
-        return $contextobj;
-    }
-
-    /**
-     * Takes the form submission filter data and given a key value
-     * constructs a single match component for the search query.
-     *
-     * @param array $filters
-     * @param string $key
-     * @return array
-     */
-    private function construct_value($filters, $key) {
-        $value = $filters->$key;
-        $valueobj = array('term' => array($key => $value));
-
-        return $valueobj;
-    }
-
-    /**
-     * Takes the form submission filter data and given a key value
-     * constructs an array of match components for the search query.
-     *
-     * @param array $filters
-     * @param string $key
-     * @return array
-     */
-    private function construct_array($filters, $key, $match) {
-        $arrayobj = array('terms' => array($match => array()));
-        $values = $filters->$key;
-
-        foreach ($values as $value) {
-            array_push ($arrayobj['terms'][$match], $value);
-        }
-
-        return $arrayobj;
-    }
-
-    /**
-     * Takes the form submission filter data and
-     * constructs the time range components for the search query.
-     *
-     * @param array $filters
-     * @return array
-     */
-    private function construct_time_range($filters) {
-        $contextobj = array('range' => array('modified' => array()));
-
-        if (isset($filters->timestart) && $filters->timestart != 0) {
-            $contextobj['range']['modified']['gte'] = $filters->timestart;
-        }
-        if (isset($filters->timeend) && $filters->timeend != 0) {
-            $contextobj['range']['modified']['lte'] = $filters->timeend;
-        }
-
-        return $contextobj;
-    }
-
-    /**
      * Takes the user supplied query as well as data from Moodle global
      * search core to construct the search query and execute the query
      * against the search engine.
@@ -435,43 +320,11 @@ class engine extends \core_search\engine {
             $limit = $returnlimit;
         }
 
-        // Basic object to build query from.
-        $query = array('query' => array('filtered' => array('filter' => array('bool' => array('must' => array())),
-                                                            'query' => array())),
-                       'size' => $returnlimit,
-                       '_source' => array('excludes' => array('filetext'))
-        );
-
-        // Add query text.
-        $q = $this->construct_q($filters->q);
-        array_push ($query['query']['filtered']['query'], $q);
-
-        // Add contexts.
-        if (gettype($usercontexts) == 'array') {
-            $contexts = $this->construct_contexts($usercontexts);
-            array_push ($query['query']['filtered']['filter']['bool']['must'], $contexts);
-        }
-
-        // Add filters.
-        if (isset($filters->title) && $filters->title != null) {
-            $title = $this->construct_value($filters, 'title');
-            array_push ($query['query']['filtered']['filter']['bool']['must'], $title);
-        }
-        if (isset($filters->areaids)) {
-            $areaids = $this->construct_array($filters, 'areaids', 'areaid');
-             array_push ($query['query']['filtered']['filter']['bool']['must'], $areaids);
-        }
-        if (isset($filters->courseids) && $filters->courseids != null) {
-            $courseids = $this->construct_array($filters, 'courseids', 'courseid');
-            array_push ($query['query']['filtered']['filter']['bool']['must'], $courseids);
-        }
-        if ($filters->timestart != 0  || $filters->timeend != 0) {
-            $timerange = $this->construct_time_range($filters);
-            array_push ($query['query']['filtered']['filter']['bool']['must'], $timerange);
-        }
+        $query = new \search_elastic\query();
+        $esquery = $query->get_query($filters, $usercontexts);
 
         // Send a request to the server.
-        $results = json_decode($client->post($url, json_encode($query))->getBody());
+        $results = json_decode($client->post($url, json_encode($esquery))->getBody());
 
         // Iterate through results.
         if (isset($results->hits)) {
@@ -538,6 +391,7 @@ class engine extends \core_search\engine {
             }
         } else {
             $url = $url . '/_search';
+            // TODO: move this to request class and check query construction.
             $query = array('query' => array(
                                 'bool' => array(
                                     'must' => array(
