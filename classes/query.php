@@ -54,8 +54,12 @@ class query  {
         $returnlimit = \core_search\manager::MAX_RESULTS;
 
         // Basic object to build query from.
-        $this->query = array('query' => array('filtered' => array('filter' => array('bool' => array('must' => array())),
-                                              'query' => array())),
+        $this->query = array('query' =>
+                           array('bool' =>
+                               array('must' =>
+                                    array('multi_match' => array(),
+                                          'filter' => array('bool' => array('must' => array()))))),
+
                              'size' => $returnlimit,
                              '_source' => array('excludes' => array('filetext'))
         );
@@ -96,7 +100,7 @@ class query  {
     private function construct_q($q) {
 
         $searchfields = $this->get_search_fields();
-        $qobj = array('query_string' => array('query' => $q, 'fields' => $searchfields));
+        $qobj = array('query' => $q, 'fields' => $searchfields);
 
         return $qobj;
     }
@@ -188,30 +192,30 @@ class query  {
 
         // Add query text.
         $q = $this->construct_q($filters->q);
-        array_push ($query['query']['filtered']['query'], $q);
+        $query['query']['bool']['must']['multi_match'] = $q;
 
         // Add contexts.
         if (gettype($usercontexts) == 'array') {
             $contexts = $this->construct_contexts($usercontexts);
-            array_push ($query['query']['filtered']['filter']['bool']['must'], $contexts);
+            array_push ($query['query']['bool']['must']['filter']['bool']['must'], $contexts);
         }
 
         // Add filters.
         if (isset($filters->title) && $filters->title != null) {
             $title = $this->construct_value($filters, 'title');
-            array_push ($query['query']['filtered']['filter']['bool']['must'], $title);
+            array_push ($query['query']['bool']['must']['filter']['bool']['must'], $title);
         }
         if (isset($filters->areaids)) {
             $areaids = $this->construct_array($filters, 'areaids', 'areaid');
-            array_push ($query['query']['filtered']['filter']['bool']['must'], $areaids);
+            array_push ($query['query']['bool']['must']['filter']['bool']['must'], $areaids);
         }
         if (isset($filters->courseids) && $filters->courseids != null) {
             $courseids = $this->construct_array($filters, 'courseids', 'courseid');
-            array_push ($query['query']['filtered']['filter']['bool']['must'], $courseids);
+            array_push ($query['query']['bool']['must']['filter']['bool']['must'], $courseids);
         }
         if ($filters->timestart != 0  || $filters->timeend != 0) {
             $timerange = $this->construct_time_range($filters);
-            array_push ($query['query']['filtered']['filter']['bool']['must'], $timerange);
+            array_push ($query['query']['bool']['must']['filter']['bool']['must'], $timerange);
         }
 
         return $query;
