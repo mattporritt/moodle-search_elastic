@@ -54,10 +54,10 @@ class query  {
         $returnlimit = \core_search\manager::MAX_RESULTS;
 
         // Basic object to build query from.
-        $this->query = array('query' =>
-                           array('bool' =>
-                               array('must' => array('multi_match' => array()),
-                                     'filter' => array('bool' => array('must' => array()))
+        $this->query = array('query' => array(
+                                'bool' => array(
+                                    'must' => array('multi_match' => array()),
+                                    'filter' => array('bool' => array('must' => array()))
                             )),
                              'size' => $returnlimit,
                              '_source' => array('excludes' => array('filetext'))
