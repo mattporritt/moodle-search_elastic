@@ -4,6 +4,12 @@
 
 This plugin allows Moodle to use Elasticsearch as the search engine for Moodle's Global Search.
 
+The following features are provided by this plugin:
+
+* Multiple versions of Elasticsearch
+* File indexing
+* Request signing, compatable with Amazon Web Services (AWS)
+
 ## Installation
 **NOTE:** Complete all of these steps before trying to enable the Global Search functionality in Moodle.
 
@@ -35,7 +41,7 @@ java -jar tika-server-1.14.jar
 This will start Tika on the host. By default the Tika service is available on: `http://localhost:9998`
 
 ### Enabling File indexing support in Moodle
-Once a Tika service is available the Elasticsearch plugin in Moodle needs to be configure for file indexing support.<br/>
+Once a Tika service is available the Elasticsearch plugin in Moodle needs to be configured for file indexing support.<br/>
 Assuming you have already followed the basic installation steps, to enable file indexing support:
 
 1. Configure the Elasticsearch plugin at: *Site administration > Plugins > Search > Elastic*
@@ -57,6 +63,19 @@ Using Tika as a standalone service has the following advantages:
 * No need to chagne setup or plugins based on Elasticsearch version.
 * You can share one Tika service across multiple Elasticsearch clusters.
 * Can run Tika on dedicated infrastrucutre that is not part of your search nodes.
+
+## Request Signing
+Amazon Web Services (AWS) provide Elasticsearch as a managed service. This makes it easy to provision and manage and Elasticsearch cluster.<br/>
+One of the ways you can secure access to your data in Elasticsearch when using AWS is to use request signing. [Request signing](http://docs.aws.amazon.com/general/latest/gr/signing_aws_api_requests.html) allows only valid signed requests to be accepted by the Elasticsearch endpoint. Requests that are unsigned are not authorised to access the endpoint.
+
+### Enabling Request Signing support in Moodle
+Once you have setup Elasticsearch in AWS Moodle needs to be configured for Request Signing.<br/>
+Assuming you have already followed the basic installation steps, to enable Request Signing:
+
+1. Configure the Elasticsearch plugin at: *Site administration > Plugins > Search > Elastic*
+2. Select the *Enable request signing* checkbox.
+3. Set *Key ID*, *Secret Key* and *Region* of your AWS credentials and Elasticsearch region.
+4. Click the *Save Changes* button.
 
 ## Test Setup
 In order to run the PHP Unit tests for this plugin you need to setup and configure an Elasticsearch instance as will as supply the instance details to Moodle.
