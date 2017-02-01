@@ -99,9 +99,13 @@ class query  {
     private function construct_q($q) {
 
         $searchfields = $this->get_search_fields();
-        $qobj = array('query' => $q, 'fields' => $searchfields);
+        $qobj = array('query' => $q, 'fields' => $searchfields, 'type' => 'phrase_prefix');
 
         return $qobj;
+    }
+
+    private function construct_q_all() {
+        return array('query_string' => array('query' => '*', 'fields' => $this->get_search_fields()));
     }
 
     /**
@@ -190,8 +194,13 @@ class query  {
         $query = $this->query;
 
         // Add query text.
-        $q = $this->construct_q($filters->q);
-        $query['query']['bool']['must']['multi_match'] = $q;
+        if ($filters->q != '*') {
+            $q = $this->construct_q($filters->q);
+            $query['query']['bool']['must']['multi_match'] = $q;
+        } else {
+            $q = $this->construct_q_all();
+            $query['query']['bool']['must'] = $q;
+        }
 
         // Add contexts.
         if (gettype($usercontexts) == 'array') {
