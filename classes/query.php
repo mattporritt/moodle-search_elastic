@@ -56,7 +56,7 @@ class query  {
         // Basic object to build query from.
         $this->query = array('query' => array(
                                 'bool' => array(
-                                    'must' => array('multi_match' => array()),
+                                    'must' => array(),
                                     'filter' => array('bool' => array('must' => array()))
                             )),
                              'size' => $returnlimit,
@@ -99,7 +99,7 @@ class query  {
     private function construct_q($q) {
 
         $searchfields = $this->get_search_fields();
-        $qobj = array('query' => $q, 'fields' => $searchfields, 'type' => 'phrase_prefix');
+        $qobj = array('multi_match' =>array('query' => $q, 'fields' => $searchfields, 'type' => 'phrase_prefix'));
 
         return $qobj;
     }
@@ -137,11 +137,13 @@ class query  {
      * @param string $key
      * @return array
      */
-    private function construct_value($filters, $key) {
-        $value = $filters->$key;
-        $valueobj = array('term' => array($key => $value));
+    private function construct_title($title) {
+        $titleobj = array('multi_match' => array('query' => $title,
+                                                 'fields' => array('title'),
+                                                 'type' => "phrase_prefix")
+        );
 
-        return $valueobj;
+        return $titleobj;
     }
 
     /**
@@ -196,11 +198,10 @@ class query  {
         // Add query text.
         if ($filters->q != '*') {
             $q = $this->construct_q($filters->q);
-            $query['query']['bool']['must']['multi_match'] = $q;
         } else {
             $q = $this->construct_q_all();
-            $query['query']['bool']['must'] = $q;
         }
+        array_push($query['query']['bool']['must'], $q);
 
         // Add contexts.
         if (gettype($usercontexts) == 'array') {
@@ -210,8 +211,8 @@ class query  {
 
         // Add filters.
         if (isset($filters->title) && $filters->title != null) {
-            $title = $this->construct_value($filters, 'title');
-            array_push ($query['query']['bool']['filter']['bool']['must'], $title);
+            $title = $this->construct_title($filters->title);
+            $query['query']['bool']['must'][] = $title;
         }
         if (isset($filters->areaids)) {
             $areaids = $this->construct_array($filters, 'areaids', 'areaid');
