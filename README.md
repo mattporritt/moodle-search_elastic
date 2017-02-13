@@ -10,6 +10,9 @@ The following features are provided by this plugin:
 * File indexing
 * Request signing, compatable with Amazon Web Services (AWS)
 
+## Supported Moodle Versions
+This plugin currently supports Moodle 3.1 and 3.2
+
 ## Installation
 **NOTE:** Complete all of these steps before trying to enable the Global Search functionality in Moodle.
 
@@ -17,7 +20,7 @@ The following features are provided by this plugin:
 2. Run the upgrade: `sudo -u www-data php admin/cli/upgrade` **Note:** the user may be different to www-data on your system.
 3. Set up the plugin in *Site administration > Plugins > Search > Manage global search* by selecting *elastic* as the search engine.
 4. Configure the Elasticsearch plugin at: *Site administration > Plugins > Search > Elastic*
-5 Set *hostname* and *port* of your Elasticsearch server
+5. Set *hostname* and *port* of your Elasticsearch server
 6. To create the index and populate Elasticsearch with your site's data, run this CLI script. `sudo -u www-data php search/cli/indexer.php --force`
 7. Enable Global search in *Site administration > Advanced features*
 
