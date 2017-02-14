@@ -128,13 +128,15 @@ class engine extends \core_search\engine {
      * Creates the Index namespace and adds fields if they don't exist.
      */
     public function index_starting($fullindex = false) {
-        // If we are doing a reindex then delete old index first.
-        $this->delete();
+        if ($fullindex) {
+            // If we are doing a reindex then delete old index first.
+            $this->delete();
 
-        // Check if index exists and create it if it doesn't.
-        $hasindex = $this->check_index();
-        if (!$hasindex) {
-            $this->create_index();
+            // Check if index exists and create it if it doesn't.
+            $hasindex = $this->check_index();
+            if (!$hasindex) {
+                $this->create_index();
+            }
         }
     }
 
