@@ -289,13 +289,15 @@ class engine extends \core_search\engine {
         $responsecode = $response->getStatusCode();
 
         if ($responsecode !== 201) {
-            throw new \moodle_exception('addfail', 'search_elastic', '', '', $response->getBody());
+            debugging(get_string('addfail', 'search_elastic') . $response->getBody(), DEBUG_DEVELOPER);
+            return false;
         }
 
         if ($fileindexing) {
             // This will take care of updating all attached files in the index.
             $this->process_document_files($document);
         }
+        return true;
 
     }
 

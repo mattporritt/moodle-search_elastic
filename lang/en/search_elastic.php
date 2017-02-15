@@ -25,6 +25,7 @@
 $string['pluginname'] = 'Elastic';
 $string['pluginname_desc'] = 'Search backend for the Elasticsearch search engine';
 
+$string['addfail'] = 'Failed to add document to index';
 $string['fileindexing'] = 'Enable file indexing';
 $string['fileindexing_help'] = 'If your Elasticsearch install supports it, this feature allows Moodle to send files to be indexed.';
 $string['fileindexsettings'] = 'File indexing settings';
