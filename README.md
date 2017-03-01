@@ -17,12 +17,13 @@ This plugin currently supports Moodle 3.1 and 3.2
 **NOTE:** Complete all of these steps before trying to enable the Global Search functionality in Moodle.
 
 1. Get the code and copy/ install it to: `<moodledir>/search/engine/elastic`
-2. Run the upgrade: `sudo -u www-data php admin/cli/upgrade` **Note:** the user may be different to www-data on your system.
-3. Set up the plugin in *Site administration > Plugins > Search > Manage global search* by selecting *elastic* as the search engine.
-4. Configure the Elasticsearch plugin at: *Site administration > Plugins > Search > Elastic*
-5. Set *hostname* and *port* of your Elasticsearch server
-6. To create the index and populate Elasticsearch with your site's data, run this CLI script. `sudo -u www-data php search/cli/indexer.php --force`
-7. Enable Global search in *Site administration > Advanced features*
+2. This plugin also depends on *local_aws* get the code from `https://github.com/catalyst/moodle-local_aws` and copy/ install it into `<moodledir>/local/aws`
+3. Run the upgrade: `sudo -u www-data php admin/cli/upgrade` **Note:** the user may be different to www-data on your system.
+4. Set up the plugin in *Site administration > Plugins > Search > Manage global search* by selecting *elastic* as the search engine.
+5. Configure the Elasticsearch plugin at: *Site administration > Plugins > Search > Elastic*
+6. Set *hostname* and *port* of your Elasticsearch server
+7. To create the index and populate Elasticsearch with your site's data, run this CLI script. `sudo -u www-data php search/cli/indexer.php --force`
+8. Enable Global search in *Site administration > Advanced features*
 
 ## Elasticsearch Version Support
 Currently this plugin is tested to work against the following versions of Elasticsearch:
@@ -109,3 +110,24 @@ Current list of known intended to do items:
 * Implement Behat tests
 * Benchmark index creation time and index size for given inputs
 * Basic load testing of Elasticsearch indexes and Tika
+
+# Crafted by Catalyst IT
+
+
+This plugin was developed by Catalyst IT Australia:
+
+https://www.catalyst-au.net/
+
+![Catalyst IT](/pix/catalyst-logo.png?raw=true)
+
+
+# Contributing and Support
+
+Issues, and pull requests using github are welcome and encouraged! 
+
+https://github.com/catalyst/moodle-search_elastic/issues
+
+If you would like commercial support or would like to sponsor additional improvements
+to this plugin please contact us:
+
+https://www.catalyst-au.net/contact-us
