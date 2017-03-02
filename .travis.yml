@@ -45,7 +45,7 @@ before_install:
 install:
   - moodle-plugin-ci add-plugin catalyst/moodle-local_aws
   - moodle-plugin-ci install -vvv
-  - composer require guzzlehttp/guzzle:~6.0
+  - if [ "$MOODLE_BRANCH" == "MOODLE_31_STABLE" ]; then (cd moodle; composer require --dev --no-interaction --prefer-dist guzzlehttp/guzzle:~6.0 fabpot/goutte:~3); fi
 
 before_script:
   - sleep 10
