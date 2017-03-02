@@ -45,6 +45,7 @@ before_install:
 install:
   - moodle-plugin-ci add-plugin catalyst/moodle-local_aws
   - moodle-plugin-ci install -vvv
+  - composer require guzzlehttp/guzzle:~6.0
 
 before_script:
   - sleep 10
