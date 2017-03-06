@@ -33,7 +33,13 @@ namespace search_elastic;
 
 defined('MOODLE_INTERNAL') || die();
 
-
+/**
+ * Elasticsearch engine.
+ *
+ * @package     search_elastic
+ * @copyright   Matt Porritt <mattp@catalyst-au.net>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class query  {
 
     /**
@@ -104,6 +110,10 @@ class query  {
         return $qobj;
     }
 
+    /**
+     * Construct all reesult wildcard query
+     * @return string[][]
+     */
     private function construct_q_all() {
         return array('query_string' => array('query' => '*', 'fields' => $this->get_search_fields()));
     }
@@ -133,8 +143,7 @@ class query  {
      * Takes the form submission filter data and given a key value
      * constructs a single match component for the search query.
      *
-     * @param array $filters
-     * @param string $key
+     * @param string $title
      * @return array
      */
     private function construct_title($title) {
@@ -152,6 +161,7 @@ class query  {
      *
      * @param array $filters
      * @param string $key
+     * @param string $match
      * @return array
      */
     private function construct_array($filters, $key, $match) {

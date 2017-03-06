@@ -29,6 +29,13 @@ require_once($CFG->dirroot . '/search/tests/fixtures/testable_core_search.php');
 require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_engine.php');
 
+/**
+ * Elasticsearch engine.
+ *
+ * @package     search_elastic
+ * @copyright   Matt Porritt <mattp@catalyst-au.net>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class search_elastic_engine_testcase extends advanced_testcase {
     /**
      * @var \core_search::manager

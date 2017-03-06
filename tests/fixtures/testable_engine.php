@@ -26,7 +26,19 @@ namespace search_elastic;
 
 defined('MOODLE_INTERNAL') || die;
 
+/**
+ * Elasticsearch engine.
+ *
+ * @package     search_elastic
+ * @copyright   Matt Porritt <mattp@catalyst-au.net>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class testable_engine extends \search_elastic\engine {
+    /**
+     *      * Function that lets us update the internally cached config object of the engine.
+     * @param string $name
+     * @param mixed $value
+     */
     public function test_set_config($name, $value) {
         $this->config->$name = $value;
     }

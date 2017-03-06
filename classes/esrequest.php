@@ -28,6 +28,12 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
 
+/**
+ * Class creates the API calls to Elasticsearch.
+ *
+ * @copyright   Matt Porritt <mattp@catalyst-au.net>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class esrequest {
     /**
      * @var bool True if we should sign requests, false if not.
@@ -114,6 +120,7 @@ class esrequest {
      * Process PUT requests to Elasticsearch.
      *
      * @param string $url
+     * @param array $params
      * @return \GuzzleHttp\Psr7\Response
      */
     public function put($url, $params=null) {
@@ -141,8 +148,8 @@ class esrequest {
     }
 
     /**
-     *
-     * @param unknown $url
+     * Creates post API requests.
+     * @param string $url
      * @param unknown $params
      * @return \Psr\Http\Message\ResponseInterface|NULL
      */
@@ -171,6 +178,7 @@ class esrequest {
     }
 
     /**
+     * Creates delete API requests.
      *
      * @param unknown $url
      * @return \Psr\Http\Message\ResponseInterface|NULL

@@ -33,6 +33,13 @@ namespace search_elastic;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Elasticsearch engine.
+ *
+ * @package     search_elastic
+ * @copyright   Matt Porritt <mattp@catalyst-au.net>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class engine extends \core_search\engine {
 
     /**
@@ -126,6 +133,8 @@ class engine extends \core_search\engine {
     /**
      * Called when indexing is triggered.
      * Creates the Index namespace and adds fields if they don't exist.
+     *
+     * @param bool $fullindex is this a full index of site.
      */
     public function index_starting($fullindex = false) {
         if ($fullindex) {
@@ -140,6 +149,14 @@ class engine extends \core_search\engine {
         }
     }
 
+    /**
+     *
+     * {@inheritDoc}
+     * @see \core_search\engine::area_index_starting()
+     *
+     * @param \core_search\base $searcharea The search area.
+     * @param bool $fullindex is this a full index of site.
+     */
     public function area_index_starting($searcharea, $fullindex = false) {
         $requiredfields = \search_elastic\document::get_required_fields_definition();
         $url = $this->get_url();
@@ -207,6 +224,8 @@ class engine extends \core_search\engine {
 
     /**
      * Add files to the index
+     *
+     * @param document $document document
      */
     private function process_document_files($document) {
         // TODO: refactor this whole nested mess of code.
@@ -277,6 +296,10 @@ class engine extends \core_search\engine {
 
     /**
      * Add a document to the index
+     *
+     * @param document $document
+     * @param bool $fileindexing are we indexing files
+     * @return bool
      */
     public function add_document($document, $fileindexing = false) {
         $docdata = $document->export_for_engine();
@@ -326,7 +349,6 @@ class engine extends \core_search\engine {
 
         $query = new \search_elastic\query();
         $esquery = $query->get_query($filters, $usercontexts);
-        error_log(json_encode($esquery));
 
         // Send a request to the server.
         $results = json_decode($client->post($url, json_encode($esquery))->getBody());
@@ -361,6 +383,7 @@ class engine extends \core_search\engine {
     /**
      * Deletes the specified document.
      *
+     * @param string $type The document type to delete
      * @param string $id The document id to delete
      * @return void
      */
@@ -375,6 +398,8 @@ class engine extends \core_search\engine {
     /**
      * Manage deletion of content out of Elasticsearch.
      * If an $areaid is not passed this will delete EVERYTHING!
+     *
+     * @param bool $areaid | string
      */
     public function delete($areaid = false) {
         $url = $this->get_url();

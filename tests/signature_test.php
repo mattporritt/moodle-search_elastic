@@ -32,6 +32,9 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_eng
 /**
  * Tests for request signature signing
  *
+ * @package     search_elastic
+ * @copyright   Matt Porritt <mattp@catalyst-au.net>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class search_elastic_signature_testcase extends advanced_testcase {
 

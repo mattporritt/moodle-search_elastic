@@ -26,6 +26,13 @@ namespace search_elastic;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Elasticsearch engine.
+ *
+ * @package     search_elastic
+ * @copyright   Matt Porritt <mattp@catalyst-au.net>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class document extends \core_search\document {
 
     /**
@@ -75,6 +82,11 @@ class document extends \core_search\document {
             ),
     );
 
+    /**
+     * Use tika to extract text from file.
+     * @param file $file
+     * @return string|boolean
+     */
     private function extract_text($file) {
         $config = get_config('search_elastic');
         $extractedtext = '';
