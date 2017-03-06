@@ -267,7 +267,7 @@ class engine extends \core_search\engine {
 
         foreach ($files as $file) {
             $filedoc = $document->export_file_for_engine($file);
-            $docurl = $url . '/'. $this->config->index . '/'.$filedoc['id'];
+            $docurl = $url . '/'. $this->config->index . '/'.$filedoc['areaid'];
             $jsondoc = json_encode($filedoc);
             $client = new \search_elastic\esrequest();
             $response = $client->post($docurl, $jsondoc)->getBody();
@@ -326,6 +326,7 @@ class engine extends \core_search\engine {
 
         $query = new \search_elastic\query();
         $esquery = $query->get_query($filters, $usercontexts);
+        error_log(json_encode($esquery));
 
         // Send a request to the server.
         $results = json_decode($client->post($url, json_encode($esquery))->getBody());
