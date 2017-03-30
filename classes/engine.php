@@ -180,14 +180,15 @@ class engine extends \core_search\engine {
         $url = $this->get_url();
         $indexeurl = $url . '/'. $this->config->index. '/_search';
         $client = new \search_elastic\esrequest();
-        // TODO: move this to request class and check query construction.
+        // TODO: move this to document class.
         $query = array('query' => array(
                 'bool' => array(
                         'must' => array(
-                                'match' => array('type' => 2)
-                                )
+                            array('match' => array('type' => 2)),
+                            array('match' => array('areaid' => $document->get('areaid'))),
+                            array('match' => array('parentid' => $document->get('id'))),
                         )
-                ),
+                )),
                 '_source' => array('id',
                                   'modified',
                                   'filecontenthash',
@@ -196,6 +197,7 @@ class engine extends \core_search\engine {
                 'size' => $rows,
                 );
         $jsonquery = json_encode($query);
+        error_log($jsonquery);
         $response = $client->post($indexeurl, $jsonquery)->getBody();
         $results = json_decode($response);
 
@@ -265,7 +267,7 @@ class engine extends \core_search\engine {
                     } else {
                         // This means we have found a file that is no longer attached, so we need to delete from the index.
                         // We do it later, since this is progressive, and it could reorder results.
-                        $idstodelete[] = $indexedfile->_source->id;
+                        $idstodelete[$indexedfile->_source->id] = $indexedfile->_type;
                     }
                 }
                 $count += $rows;
@@ -277,9 +279,9 @@ class engine extends \core_search\engine {
             } while ($count < $numfound);
 
             // Delete files that are no longer attached.
-            foreach ($idstodelete as $id) {
+            foreach ($idstodelete as $id => $type) {
                 // We directly delete the item using the client, as the engine delete_by_id won't work on file docs.
-                $this->delete_by_type_id($id, $id);
+                $this->delete_by_type_id($type, $id);
             }
 
         }

@@ -50,6 +50,10 @@ class document extends \core_search\document {
                     'type' => 'string',
                     'index' => 'not_analyzed'
             ),
+            'parentid' => array(
+                    'type' => 'string',
+                    'index' => 'not_analyzed'
+            ),
             'itemid' => array(
                     'type' => 'integer'
             ),
@@ -103,6 +107,20 @@ class document extends \core_search\document {
         return $extractedtext;
 
     }
+
+    /**
+     * Apply any defaults to unset fields before export. Called after document building, but before export.
+     *
+     * Sub-classes of this should make sure to call parent::apply_defaults().
+     */
+    protected function apply_defaults() {
+        parent::apply_defaults();
+        // Set the default type, TYPE_TEXT.
+        if (!isset($this->data['parentid'])) {
+            $this->data['parentid'] = $this->data['id'];
+        }
+    }
+
     /**
      * Export the data for the given file in relation to this document.
      *
@@ -121,6 +139,7 @@ class document extends \core_search\document {
         unset($data['description2']);
 
         $data['id'] = $file->get_id();
+        $data['parentid'] = $this->data['id'];
         $data['type'] = \core_search\manager::TYPE_FILE;
         $data['title'] = $file->get_filename();
         $data['modified'] = $file->get_timemodified();
