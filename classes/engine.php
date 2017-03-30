@@ -285,13 +285,19 @@ class engine extends \core_search\engine {
 
         }
 
-        foreach ($files as $file) {
+        $payload = '';
+        foreach ($files as $fileid => $file) {
             $filedoc = $document->export_file_for_engine($file);
-            $docurl = $url . '/'. $this->config->index . '/'.$filedoc['areaid'];
+            $meta = array('index'=>array('_index'=>$this->config->index, '_type'=>$filedoc['areaid']));
+            $jsonmeta = json_encode($meta);
             $jsondoc = json_encode($filedoc);
+            $payload .= $jsonmeta . "\n" . $jsondoc. "\n";
+
+        }
+        if ($files){
             $client = new \search_elastic\esrequest();
-            $response = $client->post($docurl, $jsondoc)->getBody();
-            $results = json_decode($response);
+            $docurl = $url . '/'. $this->config->index . '/_bulk';
+            $response = $client->post($docurl, $payload)->getBody();
         }
     }
 
