@@ -197,7 +197,6 @@ class engine extends \core_search\engine {
                 'size' => $rows,
                 );
         $jsonquery = json_encode($query);
-        error_log($jsonquery);
         $response = $client->post($indexeurl, $jsonquery)->getBody();
         $results = json_decode($response);
 
