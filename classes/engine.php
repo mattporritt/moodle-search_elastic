@@ -295,7 +295,6 @@ class engine extends \core_search\engine {
 
         }
         if ($files){
-            error_log('bar');
             $client = new \search_elastic\esrequest();
             $docurl = $url . '/'. $this->config->index . '/_bulk';
             $response = $client->post($docurl, $payload)->getBody();
@@ -331,6 +330,13 @@ class engine extends \core_search\engine {
             $numrecords++;
             $count++;
 
+            if ($fileindexing) {
+                // This will take care of updating all attached files in the index.
+                // This way isn't the best but we need to refactor the 
+                // process document files method first.
+                $this->process_document_files($document);
+            }
+
             if($count == 500){ // Add 500 records per call to Elastic search server
                 $numdocsignored += $this->batch_add_documents($payload);
                 $count = 0;
@@ -341,10 +347,6 @@ class engine extends \core_search\engine {
             $numdocsignored += $this->batch_add_documents($payload);
         }
         $numdocs = $numrecords - $numdocsignored;
-
-        if ($fileindexing){
-            //$this->batch_process_document_files();
-        }
 
         return array($numrecords, $numdocs, $numdocsignored, $lastindexeddoc);
     }
