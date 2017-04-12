@@ -312,27 +312,16 @@ class engine extends \core_search\engine {
      * @return array Processed document counts
      */
     public function add_documents($iterator, $fileindexing){
-        # we are going to ignore files for the time being
-        # First we'll process all the documents, then if we
-        # are processing files we'll itterate through again and just add the files
-        $iteratorsize = iterator_count($iterator); // Only want to calculate this once
-        list($numrecords, $numdocs, $numdocsignored, $lastindexeddoc) = $this->batch_add_documents($iterator, $iteratorsize);
-
-//         if ($fileindexing){
-//             $this->batch_process_document_files($iterator);
-//         }
-
-        return array($numrecords, $numdocs, $numdocsignored, $lastindexeddoc);
-    }
-
-    private function batch_add_documents($iterator, $iteratorsize, $doccounts=array(),$offset=0, $count=500){
         $lastindexeddoc = 0;
         $numrecords = 0;
         $numdocsignored = 0;
         $numdocs = 0;
         $payload = false;
+        $count = 0;
 
-        foreach (new \LimitIterator($iterator, $offset, $count) as $document) {
+        # First we'll process all the documents, then if we
+        # are processing files we'll itterate through again and just add the files.
+        foreach ($iterator as $document) {
             $lastindexeddoc = $document->get('modified');
             $docdata = $document->export_for_engine();
             $meta = array('index'=>array('_index'=>$this->config->index, '_type'=>$docdata['areaid']));
@@ -340,37 +329,46 @@ class engine extends \core_search\engine {
             $jsondoc = json_encode($docdata);
             $payload .= $jsonmeta . "\n" . $jsondoc. "\n";
             $numrecords++;
+            $count++;
 
-        }
-
-        if ($payload){
-            $url = $this->get_url();
-            $client = new \search_elastic\esrequest();
-            $docurl = $url . '/'. $this->config->index . '/_bulk';
-            $response = json_decode($client->post($docurl, $payload)->getBody());
-
-            # Process response
-            # If no errors were returned from bulk operation then numdocs = numrecords
-            # If there are errors we need to itterate throught he response and count how many
-            if ($response->errors){
-                debugging(get_string('addfail', 'search_elastic') . $response, DEBUG_DEVELOPER);
-                foreach ($response->items as $item){
-                    if ($item->index->status != 201){
-                        $numdocsignored++;
-                    }
-                }
+            if($count == 500){ // Add 500 records per call to Elastic search server
+                $numdocsignored += $this->batch_add_documents($payload);
+                $count = 0;
             }
-            $numdocs = $numrecords - $numdocsignored;
-
         }
 
-        // Recursion FTW
-        $offset += $numrecords;
-        if($offset < $iteratorsize){
-            $this->batch_add_documents($iterator, $iteratorsize, $doccounts=array(),$offset=0);
+        if ($count > 0){
+            $numdocsignored += $this->batch_add_documents($payload);
+        }
+        $numdocs = $numrecords - $numdocsignored;
+
+        if ($fileindexing){
+            //$this->batch_process_document_files();
         }
 
         return array($numrecords, $numdocs, $numdocsignored, $lastindexeddoc);
+    }
+
+    private function batch_add_documents($payload){
+        $numdocsignored = 0;
+        $url = $this->get_url ();
+        $client = new \search_elastic\esrequest ();
+        $docurl = $url . '/' . $this->config->index . '/_bulk';
+        $response = json_decode ( $client->post ( $docurl, $payload )->getBody () );
+
+        // Process response
+        // If no errors were returned from bulk operation then numdocs = numrecords
+        // If there are errors we need to itterate throught he response and count how many
+        if ($response->errors) {
+            debugging ( get_string ( 'addfail', 'search_elastic' ) . $response, DEBUG_DEVELOPER );
+            foreach ( $response->items as $item ) {
+                if ($item->index->status != 201) {
+                    $numdocsignored ++;
+                }
+            }
+        }
+
+        return $numdocsignored;
     }
 
     /**
