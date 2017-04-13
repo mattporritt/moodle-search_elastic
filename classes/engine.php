@@ -310,7 +310,7 @@ class engine extends \core_search\engine {
      * @param bool $fileindexing Are we indexing files
      * @return array Processed document counts
      */
-    public function add_documents($iterator, $fileindexing){
+    public function add_documents($iterator, $options){
         $lastindexeddoc = 0;
         $numrecords = 0;
         $numdocsignored = 0;
@@ -321,6 +321,14 @@ class engine extends \core_search\engine {
         # First we'll process all the documents, then if we
         # are processing files we'll itterate through again and just add the files.
         foreach ($iterator as $document) {
+            if (!$document instanceof \core_search\document) {
+                continue;
+            }
+            if ($options['lastindexedtime'] == 0) {
+                // If we have never indexed this area before, it must be new.
+                $document->set_is_new(true);
+            }
+
             $lastindexeddoc = $document->get('modified');
             $docdata = $document->export_for_engine();
             $meta = array('index'=>array('_index'=>$this->config->index, '_type'=>$docdata['areaid']));
@@ -330,10 +338,11 @@ class engine extends \core_search\engine {
             $numrecords++;
             $count++;
 
-            if ($fileindexing) {
+            if ($options['indexfiles']) {
                 // This will take care of updating all attached files in the index.
-                // This way isn't the best but we need to refactor the 
+                // This way isn't the best but we need to refactor the
                 // process document files method first.
+                $options['searcharea']->attach_files($document);
                 $this->process_document_files($document);
             }
 
