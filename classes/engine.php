@@ -224,8 +224,12 @@ class engine extends \core_search\engine {
     }
 
 
-    private function delete_indexed_files() {
-
+    private function delete_indexed_files($idstodelete) {
+        // Delete files that are no longer attached.
+        foreach ( $idstodelete as $id => $type ) {
+            // We directly delete the item using the client, as the engine delete_by_id won't work on file docs.
+            $this->delete_by_type_id ( $type, $id );
+        }
     }
 
 
@@ -283,16 +287,13 @@ class engine extends \core_search\engine {
 
 
         // Handle already indexed Files.
-        // If this isn't a new document, we need to check the exiting indexed files.
         if (!$document->get_is_new()) {
 
+            // If this isn't a new document, we need to check the exiting indexed files.
             list ($files, $idstodelete) = $this->filter_indexed_files($document);
 
             // Delete files that are no longer attached.
-            foreach ($idstodelete as $id => $type) {
-                // We directly delete the item using the client, as the engine delete_by_id won't work on file docs.
-                $this->delete_by_type_id($type, $id);
-            }
+            $this->delete_indexed_files($idstodelete);
 
         }
 
