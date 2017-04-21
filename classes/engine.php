@@ -277,15 +277,40 @@ class engine extends \core_search\engine {
         return array($files, $idstodelete);
     }
 
+
+    private function process_batch($docdata) {
+        
+        $meta = array('index'=>array('_index'=>$this->config->index, '_type'=>$docdata['areaid']));
+        $jsonmeta = json_encode($meta);
+        $jsondoc = json_encode($docdata);
+        $payload .= $jsonmeta . "\n" . $jsondoc. "\n";
+        $payloadsize += strlen($payload);
+        $numrecords++;
+        $count++;
+
+        if ($options['indexfiles']) {
+            $searcharea->attach_files($document);
+            $this->process_document_files($document);
+        }
+
+        // Some Elastic search providers such as AWS have a limit on how big the
+        // HTTP payload can be. Therefore we limit it to a size in bytes.
+        if($payloadsize >= $this->config->sendsize){
+            $numdocsignored += $this->batch_add_documents($payload, $count);
+            $payload = false;
+            $payloadsize = 0;
+            $count = 0;
+        }
+
+        return array();
+    }
+
    /**
      * Add files to the index
      *
      * @param document $document document
      */
     private function process_document_files($document) {
-        $url = $this->get_url();
-
-
         // Handle already indexed Files.
         if (!$document->get_is_new()) {
 
@@ -297,20 +322,34 @@ class engine extends \core_search\engine {
 
         }
 
-        $payload = '';
+        $payload = false;
+        $payloadsize = 0;
+        $count = 0;
         foreach ($files as $fileid => $file) {
             $filedoc = $document->export_file_for_engine($file);
+
             $meta = array('index'=>array('_index'=>$this->config->index, '_type'=>$filedoc['areaid']));
             $jsonmeta = json_encode($meta);
             $jsondoc = json_encode($filedoc);
             $payload .= $jsonmeta . "\n" . $jsondoc. "\n";
+            $payloadsize += strlen($payload);
+            $count++;
+
+            // Some Elastic search providers such as AWS have a limit on how big the
+            // HTTP payload can be. Therefore we limit it to a size in bytes.
+            if($payloadsize >= $this->config->sendsize){
+                $numdocsignored += $this->batch_add_documents($payload, $count);
+                $payload = false;
+                $payloadsize = 0;
+                $count = 0;
+            }
 
         }
-        if ($files){
-            $client = new \search_elastic\esrequest();
-            $docurl = $url . '/'. $this->config->index . '/_bulk';
-            $response = $client->post($docurl, $payload)->getBody();
+
+        if ($payloadsize > 0){
+            $this->batch_add_documents($payload);
         }
+
     }
 
     /**
@@ -344,18 +383,16 @@ class engine extends \core_search\engine {
 
             $lastindexeddoc = $document->get('modified');
             $docdata = $document->export_for_engine();
+
+            // list($payloadsize) = $this->process_batch($docdata, $count);
+            $numrecords++;
+
             $meta = array('index'=>array('_index'=>$this->config->index, '_type'=>$docdata['areaid']));
             $jsonmeta = json_encode($meta);
             $jsondoc = json_encode($docdata);
             $payload .= $jsonmeta . "\n" . $jsondoc. "\n";
             $payloadsize += strlen($payload);
-            $numrecords++;
             $count++;
-
-            if ($options['indexfiles']) {
-                $searcharea->attach_files($document);
-                $this->process_document_files($document);
-            }
 
             // Some Elastic search providers such as AWS have a limit on how big the
             // HTTP payload can be. Therefore we limit it to a size in bytes.
@@ -365,11 +402,17 @@ class engine extends \core_search\engine {
                 $payloadsize = 0;
                 $count = 0;
             }
+
+            if ($options['indexfiles']) {
+                $searcharea->attach_files($document);
+                $this->process_document_files($document);
+            }
         }
 
         if ($payloadsize > 0){
             $numdocsignored += $this->batch_add_documents($payload);
         }
+
         $numdocs = $numrecords - $numdocsignored;
 
         return array($numrecords, $numdocs, $numdocsignored, $lastindexeddoc);
