@@ -302,20 +302,21 @@ class engine extends \core_search\engine {
     }
 
     /**
-     * Loop through given itterator of search documents
+     * Loop through given iterator of search documents
      * and and have the search engine back end add them
      * to the index.
      *
-     * @param itterator $iterator
-     * @param bool $fileindexing Are we indexing files
+     * @param iterator $iterator
+     * @param aray $options document indexing options
      * @return array Processed document counts
      */
-    public function add_documents($iterator, $options){
+    public function add_documents($iterator, $searcharea, $options) {
         $lastindexeddoc = 0;
         $numrecords = 0;
         $numdocsignored = 0;
         $numdocs = 0;
         $payload = false;
+        $payloadsize = 0;
         $count = 0;
 
         # First we'll process all the documents, then if we
@@ -335,24 +336,26 @@ class engine extends \core_search\engine {
             $jsonmeta = json_encode($meta);
             $jsondoc = json_encode($docdata);
             $payload .= $jsonmeta . "\n" . $jsondoc. "\n";
+            $payloadsize += strlen($payload);
             $numrecords++;
             $count++;
 
             if ($options['indexfiles']) {
-                // This will take care of updating all attached files in the index.
-                // This way isn't the best but we need to refactor the
-                // process document files method first.
-                $options['searcharea']->attach_files($document);
+                $searcharea->attach_files($document);
                 $this->process_document_files($document);
             }
 
-            if($count == 500){ // Add 500 records per call to Elastic search server
-                $numdocsignored += $this->batch_add_documents($payload);
+            // Some Elastic search providers such as AWS have a limit on how big the
+            // HTTP payload can be. Therefore we limit it to a size in bytes.
+            if($payloadsize >= $this->config->sendsize){
+                $numdocsignored += $this->batch_add_documents($payload, $count);
+                $payload = false;
+                $payloadsize = 0;
                 $count = 0;
             }
         }
 
-        if ($count > 0){
+        if ($payloadsize > 0){
             $numdocsignored += $this->batch_add_documents($payload);
         }
         $numdocs = $numrecords - $numdocsignored;

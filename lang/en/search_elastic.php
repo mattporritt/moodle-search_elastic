@@ -45,6 +45,8 @@ $string['searchinfo_help'] = 'The field to be searched may be specified by prefi
 Boolean operators (\'AND\', \'OR\') may be used to combine or exclude keywords.
 
 Wildcard characters (\'*\' or \'?\' ) may be used to represent characters in the search query.';
+$string['sendsize'] = 'Request size';
+$string['sendsize_desc'] = 'Some Elasticsearch providers such as AWS have a limit on how big the HTTP payload can be. Therefore we limit it to a size in bytes.';
 $string['signing'] = 'Enable request signing';
 $string['signing_desc'] = 'When enabled Moodle will sign each request to Elasticsearch with the credentials below';
 $string['signingkeyid'] = 'Key ID';
