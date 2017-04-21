@@ -223,59 +223,70 @@ class engine extends \core_search\engine {
         return $this->totalresultdocs;
     }
 
-    /**
+
+    private function delete_indexed_files() {
+
+    }
+
+
+    private function filter_indexed_files($document) {
+        $rows = 500; // Maximum rows to process at a time.
+        $files = $document->get_files(); // Get the attached files.
+        // We do this progressively, so we can handle lots of files cleanly.
+        list ( $numfound, $indexedfiles ) = $this->get_indexed_files ( $document, 0, $rows );
+        $count = 0;
+        $idstodelete = array ();
+
+        do {
+            // Go through each indexed file. We want to not index any stored and unchanged ones, delete any missing ones.
+            foreach ( $indexedfiles as $indexedfile ) {
+                $fileid = $indexedfile->_source->id;
+
+                if (isset ( $files [$fileid] )) {
+                    // Check for changes that would mean we need to re-index the file. If so, just leave in $files.
+                    // Filelib does not guarantee time modified is updated, so we will check important values.
+                    if ($indexedfile->_source->modified != $files [$fileid]->get_timemodified ()) {
+                        continue;
+                    }
+                    if (strcmp ( $indexedfile->_source->title, $files [$fileid]->get_filename () ) !== 0) {
+                        continue;
+                    }
+                    if ($indexedfile->_source->filecontenthash != $files [$fileid]->get_contenthash ()) {
+                        continue;
+                    }
+                    // If the file is already indexed, we can just remove it from the files array and skip it.
+                    unset ( $files [$fileid] );
+                } else {
+                    // This means we have found a file that is no longer attached, so we need to delete from the index.
+                    // We do it later, since this is progressive, and it could reorder results.
+                    $idstodelete [$indexedfile->_source->id] = $indexedfile->_type;
+                }
+            }
+            $count += $rows;
+
+            if ($count < $numfound) {
+                // If we haven't hit the total count yet, fetch the next batch.
+                list ( $numfound, $indexedfiles ) = $this->get_indexed_files ( $document, $count, $rows );
+            }
+        } while ( $count < $numfound );
+
+        return array($files, $idstodelete);
+    }
+
+   /**
      * Add files to the index
      *
      * @param document $document document
      */
     private function process_document_files($document) {
-        // TODO: refactor this whole nested mess of code.
-
         $url = $this->get_url();
-        $rows = 500; // Maximum rows to process at a time.
-        $files = $document->get_files(); // Get the attached files.
+
 
         // Handle already indexed Files.
         // If this isn't a new document, we need to check the exiting indexed files.
         if (!$document->get_is_new()) {
 
-            // We do this progressively, so we can handle lots of files cleanly.
-            list($numfound, $indexedfiles) = $this->get_indexed_files($document, 0, $rows);
-            $count = 0;
-            $idstodelete = array();
-
-            do {
-                // Go through each indexed file. We want to not index any stored and unchanged ones, delete any missing ones.
-                foreach ($indexedfiles as $indexedfile) {
-                    $fileid = $indexedfile->_source->id;
-
-                    if (isset($files[$fileid])) {
-                        // Check for changes that would mean we need to re-index the file. If so, just leave in $files.
-                        // Filelib does not guarantee time modified is updated, so we will check important values.
-                        if ($indexedfile->_source->modified != $files[$fileid]->get_timemodified()) {
-                            continue;
-                        }
-                        if (strcmp($indexedfile->_source->title, $files[$fileid]->get_filename()) !== 0) {
-                            continue;
-                        }
-                        if ($indexedfile->_source->filecontenthash != $files[$fileid]->get_contenthash()) {
-                            continue;
-                        }
-                        // If the file is already indexed, we can just remove it from the files array and skip it.
-                        unset($files[$fileid]);
-                    } else {
-                        // This means we have found a file that is no longer attached, so we need to delete from the index.
-                        // We do it later, since this is progressive, and it could reorder results.
-                        $idstodelete[$indexedfile->_source->id] = $indexedfile->_type;
-                    }
-                }
-                $count += $rows;
-
-                if ($count < $numfound) {
-                    // If we haven't hit the total count yet, fetch the next batch.
-                    list($numfound, $indexedfiles) = $this->get_indexed_files($document, $count, $rows);
-                }
-            } while ($count < $numfound);
+            list ($files, $idstodelete) = $this->filter_indexed_files($document);
 
             // Delete files that are no longer attached.
             foreach ($idstodelete as $id => $type) {

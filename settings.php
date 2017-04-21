@@ -44,7 +44,7 @@ if ($ADMIN->fulltree) {
                 get_string('index_desc', 'search_elastic'),
                 'moodle', PARAM_ALPHANUMEXT));
 
-        $settings->add(new admin_setting_sendsize('search_elastic/sendsize',
+                $settings->add(new admin_setting_configtext('search_elastic/sendsize',
                 get_string('sendsize', 'search_elastic' ),
                 get_string('sendsize_desc', 'search_elastic'),
                 9000000, PARAM_INT));
