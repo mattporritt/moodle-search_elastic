@@ -48,14 +48,19 @@ class engine extends \core_search\engine {
     protected $totalresultdocs = 0;
 
     /**
-     * @var int Factor to multiply fetch limit by when getting results.
+     * @var bool The payload to be sent to the Elasticsearch service.
      */
     protected $payload = false;
 
     /**
-     * @var int Factor to multiply fetch limit by when getting results.
+     * @var int The current size of the payload object.
      */
     protected $payloadsize = 0;
+
+    /**
+     * @var int Count of how many parent documents are in current payload.
+     */
+    protected $count = 0;
 
     /**
      * Generates the Elasticsearch server endpoint URL from
@@ -219,6 +224,7 @@ class engine extends \core_search\engine {
         return $returnarray;
 
     }
+
     /**
      * Return a count of total records for the most recently completed
      * execute_query().
@@ -233,16 +239,27 @@ class engine extends \core_search\engine {
         return $this->totalresultdocs;
     }
 
-
+    /**
+     * Given an array of files,
+     * remove these from the index.
+     *
+     * @param object $idstodelete Files to remove from index.
+     */
     private function delete_indexed_files($idstodelete) {
         // Delete files that are no longer attached.
-        foreach ( $idstodelete as $id => $type ) {
+        foreach ($idstodelete as $id => $type) {
             // We directly delete the item using the client, as the engine delete_by_id won't work on file docs.
             $this->delete_by_type_id ( $type, $id );
         }
     }
 
-
+    /**
+     * Given a document, get that documents associated files
+     * and update them in the index.
+     *
+     * @param \core_search\document $document The document whose files to index/
+     * @return array files to add to index and files to delete from index.
+     */
     private function filter_indexed_files($document) {
         $rows = 500; // Maximum rows to process at a time.
         $files = $document->get_files(); // Get the attached files.
@@ -253,7 +270,7 @@ class engine extends \core_search\engine {
 
         do {
             // Go through each indexed file. We want to not index any stored and unchanged ones, delete any missing ones.
-            foreach ( $indexedfiles as $indexedfile ) {
+            foreach ($indexedfiles as $indexedfile) {
                 $fileid = $indexedfile->_source->id;
 
                 if (isset ( $files [$fileid] )) {
@@ -287,10 +304,16 @@ class engine extends \core_search\engine {
         return array($files, $idstodelete);
     }
 
-
+    /**
+     * Given a document object, transform into formatted JSON ready to be
+     * sent to Elasticsearch.
+     *
+     * @param object $docdata Object containing document information to index.
+     * @return string The JSON representation of doc data, ready to be indexed.
+     */
     private function create_payload($docdata) {
 
-        $meta = array('index'=>array('_index'=>$this->config->index, '_type'=>$docdata['areaid']));
+        $meta = array('index' => array('_index' => $this->config->index, '_type' => $docdata['areaid']));
         $jsonmeta = json_encode($meta);
         $jsondoc = json_encode($docdata);
         $jsonpayload = $jsonmeta . "\n" . $jsondoc. "\n";
@@ -298,8 +321,8 @@ class engine extends \core_search\engine {
         return $jsonpayload;
     }
 
-   /**
-     * Add files to the index
+    /**
+     * Add files to the index.
      *
      * @param document $document document
      */
@@ -315,7 +338,6 @@ class engine extends \core_search\engine {
 
         }
 
-        $jsonpayload= false;
         foreach ($files as $fileid => $file) {
             $filedocdata = $document->export_file_for_engine($file);
 
@@ -330,7 +352,8 @@ class engine extends \core_search\engine {
      * and and have the search engine back end add them
      * to the index.
      *
-     * @param iterator $iterator
+     * @param iterator $iterator the iterator of documents to index
+     * @param searcharea $searcharea the area for the documents to index
      * @param aray $options document indexing options
      * @return array Processed document counts
      */
@@ -340,8 +363,8 @@ class engine extends \core_search\engine {
         $numdocsignored = 0;
         $numdocs = 0;
 
-        # First we'll process all the documents, then if we
-        # are processing files we'll itterate through again and just add the files.
+        // First we'll process all the documents, then if we
+        // are processing files we'll itterate through again and just add the files.
         foreach ($iterator as $document) {
             if (!$document instanceof \core_search\document) {
                 continue;
@@ -356,7 +379,7 @@ class engine extends \core_search\engine {
 
             $numrecords++;
             $jsonpayload = $this->create_payload($docdata);
-            $numdocsignored += $this->batch_add_documents($jsonpayload);
+            $numdocsignored += $this->batch_add_documents($jsonpayload, true);
 
             if ($options['indexfiles']) {
                 $searcharea->attach_files($document);
@@ -364,50 +387,75 @@ class engine extends \core_search\engine {
             }
         }
 
-        $numdocsignored += $this->batch_add_documents(false, true);
+        $numdocsignored += $this->batch_add_documents(false, true, true);
         $numdocs = $numrecords - $numdocsignored;
 
         return array($numrecords, $numdocs, $numdocsignored, $lastindexeddoc);
     }
 
-    private function batch_add_documents($jsonpayload, $sendnow=false){
+    /**
+     * Add the payload object containing document information
+     * in JSON format to the Elasticsearch index.
+     *
+     * @param string $jsonpayload
+     * @param bool $isdoc
+     * @param bool $sendnow
+     * @return number Number of documents not indexed.
+     */
+    private function batch_add_documents($jsonpayload, $isdoc=false, $sendnow=false) {
         $numdocsignored = 0;
-        if (!$sendnow){
+        if (!$sendnow) {
             $this->payload .= $jsonpayload;
             $this->payloadsize += strlen($jsonpayload);
         }
 
+        // Track how many parent docs are in the request.
+        if ($isdoc) {
+            $this->count++;
+        }
+
         // Some Elastic search providers such as AWS have a limit on how big the
         // HTTP payload can be. Therefore we limit it to a size in bytes.
-        // If we don't have enough data to send yet
-        // return early
-        if($this->payloadsize < $this->config->sendsize && !$sendnow){
+        // If we don't have enough data to send yet return early.
+        if ($this->payloadsize < $this->config->sendsize && !$sendnow) {
             return $numdocsignored;
-        } else if ($this->payloadsize > 0){ //make sure we have at least some data to send
+        } else if ($this->payloadsize > 0) { // Make sure we have at least some data to send.
             $url = $this->get_url ();
             $client = new \search_elastic\esrequest ();
             $docurl = $url . '/' . $this->config->index . '/_bulk';
             $response = $client->post ( $docurl, $this->payload );
             $responsebody = json_decode ($response->getBody () );
 
-            // Process response
-            // If no errors were returned from bulk operation then numdocs = numrecords
-            // If there are errors we need to itterate throught he response and count how many
-            if ($response->getStatusCode() == 413){
+            // Process response.
+            // If no errors were returned from bulk operation then numdocs = numrecords.
+            // If there are errors we need to itterate throught he response and count how many.
+            if ($response->getStatusCode() == 413) {
+                // TODO: add handling to retry sending payload one record at a time.
                 debugging ( get_string ( 'addfail', 'search_elastic' ) . ' Request Entity Too Large', DEBUG_DEVELOPER );
-                $numdocsignored = $count;
+                $numdocsignored = $this->count;
+
+            } else if ($response->getStatusCode() >= 300) {
+                debugging ( get_string ( 'addfail', 'search_elastic' ) .
+                        ' Error Code: ' . $response->getStatusCode(), DEBUG_DEVELOPER );
+                $numdocsignored = $this->count;
 
             } else if ($responsebody->errors) {
                 debugging ( get_string ( 'addfail', 'search_elastic' ) . $responsebody, DEBUG_DEVELOPER );
-                foreach ( $responsebody->items as $item ) {
+                foreach ($responsebody->items as $item) {
                     if ($item->index->status >= 300) {
                         $numdocsignored ++;
                     }
                 }
             }
 
-            $this->payload= false;
-            $this->payloadsize= 0;
+            // Reser the counts.
+            $this->payload = false;
+            $this->payloadsize = 0;
+
+            // Reset the parent doc ocunt after attempting to add.
+            if ($isdoc) {
+                $this->count = 0;
+            }
         }
 
         return $numdocsignored;
