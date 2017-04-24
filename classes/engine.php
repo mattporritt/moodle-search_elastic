@@ -48,6 +48,16 @@ class engine extends \core_search\engine {
     protected $totalresultdocs = 0;
 
     /**
+     * @var int Factor to multiply fetch limit by when getting results.
+     */
+    protected $payload = false;
+
+    /**
+     * @var int Factor to multiply fetch limit by when getting results.
+     */
+    protected $payloadsize = 0;
+
+    /**
      * Generates the Elasticsearch server endpoint URL from
      * the config hostname and port.
      *
@@ -278,31 +288,14 @@ class engine extends \core_search\engine {
     }
 
 
-    private function process_batch($docdata) {
-        
+    private function create_payload($docdata) {
+
         $meta = array('index'=>array('_index'=>$this->config->index, '_type'=>$docdata['areaid']));
         $jsonmeta = json_encode($meta);
         $jsondoc = json_encode($docdata);
-        $payload .= $jsonmeta . "\n" . $jsondoc. "\n";
-        $payloadsize += strlen($payload);
-        $numrecords++;
-        $count++;
+        $jsonpayload = $jsonmeta . "\n" . $jsondoc. "\n";
 
-        if ($options['indexfiles']) {
-            $searcharea->attach_files($document);
-            $this->process_document_files($document);
-        }
-
-        // Some Elastic search providers such as AWS have a limit on how big the
-        // HTTP payload can be. Therefore we limit it to a size in bytes.
-        if($payloadsize >= $this->config->sendsize){
-            $numdocsignored += $this->batch_add_documents($payload, $count);
-            $payload = false;
-            $payloadsize = 0;
-            $count = 0;
-        }
-
-        return array();
+        return $jsonpayload;
     }
 
    /**
@@ -322,32 +315,12 @@ class engine extends \core_search\engine {
 
         }
 
-        $payload = false;
-        $payloadsize = 0;
-        $count = 0;
+        $jsonpayload= false;
         foreach ($files as $fileid => $file) {
-            $filedoc = $document->export_file_for_engine($file);
+            $filedocdata = $document->export_file_for_engine($file);
 
-            $meta = array('index'=>array('_index'=>$this->config->index, '_type'=>$filedoc['areaid']));
-            $jsonmeta = json_encode($meta);
-            $jsondoc = json_encode($filedoc);
-            $payload .= $jsonmeta . "\n" . $jsondoc. "\n";
-            $payloadsize += strlen($payload);
-            $count++;
-
-            // Some Elastic search providers such as AWS have a limit on how big the
-            // HTTP payload can be. Therefore we limit it to a size in bytes.
-            if($payloadsize >= $this->config->sendsize){
-                $numdocsignored += $this->batch_add_documents($payload, $count);
-                $payload = false;
-                $payloadsize = 0;
-                $count = 0;
-            }
-
-        }
-
-        if ($payloadsize > 0){
-            $this->batch_add_documents($payload);
+            $jsonpayload = $this->create_payload($filedocdata);
+            $this->batch_add_documents($jsonpayload);
         }
 
     }
@@ -366,9 +339,6 @@ class engine extends \core_search\engine {
         $numrecords = 0;
         $numdocsignored = 0;
         $numdocs = 0;
-        $payload = false;
-        $payloadsize = 0;
-        $count = 0;
 
         # First we'll process all the documents, then if we
         # are processing files we'll itterate through again and just add the files.
@@ -384,24 +354,9 @@ class engine extends \core_search\engine {
             $lastindexeddoc = $document->get('modified');
             $docdata = $document->export_for_engine();
 
-            // list($payloadsize) = $this->process_batch($docdata, $count);
             $numrecords++;
-
-            $meta = array('index'=>array('_index'=>$this->config->index, '_type'=>$docdata['areaid']));
-            $jsonmeta = json_encode($meta);
-            $jsondoc = json_encode($docdata);
-            $payload .= $jsonmeta . "\n" . $jsondoc. "\n";
-            $payloadsize += strlen($payload);
-            $count++;
-
-            // Some Elastic search providers such as AWS have a limit on how big the
-            // HTTP payload can be. Therefore we limit it to a size in bytes.
-            if($payloadsize >= $this->config->sendsize){
-                $numdocsignored += $this->batch_add_documents($payload, $count);
-                $payload = false;
-                $payloadsize = 0;
-                $count = 0;
-            }
+            $jsonpayload = $this->create_payload($docdata);
+            $numdocsignored += $this->batch_add_documents($jsonpayload);
 
             if ($options['indexfiles']) {
                 $searcharea->attach_files($document);
@@ -409,32 +364,50 @@ class engine extends \core_search\engine {
             }
         }
 
-        if ($payloadsize > 0){
-            $numdocsignored += $this->batch_add_documents($payload);
-        }
-
+        $numdocsignored += $this->batch_add_documents(false, true);
         $numdocs = $numrecords - $numdocsignored;
 
         return array($numrecords, $numdocs, $numdocsignored, $lastindexeddoc);
     }
 
-    private function batch_add_documents($payload){
+    private function batch_add_documents($jsonpayload, $sendnow=false){
         $numdocsignored = 0;
-        $url = $this->get_url ();
-        $client = new \search_elastic\esrequest ();
-        $docurl = $url . '/' . $this->config->index . '/_bulk';
-        $response = json_decode ( $client->post ( $docurl, $payload )->getBody () );
+        if (!$sendnow){
+            $this->payload .= $jsonpayload;
+            $this->payloadsize += strlen($jsonpayload);
+        }
 
-        // Process response
-        // If no errors were returned from bulk operation then numdocs = numrecords
-        // If there are errors we need to itterate throught he response and count how many
-        if ($response->errors) {
-            debugging ( get_string ( 'addfail', 'search_elastic' ) . $response, DEBUG_DEVELOPER );
-            foreach ( $response->items as $item ) {
-                if ($item->index->status != 201) {
-                    $numdocsignored ++;
+        // Some Elastic search providers such as AWS have a limit on how big the
+        // HTTP payload can be. Therefore we limit it to a size in bytes.
+        // If we don't have enough data to send yet
+        // return early
+        if($this->payloadsize < $this->config->sendsize && !$sendnow){
+            return $numdocsignored;
+        } else if ($this->payloadsize > 0){ //make sure we have at least some data to send
+            $url = $this->get_url ();
+            $client = new \search_elastic\esrequest ();
+            $docurl = $url . '/' . $this->config->index . '/_bulk';
+            $response = $client->post ( $docurl, $this->payload );
+            $responsebody = json_decode ($response->getBody () );
+
+            // Process response
+            // If no errors were returned from bulk operation then numdocs = numrecords
+            // If there are errors we need to itterate throught he response and count how many
+            if ($response->getStatusCode() == 413){
+                debugging ( get_string ( 'addfail', 'search_elastic' ) . ' Request Entity Too Large', DEBUG_DEVELOPER );
+                $numdocsignored = $count;
+
+            } else if ($responsebody->errors) {
+                debugging ( get_string ( 'addfail', 'search_elastic' ) . $responsebody, DEBUG_DEVELOPER );
+                foreach ( $responsebody->items as $item ) {
+                    if ($item->index->status >= 300) {
+                        $numdocsignored ++;
+                    }
                 }
             }
+
+            $this->payload= false;
+            $this->payloadsize= 0;
         }
 
         return $numdocsignored;
