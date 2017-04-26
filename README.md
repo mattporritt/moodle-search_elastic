@@ -108,8 +108,6 @@ Current list of known intended to do items:
 
 * Increase unit test coverage
 * Implement Behat tests
-* Benchmark index creation time and index size for given inputs
-* Basic load testing of Elasticsearch indexes and Tika
 
 # Crafted by Catalyst IT
 
