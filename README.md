@@ -11,7 +11,7 @@ The following features are provided by this plugin:
 * Request signing, compatable with Amazon Web Services (AWS)
 
 ## Supported Moodle Versions
-This plugin currently supports Moodle 3.1 and 3.2
+This plugin currently supports Moodle 3.1, 3.2 and 3.3
 
 ## Installation
 **NOTE:** Complete all of these steps before trying to enable the Global Search functionality in Moodle.
