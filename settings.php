@@ -47,7 +47,7 @@ if ($ADMIN->fulltree) {
                 $settings->add(new admin_setting_configtext('search_elastic/sendsize',
                 get_string('sendsize', 'search_elastic' ),
                 get_string('sendsize_desc', 'search_elastic'),
-                9000000, PARAM_INT));
+                9000000, PARAM_INT, 8));
 
         // File indexing settings.
         $settings->add(new admin_setting_heading('search_elastic_fileindexing',

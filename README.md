@@ -22,8 +22,9 @@ This plugin currently supports Moodle 3.1 and 3.2
 4. Set up the plugin in *Site administration > Plugins > Search > Manage global search* by selecting *elastic* as the search engine.
 5. Configure the Elasticsearch plugin at: *Site administration > Plugins > Search > Elastic*
 6. Set *hostname* and *port* of your Elasticsearch server
-7. To create the index and populate Elasticsearch with your site's data, run this CLI script. `sudo -u www-data php search/cli/indexer.php --force`
-8. Enable Global search in *Site administration > Advanced features*
+7. Optionally, change the *Request size* variable. Generally this can be left as is. Some Elasticsearch providers such as AWS have a limit on how big the HTTP payload can be. Therefore we limit it to a size in bytes.
+8. To create the index and populate Elasticsearch with your site's data, run this CLI script. `sudo -u www-data php search/cli/indexer.php --force`
+9. Enable Global search in *Site administration > Advanced features*
 
 ## Elasticsearch Version Support
 Currently this plugin is tested to work against the following versions of Elasticsearch:
