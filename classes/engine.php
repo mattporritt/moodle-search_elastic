@@ -345,6 +345,8 @@ class engine extends \core_search\engine {
             $this->batch_add_documents($jsonpayload);
         }
 
+        $this->batch_add_documents(false, false, true);
+
     }
 
     /**

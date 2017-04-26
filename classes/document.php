@@ -92,6 +92,7 @@ class document extends \core_search\document {
      * @return string|boolean
      */
     private function extract_text($file) {
+        // TODO: add timeout and retries for tika.
         $config = get_config('search_elastic');
         $extractedtext = '';
         $client = new \curl();
