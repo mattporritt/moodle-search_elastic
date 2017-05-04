@@ -52,9 +52,18 @@ class esrequest {
      *
      * @return void
      */
-    public function __construct() {
+    public function __construct($handler = false) {
         $this->config = get_config('search_elastic');
         $this->signing = (bool)$this->config->signing;
+
+        // Allow the caller to instansite the Guzzle client
+        // with a custom handler.
+        if ($handler) {
+            $this->client = new \GuzzleHttp\Client(['handler' => $handler]);
+        } else {
+            $this->client = new \GuzzleHttp\Client();
+        }
+
     }
 
     /**
@@ -99,15 +108,13 @@ class esrequest {
             $psr7request = $this->signrequest($psr7request);
         }
 
-        $client = new \GuzzleHttp\Client();
-
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
         // handle this in a sane way and provide the caller with
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7request);
+            $response = $this->client->send($psr7request);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -130,15 +137,13 @@ class esrequest {
             $psr7request = $this->signrequest($psr7request);
         }
 
-        $client = new \GuzzleHttp\Client();
-
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
         // handle this in a sane way and provide the caller with
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7request);
+            $response = $this->client->send($psr7request);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -160,15 +165,13 @@ class esrequest {
             $psr7request = $this->signrequest($psr7request);
         }
 
-        $client = new \GuzzleHttp\Client();
-
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
         // handle this in a sane way and provide the caller with
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7request);
+            $response = $this->client->send($psr7request);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -189,15 +192,13 @@ class esrequest {
             $psr7request = $this->signrequest($psr7request);
         }
 
-        $client = new \GuzzleHttp\Client();
-
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
         // handle this in a sane way and provide the caller with
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7request);
+            $response = $this->client->send($psr7request);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
