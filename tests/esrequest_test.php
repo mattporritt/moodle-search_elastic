@@ -172,7 +172,84 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $url = 'http://localhost:8080/foo?bar=blerg';
         $params = '{"properties":"value"}';
         $client = new \search_elastic\esrequest($stack);
-        $response = $client->put($url);
+        $response = $client->put($url, $params);
+        $request = $container[0]['request'];
+        $auth_header = $request->getHeader('Authorization');
+        $content_header = $request->getHeader('content-type');
+
+        // Check the results.
+        $this->assertEquals($request->getUri()->getScheme(), 'http');
+        $this->assertEquals($request->getUri()->getHost(),  'localhost');
+        $this->assertEquals($request->getUri()->getPort(),  '8080');
+        $this->assertEquals($request->getUri()->getPath(), '/foo');
+        $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
+        $this->assertTrue($request->hasHeader('X-Amz-Date'));
+        $this->assertTrue($request->hasHeader('Authorization'));
+        $this->assertRegexp('/key_id.{10}region/', $auth_header[0]);
+        $this->assertTrue($request->hasHeader('content-type'));
+        $this->assertEquals($content_header, array('application/x-www-form-urlencoded'));
+    }
+
+    /**
+     * Test unsigned esrequest post functionality
+     */
+    public function test_post() {
+        $container = [];
+        $history = Middleware::history($container);
+
+        // Create a mock and queue two responses.
+        $mock = new MockHandler([
+                new Response(200, ['Content-Type' => 'text/plain'])
+        ]);
+
+        $stack = HandlerStack::create($mock);
+        // Add the history middleware to the handler stack.
+        $stack->push($history);
+
+        $url = 'http://localhost:8080/foo?bar=blerg';
+        $params = '{"properties":"value"}';
+        $client = new \search_elastic\esrequest($stack);
+        $response = $client->post($url, $params);
+        $request = $container[0]['request'];
+        $content_header = $request->getHeader('content-type');
+
+        // Check the results.
+        $this->assertEquals($request->getUri()->getScheme(), 'http');
+        $this->assertEquals($request->getUri()->getHost(),  'localhost');
+        $this->assertEquals($request->getUri()->getPort(),  '8080');
+        $this->assertEquals($request->getUri()->getPath(), '/foo');
+        $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
+        $this->assertTrue($request->hasHeader('content-type'));
+        $this->assertEquals($content_header, array('application/x-www-form-urlencoded'));
+
+    }
+
+    /**
+     * Test signed esrequest post functionality
+     */
+    public function test_signed_post() {
+        $this->resetAfterTest(true);
+        set_config('signing', 1, 'search_elastic');
+        set_config('keyid', 'key_id', 'search_elastic');
+        set_config('secretkey', 'secret_key', 'search_elastic');
+        set_config('region', 'region', 'search_elastic');
+
+        $container = [];
+        $history = Middleware::history($container);
+
+        // Create a mock and queue two responses.
+        $mock = new MockHandler([
+                new Response(200, ['Content-Type' => 'text/plain'])
+        ]);
+
+        $stack = HandlerStack::create($mock);
+        // Add the history middleware to the handler stack.
+        $stack->push($history);
+
+        $url = 'http://localhost:8080/foo?bar=blerg';
+        $params = '{"properties":"value"}';
+        $client = new \search_elastic\esrequest($stack);
+        $response = $client->post($url, $params);
         $request = $container[0]['request'];
         $auth_header = $request->getHeader('Authorization');
         $content_header = $request->getHeader('content-type');
