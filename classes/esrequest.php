@@ -53,17 +53,24 @@ class esrequest {
      * @return void
      */
     public function __construct($handler = false) {
+        global $CFG;
         $this->config = get_config('search_elastic');
         $this->signing = (bool)$this->config->signing;
+
+        $options = array();
 
         // Allow the caller to instansite the Guzzle client
         // with a custom handler.
         if ($handler) {
-            $this->client = new \GuzzleHttp\Client(['handler' => $handler]);
-        } else {
-            $this->client = new \GuzzleHttp\Client();
+            $options['handler'] = $handler;
         }
 
+        // Allow the http client to use a proxy if one is defined.
+        if (!empty($CFG->proxyhost)) {
+            $port = !empty($CFG->proxyport) ? ":" . $CFG->proxyport : '';
+            $options['proxy'] = $CFG->proxyhost . $port;
+        }
+        $this->client = new \GuzzleHttp\Client($options);
     }
 
     /**
