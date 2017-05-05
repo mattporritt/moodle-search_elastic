@@ -50,6 +50,7 @@ class esrequest {
      *
      * Search engine availability should be checked separately.
      *
+     * @param \GuzzleHttp\HandlerStack $handler Optional custom Guzzle handler stack
      * @return void
      */
     public function __construct($handler = false) {
@@ -71,7 +72,7 @@ class esrequest {
      *
      * @return array $proxy Proxy settings for Guzzle to use.
      */
-    private function proxyconstruct(){
+    private function proxyconstruct() {
         global $CFG;
         $proxy = array();
         $options = array();
@@ -90,7 +91,7 @@ class esrequest {
 
             // Set the authentication details.
             if (! empty ( $CFG->proxyuser ) and ! empty ( $CFG->proxypassword )) {
-                $auth= $CFG->proxyuser . ':' . $CFG->proxypassword . '@';
+                $auth = $CFG->proxyuser . ':' . $CFG->proxypassword . '@';
             }
 
             // Set the proxy type.
@@ -98,16 +99,16 @@ class esrequest {
                 $protocol = 'socks5';
             }
 
-            // Construct proxy URI
+            // Construct proxy URI.
             $uri = $protocol . '://' . $auth . $server;
 
-            // Populate proxy options array
+            // Populate proxy options array.
             $options['http'] = $uri;
             $options['https'] = $uri;
 
-            // Set excluded domains
-            if (! empty ($CFG->proxybypass) ){
-                $nospace = preg_replace('/\s/','',$CFG->proxybypass);
+            // Set excluded domains.
+            if (! empty ($CFG->proxybypass) ) {
+                $nospace = preg_replace('/\s/', '', $CFG->proxybypass);
                 $options['no'] = explode(',', $nospace);
             }
 

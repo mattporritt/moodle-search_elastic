@@ -100,7 +100,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $client = new \search_elastic\esrequest($stack);
         $response = $client->get($url);
         $request = $container[0]['request'];
-        $auth_header = $request->getHeader('Authorization');
+        $authheader = $request->getHeader('Authorization');
 
         // Check the results.
         $this->assertEquals($request->getUri()->getScheme(), 'http');
@@ -110,7 +110,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
         $this->assertTrue($request->hasHeader('X-Amz-Date'));
         $this->assertTrue($request->hasHeader('Authorization'));
-        $this->assertRegexp('/key_id.{10}region/', $auth_header[0]);
+        $this->assertRegexp('/key_id.{10}region/', $authheader[0]);
     }
 
     /**
@@ -134,7 +134,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $client = new \search_elastic\esrequest($stack);
         $response = $client->put($url, $params);
         $request = $container[0]['request'];
-        $content_header = $request->getHeader('content-type');
+        $contentheader = $request->getHeader('content-type');
 
         // Check the results.
         $this->assertEquals($request->getUri()->getScheme(), 'http');
@@ -143,7 +143,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $this->assertEquals($request->getUri()->getPath(), '/foo');
         $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($content_header, array('application/x-www-form-urlencoded'));
+        $this->assertEquals($contentheader, array('application/x-www-form-urlencoded'));
 
     }
 
@@ -174,8 +174,8 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $client = new \search_elastic\esrequest($stack);
         $response = $client->put($url, $params);
         $request = $container[0]['request'];
-        $auth_header = $request->getHeader('Authorization');
-        $content_header = $request->getHeader('content-type');
+        $authheader = $request->getHeader('Authorization');
+        $contentheader = $request->getHeader('content-type');
 
         // Check the results.
         $this->assertEquals($request->getUri()->getScheme(), 'http');
@@ -185,9 +185,9 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
         $this->assertTrue($request->hasHeader('X-Amz-Date'));
         $this->assertTrue($request->hasHeader('Authorization'));
-        $this->assertRegexp('/key_id.{10}region/', $auth_header[0]);
+        $this->assertRegexp('/key_id.{10}region/', $authheader[0]);
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($content_header, array('application/x-www-form-urlencoded'));
+        $this->assertEquals($contentheader, array('application/x-www-form-urlencoded'));
     }
 
     /**
@@ -211,7 +211,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $client = new \search_elastic\esrequest($stack);
         $response = $client->post($url, $params);
         $request = $container[0]['request'];
-        $content_header = $request->getHeader('content-type');
+        $contentheader = $request->getHeader('content-type');
 
         // Check the results.
         $this->assertEquals($request->getUri()->getScheme(), 'http');
@@ -220,7 +220,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $this->assertEquals($request->getUri()->getPath(), '/foo');
         $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($content_header, array('application/x-www-form-urlencoded'));
+        $this->assertEquals($contentheader, array('application/x-www-form-urlencoded'));
 
     }
 
@@ -251,8 +251,8 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $client = new \search_elastic\esrequest($stack);
         $response = $client->post($url, $params);
         $request = $container[0]['request'];
-        $auth_header = $request->getHeader('Authorization');
-        $content_header = $request->getHeader('content-type');
+        $authheader = $request->getHeader('Authorization');
+        $contentheader = $request->getHeader('content-type');
 
         // Check the results.
         $this->assertEquals($request->getUri()->getScheme(), 'http');
@@ -262,9 +262,9 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
         $this->assertTrue($request->hasHeader('X-Amz-Date'));
         $this->assertTrue($request->hasHeader('Authorization'));
-        $this->assertRegexp('/key_id.{10}region/', $auth_header[0]);
+        $this->assertRegexp('/key_id.{10}region/', $authheader[0]);
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($content_header, array('application/x-www-form-urlencoded'));
+        $this->assertEquals($contentheader, array('application/x-www-form-urlencoded'));
     }
 
     /**
@@ -323,7 +323,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $client = new \search_elastic\esrequest($stack);
         $response = $client->delete($url);
         $request = $container[0]['request'];
-        $auth_header = $request->getHeader('Authorization');
+        $authheader = $request->getHeader('Authorization');
 
         // Check the results.
         $this->assertEquals($request->getUri()->getScheme(), 'http');
@@ -333,7 +333,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
         $this->assertTrue($request->hasHeader('X-Amz-Date'));
         $this->assertTrue($request->hasHeader('Authorization'));
-        $this->assertRegexp('/key_id.{10}region/', $auth_header[0]);
+        $this->assertRegexp('/key_id.{10}region/', $authheader[0]);
 
     }
 
@@ -354,7 +354,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
 
         $expected = ['proxy' => ['http'  => 'tcp://localhost:3128',
                                  'https'  => 'tcp://localhost:3128',
-                                 'no' =>['localhost', '127.0.0.1']]];
+                                 'no' => ['localhost', '127.0.0.1']]];
 
         $this->assertEquals($proxy, $expected, $canonicalize = true);
     }
@@ -379,7 +379,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
 
         $expected = ['proxy' => ['http'  => 'tcp://user1:password@localhost:3128',
                                  'https'  => 'tcp://user1:password@localhost:3128',
-                                 'no' =>['localhost', '127.0.0.1']]];
+                                 'no' => ['localhost', '127.0.0.1']]];
 
         $this->assertEquals($proxy, $expected, $canonicalize = true);
     }
@@ -427,7 +427,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
 
         $expected = ['proxy' => ['http'  => 'socks5://localhost:3128',
                                  'https'  => 'socks5://localhost:3128',
-                                 'no' =>['localhost', '127.0.0.1']]];
+                                 'no' => ['localhost', '127.0.0.1']]];
 
         $this->assertEquals($proxy, $expected, $canonicalize = true);
     }
@@ -457,12 +457,12 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $client = new \search_elastic\esrequest($stack);
         $response = $client->get($url);
         $request = $container[0]['request'];
-        $host_header = $request->getHeader('Host');
- 
+        $hostheader = $request->getHeader('Host');
+
         $proxy = $container[0]['options']['proxy'];
         $expected = ['http'  => 'tcp://localhost:3128',
                      'https'  => 'tcp://localhost:3128',
-                     'no' =>['localhost', '127.0.0.1']];
+                     'no' => ['localhost', '127.0.0.1']];
 
         // Check the results.
         $this->assertEquals($request->getUri()->getScheme(), 'http');
