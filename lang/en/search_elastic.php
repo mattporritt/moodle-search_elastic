@@ -56,7 +56,7 @@ $string['signingsecretkey_desc'] = 'The secret key to use to sign requests.';
 $string['signingsettings'] = 'Request signing settings';
 $string['signingsettings_desc'] = 'If your Elasticsearch setup uses Request Signing enable and configure it below.
 
-This generally only applies if you are using Amaxon Web Service (AWS) to provide your Elasticsearch Endpoint';
+This generally only applies if you are using Amazon Web Service (AWS) to provide your Elasticsearch Endpoint';
 $string['region'] = 'Region';
 $string['region_desc'] = 'The AWS region the Elasticsearch instance is in, e.g. ap-southeast-2';
 $string['tikahostname'] = 'Tika Hostname';
