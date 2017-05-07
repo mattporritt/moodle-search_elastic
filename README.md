@@ -8,7 +8,8 @@ The following features are provided by this plugin:
 
 * Multiple versions of Elasticsearch
 * File indexing
-* Request signing, compatable with Amazon Web Services (AWS)
+* Request signing, compatible with Amazon Web Services (AWS)
+* Respects Moodle Proxy settings
 
 ## Supported Moodle Versions
 This plugin currently supports Moodle 3.1, 3.2 and 3.3
@@ -60,8 +61,8 @@ From the [Apache Tika](https://tika.apache.org/) website:
 The Apache Tika™ toolkit detects and extracts metadata and text from over a thousand different file types (such as PPT, XLS, and PDF). All of these file types can be parsed through a single interface, making Tika useful for search engine indexing, content analysis, translation, and much more. You can find the latest release on the download page. Please see the Getting Started page for more information on how to start using Tika.
 </blockquote>
 
-### Why use Tika as a standalone service?
-It is common to see Elasticsearch implementations using an Elasticsearch file indexing plugin rather than a standalone service. Current Elasticsearch plugins are a wrapper arround Tika. (The Solr search engine also uses Tika).<br/>
+### Why use Tika as a stand alone service?
+It is common to see Elasticsearch implementations using an Elasticsearch file indexing plugin rather than a stand alone service. Current Elasticsearch plugins are a wrapper around Tika. (The Solr search engine also uses Tika).<br/>
 Using Tika as a standalone service has the following advantages:
 
 * Can support file indexing for Elasticsearch setups that don't support file indexing plugins such as AWS.
@@ -103,12 +104,6 @@ The required Elasticserach instance configuration variables can also be provided
 <pre><code>
 export TEST_SEARCH_ELASTIC_HOSTNAME=http://127.0.0.1; export TEST_SEARCH_ELASTIC_PORT=9200; export TEST_SEARCH_ELASTIC_INDEX=moodle_test
 </pre></code>
-
-## TODO
-Current list of known intended to do items:
-
-* Increase unit test coverage
-* Implement Behat tests
 
 # Crafted by Catalyst IT
 
