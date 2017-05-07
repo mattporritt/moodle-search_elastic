@@ -50,11 +50,74 @@ class esrequest {
      *
      * Search engine availability should be checked separately.
      *
+     * @param \GuzzleHttp\HandlerStack $handler Optional custom Guzzle handler stack
      * @return void
      */
-    public function __construct() {
+    public function __construct($handler = false) {
         $this->config = get_config('search_elastic');
         $this->signing = (bool)$this->config->signing;
+
+        // Allow the caller to instansite the Guzzle client
+        // with a custom handler.
+        if ($handler) {
+            $this->client = new \GuzzleHttp\Client(['handler' => $handler]);
+        } else {
+            $this->client = new \GuzzleHttp\Client();
+        }
+    }
+
+    /**
+     * Constructs the Guzzle Proxy settings array
+     * based on Moodle's server proxy admin settings.
+     *
+     * @return array $proxy Proxy settings for Guzzle to use.
+     */
+    private function proxyconstruct() {
+        global $CFG;
+        $proxy = array();
+        $options = array();
+        $protocol = 'tcp';
+        $auth = '';
+        $server = '';
+        $uri = '';
+
+        if (! empty ( $CFG->proxyhost )) {
+            // Set the server details.
+            if (empty ( $CFG->proxyport )) {
+                $server = $CFG->proxyhost;
+            } else {
+                $server = $CFG->proxyhost . ':' . $CFG->proxyport;
+            }
+
+            // Set the authentication details.
+            if (! empty ( $CFG->proxyuser ) and ! empty ( $CFG->proxypassword )) {
+                $auth = $CFG->proxyuser . ':' . $CFG->proxypassword . '@';
+            }
+
+            // Set the proxy type.
+            if (! empty ( $CFG->proxytype ) && $CFG->proxytype == 'SOCKS5') {
+                $protocol = 'socks5';
+            }
+
+            // Construct proxy URI.
+            $uri = $protocol . '://' . $auth . $server;
+
+            // Populate proxy options array.
+            $options['http'] = $uri;
+            $options['https'] = $uri;
+
+            // Set excluded domains.
+            if (! empty ($CFG->proxybypass) ) {
+                $nospace = preg_replace('/\s/', '', $CFG->proxybypass);
+                $options['no'] = explode(',', $nospace);
+            }
+
+            // Finally populate proxy settings array.
+            $proxy['proxy'] = $options;
+
+        }
+
+        return $proxy;
     }
 
     /**
@@ -95,11 +158,11 @@ class esrequest {
      */
     public function get($url) {
         $psr7request = new \GuzzleHttp\Psr7\Request('GET', $url);
+        $proxy = $this->proxyconstruct();
+
         if ($this->signing) {
             $psr7request = $this->signrequest($psr7request);
         }
-
-        $client = new \GuzzleHttp\Client();
 
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
@@ -107,7 +170,7 @@ class esrequest {
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7request);
+            $response = $this->client->send($psr7request, $proxy);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -126,11 +189,11 @@ class esrequest {
     public function put($url, $params=null) {
         $headers = ['content-type' => 'application/x-www-form-urlencoded'];
         $psr7request = new \GuzzleHttp\Psr7\Request('PUT', $url, $headers, $params);
+        $proxy = $this->proxyconstruct();
+
         if ($this->signing) {
             $psr7request = $this->signrequest($psr7request);
         }
-
-        $client = new \GuzzleHttp\Client();
 
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
@@ -138,7 +201,7 @@ class esrequest {
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7request);
+            $response = $this->client->send($psr7request, $proxy);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -156,11 +219,11 @@ class esrequest {
     public function post($url, $params) {
         $headers = ['content-type' => 'application/x-www-form-urlencoded'];
         $psr7request = new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $params);
+        $proxy = $this->proxyconstruct();
+
         if ($this->signing) {
             $psr7request = $this->signrequest($psr7request);
         }
-
-        $client = new \GuzzleHttp\Client();
 
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
@@ -168,7 +231,7 @@ class esrequest {
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7request);
+            $response = $this->client->send($psr7request, $proxy);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -185,11 +248,11 @@ class esrequest {
      */
     public function delete($url) {
         $psr7request = new \GuzzleHttp\Psr7\Request('DELETE', $url);
+        $proxy = $this->proxyconstruct();
+
         if ($this->signing) {
             $psr7request = $this->signrequest($psr7request);
         }
-
-        $client = new \GuzzleHttp\Client();
 
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
@@ -197,7 +260,7 @@ class esrequest {
         // a useful response. So we catch the error and return the
         // resposne.
         try {
-            $response = $client->send($psr7request);
+            $response = $this->client->send($psr7request, $proxy);
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
