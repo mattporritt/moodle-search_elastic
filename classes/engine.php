@@ -133,8 +133,14 @@ class engine extends \core_search\engine {
         $url = $this->get_url();
         $returnval = true;
         $client = new \search_elastic\esrequest();
-        $response = $client->get($url);
-        $responsebody = $response->getBody(true);
+
+        try {
+            $response = $client->get($url);
+            $responsebody = $response->getBody(true);
+        }
+        catch (\GuzzleHttp\Exception\ConnectException $exception) {
+            $responsebody = false;
+        }
 
         if (!$url) {
             $returnval = get_string('noconfig', 'search_elastic');

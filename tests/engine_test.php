@@ -126,6 +126,17 @@ class search_elastic_engine_testcase extends advanced_testcase {
 
     }
 
+    public function test_is_server_ready_returns_error_message_if_unreachable() {
+        $this->resetAfterTest();
+
+        set_config('hostname', 'http://thisisaninvalidaddres.atlieastihopeso:9200', 'search_elastic');
+        set_config('port', '9200', 'search_elastic');
+        set_config('index', 'moodletest', 'search_elastic');
+
+        $engine = new \search_elastic\engine();
+        $engine->is_server_ready();
+    }
+
     /**
      * Test the actual search functionality.
      */
