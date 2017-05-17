@@ -137,8 +137,7 @@ class engine extends \core_search\engine {
         try {
             $response = $client->get($url);
             $responsebody = $response->getBody(true);
-        }
-        catch (\GuzzleHttp\Exception\ConnectException $exception) {
+        } catch (\GuzzleHttp\Exception\ConnectException $exception) {
             $responsebody = false;
         }
 
