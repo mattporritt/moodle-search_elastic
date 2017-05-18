@@ -333,6 +333,7 @@ class engine extends \core_search\engine {
      */
     private function process_document_files($document) {
         // Handle already indexed Files.
+        $files = array();
         if (!$document->get_is_new()) {
 
             // If this isn't a new document, we need to check the exiting indexed files.
@@ -341,6 +342,8 @@ class engine extends \core_search\engine {
             // Delete files that are no longer attached.
             $this->delete_indexed_files($idstodelete);
 
+        } else {
+            $files = $document->get_files();
         }
 
         foreach ($files as $fileid => $file) {
