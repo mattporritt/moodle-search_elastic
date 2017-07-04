@@ -119,13 +119,6 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $this->assertTrue($this->engine->is_server_ready());
     }
 
-    /**
-     * Test we can get the index
-     */
-    public function test_get_index() {
-
-    }
-
     public function test_is_server_ready_returns_error_message_if_unreachable() {
         $this->resetAfterTest();
 
@@ -138,9 +131,10 @@ class search_elastic_engine_testcase extends advanced_testcase {
     }
 
     /**
-     * Test the actual search functionality.
+     * Test the actual basic search functionality.
+     * Make sure we can index a document and get the context back via search
      */
-    public function test_search() {
+    public function test_basic_search() {
 
         // Construct the search object and add it to the engine.
         $rec = new \stdClass();
@@ -165,6 +159,67 @@ class search_elastic_engine_testcase extends advanced_testcase {
 
         // Check the results.
         $this->assertEquals($results[0]->get('content'), $querydata->q);
+
+    }
+
+    /**
+     * Test scenarios we want to confirm
+     * Given a record contains the text:
+     * "this is a test quiz on frogs and toads"
+     * The following text searches should return a result:
+     * "test quiz"
+     * "quiz test"
+     * "test frogs"
+     * "frogs test"
+     * "test AND frogs"
+     * "test OR frogs"
+     */
+
+    /**
+     * Test results are returned for multiple search.
+     * Make sure we can index a document and get the context back via search
+     */
+    public function test_multi_term_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is a test quiz on frogs and toads";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        // Multi term in order query.
+        $querydata = new stdClass();
+        $querydata->q = 'test quiz';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+
+        // Multi term out of order query.
+        $querydata = new stdClass();
+        $querydata->q = 'quiz test';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+
+        // Multi term partial words query.
+        $querydata = new stdClass();
+        $querydata->q = 'test frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
 
     }
 
