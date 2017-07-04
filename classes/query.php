@@ -105,7 +105,8 @@ class query  {
     private function construct_q($q) {
 
         $searchfields = $this->get_search_fields();
-        $qobj = array('multi_match' => array('query' => $q, 'fields' => $searchfields, 'type' => 'phrase_prefix'));
+        // $qobj = array('multi_match' => array('query' => $q, 'fields' => $searchfields, 'type' => 'phrase_prefix'));
+        $qobj = array('query_string' => array('query' => $q, 'fields' => $searchfields));
 
         return $qobj;
     }
