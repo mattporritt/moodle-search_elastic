@@ -68,6 +68,31 @@ if ($ADMIN->fulltree) {
                 get_string('tikaport_desc', 'search_elastic'),
                 9998, PARAM_INT));
 
+        // Image search settings
+        $settings->add(new admin_setting_heading('search_elastic_rekognition',
+                get_string('rekognitionsettings', 'search_elastic'),
+                get_string('rekognitionsettings_desc', 'search_elastic')
+                ));
+
+        $settings->add(new admin_setting_configcheckbox('search_elastic/imageindex',
+                get_string('imageindex', 'search_elastic'),
+                get_string('imageindex_desc', 'search_elastic'), 0));
+
+        $settings->add(new admin_setting_configtext('search_elastic/rekkeyid',
+                get_string('reksigningkeyid', 'search_elastic' ),
+                get_string('reksigningkeyid_desc', 'search_elastic'),
+                '', PARAM_TEXT));
+
+        $settings->add(new admin_setting_configtext('search_elastic/reksecretkey',
+                get_string('reksigningsecretkey', 'search_elastic' ),
+                get_string('reksigningsecretkey_desc', 'search_elastic'),
+                '', PARAM_TEXT));
+
+        $settings->add(new admin_setting_configtext('search_elastic/rekregion',
+                get_string('rekregion', 'search_elastic' ),
+                get_string('rekregion_desc', 'search_elastic'),
+                '', PARAM_TEXT));
+
         // Request Signing settings.
         $settings->add(new admin_setting_heading('search_elastic_signing',
                 get_string('signingsettings', 'search_elastic'),

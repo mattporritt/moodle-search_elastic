@@ -34,11 +34,23 @@ $string['hostname'] = 'Hostname';
 $string['hostname_desc'] = 'The FQDN of the Elasticsearch engine endpoint';
 $string['index'] = 'Index';
 $string['index_desc'] = 'Namespace index to store search data in backend';
+$string['imageindex'] = 'Enable image indexing';
+$string['imageindex_desc'] = 'When enabled Moodle will use AWS Rekognition to index images.';
 $string['indexfail'] = 'Failed to create index';
 $string['noconfig'] = 'Elasticsearch configuration missing';
 $string['noserver'] = 'Elasticsearch endpoint unreachable';
 $string['port'] = 'Port';
 $string['port_desc'] = 'The Port of the Elasticsearch engine endpoint';
+$string['region'] = 'Region';
+$string['region_desc'] = 'The AWS region the Elasticsearch instance is in, e.g. ap-southeast-2';
+$string['rekregion'] = 'Region';
+$string['rekregion_desc'] = 'The AWS region the Rekognition service is in, e.g. ap-southeast-2';
+$string['reksigningkeyid'] = 'Key ID';
+$string['reksigningkeyid_desc'] = 'The ID of the key to use to access Rekcognition.';
+$string['reksigningsecretkey'] = 'Secret Key';
+$string['reksigningsecretkey_desc'] = 'The secret key to use to access Rekcognition.';
+$string['rekognitionsettings'] = 'AWS Rekognition signing settings';
+$string['rekognitionsettings_desc'] = 'Settings to allow Rekognition to index images.';
 $string['searchinfo'] = 'Search queries';
 $string['searchinfo_help'] = 'The field to be searched may be specified by prefixing the search query with \'title:\', \'content:\', \'name:\', or \'intro:\'. For example, searching for \'title:news\' would return results with the word \'news\' in the title.
 
@@ -57,8 +69,6 @@ $string['signingsettings'] = 'Request signing settings';
 $string['signingsettings_desc'] = 'If your Elasticsearch setup uses Request Signing enable and configure it below.
 
 This generally only applies if you are using Amazon Web Service (AWS) to provide your Elasticsearch Endpoint';
-$string['region'] = 'Region';
-$string['region_desc'] = 'The AWS region the Elasticsearch instance is in, e.g. ap-southeast-2';
 $string['tikahostname'] = 'Tika Hostname';
 $string['tikahostname_desc'] = 'The FQDN of the Apache Tika endpoint';
 $string['tikaport'] = 'Tika Port';
