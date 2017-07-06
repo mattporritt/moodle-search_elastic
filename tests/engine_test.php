@@ -119,13 +119,6 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $this->assertTrue($this->engine->is_server_ready());
     }
 
-    /**
-     * Test we can get the index
-     */
-    public function test_get_index() {
-
-    }
-
     public function test_is_server_ready_returns_error_message_if_unreachable() {
         $this->resetAfterTest();
 
@@ -138,9 +131,10 @@ class search_elastic_engine_testcase extends advanced_testcase {
     }
 
     /**
-     * Test the actual search functionality.
+     * Test the actual basic search functionality.
+     * Make sure we can index a document and get the content back via search
      */
-    public function test_search() {
+    public function test_basic_search() {
 
         // Construct the search object and add it to the engine.
         $rec = new \stdClass();
@@ -168,4 +162,224 @@ class search_elastic_engine_testcase extends advanced_testcase {
 
     }
 
+    /**
+     * Test results are returned for multiple term search.
+     */
+    public function test_multi_term_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is a test quiz on frogs and toads";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        // Multi term in order query.
+        $querydata = new stdClass();
+        $querydata->q = 'test quiz';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+
+        // Multi term out of order query.
+        $querydata = new stdClass();
+        $querydata->q = 'quiz test';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+
+        // Multi term partial words query.
+        $querydata = new stdClass();
+        $querydata->q = 'test frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+
+    }
+
+    /**
+     * Test results are returned for modifier term search.
+     */
+    public function test_modifier_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is a quiz on fish and birds";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        $rec3 = new \stdClass();
+        $rec3->content = "this is an activity about volcanic rocks";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record3 = $this->generator->create_record($rec3);
+        $doc3 = $area->get_document($record3);
+        $this->engine->add_document($doc3);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        // Multi term in order query.
+        $querydata = new stdClass();
+        $querydata->q = 'assignment AND frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+        $this->assertEquals(count($results), 1);
+
+        // Multi term out of order query.
+        $querydata = new stdClass();
+        $querydata->q = 'assignment OR fish';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals(count($results), 2);
+
+    }
+
+
+    /**
+     * Test results are returned for filtered search.
+     * Filter courses.
+     */
+    public function test_course_filter_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = 1;
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is an assignment on frogs and toads";
+        $rec2->courseid = 2;
+        $area = new core_mocksearch\search\mock_search_area();
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'assignment on frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->courseids = [1, ];
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+        $this->assertEquals(count($results), 1);
+
+    }
+
+    /**
+     * Test results are returned for filtered search.
+     * Filter areas.
+     */
+    public function test_area_filter_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'assignment on frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->areaids = ['mod_book-chapter', ];
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals(count($results), 0);
+
+        $querydata = new stdClass();
+        $querydata->q = 'assignment on frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->areaids = ['core_mocksearch-mock_search_area', ];
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals(count($results), 1);
+
+    }
+
+    /**
+     * Test results are returned for filtered search.
+     * Filter courses and areas.
+     */
+    public function test_course_area_filter_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = 1;
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is an assignment on frogs and toads";
+        $rec2->courseid = 2;
+        $area = new core_mocksearch\search\mock_search_area();
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'assignment on frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->courseids = [1, ];
+        $querydata->areaids = ['core_mocksearch-mock_search_area', ];
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+        $this->assertEquals(count($results), 1);
+
+    }
 }

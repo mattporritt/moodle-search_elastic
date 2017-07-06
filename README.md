@@ -105,6 +105,10 @@ The required Elasticserach instance configuration variables can also be provided
 export TEST_SEARCH_ELASTIC_HOSTNAME=http://127.0.0.1; export TEST_SEARCH_ELASTIC_PORT=9200; export TEST_SEARCH_ELASTIC_INDEX=moodle_test
 </pre></code>
 
+### Running the tests
+First initialise the test environment, from the Moodle code home directory: `php admin/tool/phpunit/cli/init.php`
+To run only this plugins tests: `vendor/bin/phpunit search_elastic_engine_testcase search/engine/elastic/tests/engine_test.php`
+
 # Crafted by Catalyst IT
 
 
