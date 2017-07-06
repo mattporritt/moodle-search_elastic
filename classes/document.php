@@ -109,6 +109,10 @@ class document extends \core_search\document {
 
     }
 
+    private function analyse_image($file) {
+        return false;
+    }
+
     /**
      * Apply any defaults to unset fields before export. Called after document building, but before export.
      *
@@ -130,9 +134,16 @@ class document extends \core_search\document {
      */
     public function export_file_for_engine($file) {
         $data = $this->export_for_engine();
+        $imageinfo = $file->get_imageinfo();
+        error_log("=====================================================================================".$file->get_filename());
 
-        // Pass the file off to tika to extract content.
-        $filetext = $this->extract_text($file);
+        if ($imageinfo){
+            // If file is image send for analysis
+            $filetext = $this->analyse_image($file);
+        } else {
+            // Pass the file off to tika to extract content.
+            $filetext = $this->extract_text($file);
+        }
 
         // Construct the document.
         unset($data['content']);
