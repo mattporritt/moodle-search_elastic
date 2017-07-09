@@ -87,6 +87,28 @@ class document extends \core_search\document {
     );
 
     /**
+     * 
+     * @var array
+     */
+    protected static $acceptedtext = array(
+            'text/html',
+            'text/plain',
+            'text/csv',
+            'text/css',
+            'text/javascript',
+            'text/ecmascript'
+    );
+
+    /**
+     *
+     * @var array
+     */
+    protected static $acceptedimages = array(
+            'image/jpeg',
+            'image/png'
+    );
+
+    /**
      * Use tika to extract text from file.
      * @param file $file
      * @return string|boolean
@@ -110,7 +132,38 @@ class document extends \core_search\document {
     }
 
     private function analyse_image($file) {
-        return false;
+        $imageinfo = $file->get_imageinfo();
+        $imagetext = '';
+        $cananalyze = false;
+
+        // check if we can analyze this type of file
+        if (in_array($imageinfo->mimetype, $this->acceptedtext)
+                && $imageinfo->height >= 80
+                && $imageinfo->width >= 80){
+            $cananalyze = true;
+        }
+
+        if ($cananalyze){
+            // send image to AWS Rekognition for analysis
+        }
+
+        return $imagetext;
+    }
+
+    /**
+     * 
+     * @param unknown $file
+     * @return boolean
+     */
+    private function is_text($file) {
+        $mimetype = $file->get_mimetype();
+        $istext = false;
+
+        if (in_array($mimetype, $this->acceptedtext)){
+            $istext = true;
+        }
+
+        return $istext;
     }
 
     /**
@@ -140,6 +193,9 @@ class document extends \core_search\document {
         if ($imageinfo){
             // If file is image send for analysis
             $filetext = $this->analyse_image($file);
+        } else if ($this->is_text($file)) {
+            // If file is text don't bother converting
+            $filetext = $file->get_content();
         } else {
             // Pass the file off to tika to extract content.
             $filetext = $this->extract_text($file);
