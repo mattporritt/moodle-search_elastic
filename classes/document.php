@@ -26,6 +26,8 @@ namespace search_elastic;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
+
 /**
  * Elasticsearch engine.
  *
@@ -34,7 +36,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class document extends \core_search\document {
-
     /**
      * All required fields any doc should contain.
      *
@@ -62,7 +63,6 @@ class document extends \core_search\document {
             ),
             'content' => array(
                     'type' => 'string'
-
             ),
             'contextid' => array(
                     'type' => 'integer'
@@ -87,6 +87,53 @@ class document extends \core_search\document {
     );
 
     /**
+     * Array of file mimetypes that contain plain text that can be fed directly
+     * into Elsstic search without text extraction processing.
+     *
+     * @var array
+     */
+    protected static $acceptedtext = array(
+            'text/html',
+            'text/plain',
+            'text/csv',
+            'text/css',
+            'text/javascript',
+            'text/ecmascript'
+    );
+
+    /**
+     * Array of file mimetypes that are compatible with AWS Rekognition.
+     * Image types not in this list wont be processed. Currently Rekognition
+     * only supports JPEG and PNG formats.
+     * 
+     * @var array
+     */
+    protected static $acceptedimages = array(
+            'image/jpeg',
+            'image/png'
+    );
+
+    /**
+     * Constructor for document class.
+     * Makes relevant config available and bootstraps
+     * Rekognition client.
+     *
+     */
+    public function __construct() {
+        $this->config = get_config('search_elastic');
+        $this->imageindex = (bool)$this->config->imageindex;
+        $this->rekregion = $this->config->rekregion;
+        $this->rekkey = $this->config->rekkeyid;
+        $this->reksecret = $this->config->reksecretkey;
+        $this->maxlabels = $this->config->maxlabels;
+        $this->minconfidence = $this->config->minconfidence;
+
+        if ($this->imageindex) {
+            $this->rekognition = $this->get_rekognition_client();
+        }
+    }
+
+    /**
      * Use tika to extract text from file.
      * @param file $file
      * @return string|boolean
@@ -109,8 +156,77 @@ class document extends \core_search\document {
 
     }
 
+    /**
+    * Create AWS Rekognition client.
+    *
+    * @return client $rekclient Rekognition client.
+    */
+    private function get_rekognition_client() {
+        $rekclient = new \Aws\Rekognition\RekognitionClient([
+                'version' => 'latest',
+                'region'  => $this->rekregion,
+                'credentials' => [
+                        'key'    => $this->rekkey,
+                        'secret' => $this->reksecret
+                ]
+        ]);
+
+        return $rekclient;
+    }
+
+    /**
+    * Analyse image using Rekognition.
+    *
+    * @var \stored_file $file The image file to analyze.
+    * @return string $imagetext Text of file description labels.
+    */
     private function analyse_image($file) {
-        return false;
+        $imageinfo = $file->get_imageinfo();
+        $imagetext = '';
+        $cananalyze = false;
+        
+        // If we are not indexing images return early.
+        if (!$this->imageindex) {
+            return $imagetext;
+        }
+
+        // check if we can analyze this type of file
+        if (in_array($imageinfo->mimetype, $this->acceptedtext)
+                && $imageinfo->height >= 80
+                && $imageinfo->width >= 80){
+                    $cananalyze = true;
+        }
+
+        if ($cananalyze){
+            // send image to AWS Rekognition for analysis
+            $imagetext = $this->rekognition->detectLabels([
+                    'Image' => [ // REQUIRED
+                            'Bytes' => $file,
+                    ],
+                    'MaxLabels' => $this->maxlabels,
+                    'MinConfidence' => $this->minconfidence
+            ]);
+        }
+
+        return $imagetext;
+    }
+
+    /**
+     * Checks if supplied file is plain text that can be directly fed
+     * to Elasticsearch without further processing.
+     *
+     * @param \stored_file $file File to check.
+     * @return boolean
+     */
+    private function is_text($file) {
+        $mimetype = $file->get_mimetype();
+        $istext = false;
+
+        if (in_array($mimetype, $this->acceptedtext)){
+            $istext = true;
+        }
+
+        return $istext;
     }
 
     /**
@@ -140,6 +256,9 @@ class document extends \core_search\document {
         if ($imageinfo){
             // If file is image send for analysis
             $filetext = $this->analyse_image($file);
+        } else if ($this->is_text($file)) {
+            // If file is text don't bother converting
+            $filetext = $file->get_content();
         } else {
             // Pass the file off to tika to extract content.
             $filetext = $this->extract_text($file);
