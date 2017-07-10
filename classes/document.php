@@ -87,6 +87,8 @@ class document extends \core_search\document {
     );
 
     /**
+     * Array of file mimetypes that contain plain text that can be fed directly
+     * into Elsstic search without text extraction processing.
      *
      * @var array
      */
@@ -100,7 +102,10 @@ class document extends \core_search\document {
     );
 
     /**
-     *
+     * Array of file mimetypes that are compatible with AWS Rekognition.
+     * Image types not in this list wont be processed. Currently Rekognition
+     * only supports JPEG and PNG formats.
+     * 
      * @var array
      */
     protected static $acceptedimages = array(
@@ -108,9 +113,11 @@ class document extends \core_search\document {
             'image/png'
     );
 
-
     /**
-     * 
+     * Constructor for document class.
+     * Makes relevant config available and bootstraps
+     * Rekognition client.
+     *
      */
     public function __construct() {
         $this->config = get_config('search_elastic');
@@ -121,10 +128,11 @@ class document extends \core_search\document {
         $this->maxlabels = $this->config->maxlabels;
         $this->minconfidence = $this->config->minconfidence;
 
-        if (imageindex) {
+        if ($this->imageindex) {
             $this->rekognition = $this->get_rekognition_client();
         }
     }
+
     /**
      * Use tika to extract text from file.
      * @param file $file
@@ -148,6 +156,11 @@ class document extends \core_search\document {
 
     }
 
+    /**
+    * Create AWS Rekognition client.
+    *
+    * @return client $rekclient Rekognition client.
+    */
     private function get_rekognition_client() {
         $rekclient = new \Aws\Rekognition\RekognitionClient([
                 'version' => 'latest',
@@ -161,10 +174,21 @@ class document extends \core_search\document {
         return $rekclient;
     }
 
+    /**
+    * Analyse image using Rekognition.
+    *
+    * @var \stored_file $file The image file to analyze.
+    * @return string $imagetext Text of file description labels.
+    */
     private function analyse_image($file) {
         $imageinfo = $file->get_imageinfo();
         $imagetext = '';
         $cananalyze = false;
+        
+        // If we are not indexing images return early.
+        if (!$this->imageindex) {
+            return $imagetext;
+        }
 
         // check if we can analyze this type of file
         if (in_array($imageinfo->mimetype, $this->acceptedtext)
@@ -188,8 +212,10 @@ class document extends \core_search\document {
     }
 
     /**
+     * Checks if supplied file is plain text that can be directly fed
+     * to Elasticsearch without further processing.
      *
-     * @param unknown $file
+     * @param \stored_file $file File to check.
      * @return boolean
      */
     private function is_text($file) {
