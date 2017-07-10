@@ -26,6 +26,8 @@ namespace search_elastic;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
+
 /**
  * Elasticsearch engine.
  *
@@ -34,7 +36,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class document extends \core_search\document {
-
     /**
      * All required fields any doc should contain.
      *
@@ -62,7 +63,6 @@ class document extends \core_search\document {
             ),
             'content' => array(
                     'type' => 'string'
-
             ),
             'contextid' => array(
                     'type' => 'integer'
@@ -87,7 +87,7 @@ class document extends \core_search\document {
     );
 
     /**
-     * 
+     *
      * @var array
      */
     protected static $acceptedtext = array(
@@ -108,6 +108,23 @@ class document extends \core_search\document {
             'image/png'
     );
 
+
+    /**
+     * 
+     */
+    public function __construct() {
+        $this->config = get_config('search_elastic');
+        $this->imageindex = (bool)$this->config->imageindex;
+        $this->rekregion = $this->config->rekregion;
+        $this->rekkey = $this->config->rekkeyid;
+        $this->reksecret = $this->config->reksecretkey;
+        $this->maxlabels = $this->config->maxlabels;
+        $this->minconfidence = $this->config->minconfidence;
+
+        if (imageindex) {
+            $this->rekognition = $this->get_rekognition_client();
+        }
+    }
     /**
      * Use tika to extract text from file.
      * @param file $file
@@ -131,6 +148,19 @@ class document extends \core_search\document {
 
     }
 
+    private function get_rekognition_client() {
+        $rekclient = new \Aws\Rekognition\RekognitionClient([
+                'version' => 'latest',
+                'region'  => $this->rekregion,
+                'credentials' => [
+                        'key'    => $this->rekkey,
+                        'secret' => $this->reksecret
+                ]
+        ]);
+
+        return $rekclient;
+    }
+
     private function analyse_image($file) {
         $imageinfo = $file->get_imageinfo();
         $imagetext = '';
@@ -140,18 +170,25 @@ class document extends \core_search\document {
         if (in_array($imageinfo->mimetype, $this->acceptedtext)
                 && $imageinfo->height >= 80
                 && $imageinfo->width >= 80){
-            $cananalyze = true;
+                    $cananalyze = true;
         }
 
         if ($cananalyze){
             // send image to AWS Rekognition for analysis
+            $imagetext = $this->rekognition->detectLabels([
+                    'Image' => [ // REQUIRED
+                            'Bytes' => $file,
+                    ],
+                    'MaxLabels' => $this->maxlabels,
+                    'MinConfidence' => $this->minconfidence
+            ]);
         }
 
         return $imagetext;
     }
 
     /**
-     * 
+     *
      * @param unknown $file
      * @return boolean
      */

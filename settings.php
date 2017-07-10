@@ -116,5 +116,15 @@ if ($ADMIN->fulltree) {
                  get_string('region_desc', 'search_elastic'),
                  '', PARAM_TEXT));
 
+        $settings->add(new admin_setting_configtext('search_elastic/maxlabels',
+                 get_string('maxlabels', 'search_elastic' ),
+                 get_string('maxlabels_desc', 'search_elastic'),
+                 '', PARAM_TEXT));
+
+        $settings->add(new admin_setting_configtext('search_elastic/minconfidence',
+                 get_string('minconfidence', 'search_elastic' ),
+                 get_string('minconfidence_desc', 'search_elastic'),
+                 '', PARAM_TEXT));
+
     }
 }
