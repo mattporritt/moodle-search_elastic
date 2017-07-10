@@ -92,6 +92,16 @@ if ($ADMIN->fulltree) {
                 get_string('rekregion', 'search_elastic' ),
                 get_string('rekregion_desc', 'search_elastic'),
                 '', PARAM_TEXT));
+                
+       $settings->add(new admin_setting_configtext('search_elastic/maxlabels',
+                 get_string('maxlabels', 'search_elastic' ),
+                 get_string('maxlabels_desc', 'search_elastic'),
+                 10, PARAM_INT));
+
+        $settings->add(new admin_setting_configtext('search_elastic/minconfidence',
+                 get_string('minconfidence', 'search_elastic' ),
+                 get_string('minconfidence_desc', 'search_elastic'),
+                 90, PARAM_INT));
 
         // Request Signing settings.
         $settings->add(new admin_setting_heading('search_elastic_signing',
@@ -115,16 +125,5 @@ if ($ADMIN->fulltree) {
                  get_string('region', 'search_elastic' ),
                  get_string('region_desc', 'search_elastic'),
                  '', PARAM_TEXT));
-
-        $settings->add(new admin_setting_configtext('search_elastic/maxlabels',
-                 get_string('maxlabels', 'search_elastic' ),
-                 get_string('maxlabels_desc', 'search_elastic'),
-                 '', PARAM_TEXT));
-
-        $settings->add(new admin_setting_configtext('search_elastic/minconfidence',
-                 get_string('minconfidence', 'search_elastic' ),
-                 get_string('minconfidence_desc', 'search_elastic'),
-                 '', PARAM_TEXT));
-
     }
 }
