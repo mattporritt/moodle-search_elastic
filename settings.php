@@ -68,7 +68,7 @@ if ($ADMIN->fulltree) {
                 get_string('tikaport_desc', 'search_elastic'),
                 9998, PARAM_INT));
 
-        // Image search settings
+        // Image search settings.
         $settings->add(new admin_setting_heading('search_elastic_rekognition',
                 get_string('rekognitionsettings', 'search_elastic'),
                 get_string('rekognitionsettings_desc', 'search_elastic')
@@ -92,8 +92,8 @@ if ($ADMIN->fulltree) {
                 get_string('rekregion', 'search_elastic' ),
                 get_string('rekregion_desc', 'search_elastic'),
                 '', PARAM_TEXT));
-                
-       $settings->add(new admin_setting_configtext('search_elastic/maxlabels',
+
+        $settings->add(new admin_setting_configtext('search_elastic/maxlabels',
                  get_string('maxlabels', 'search_elastic' ),
                  get_string('maxlabels_desc', 'search_elastic'),
                  10, PARAM_INT));

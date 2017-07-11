@@ -105,7 +105,7 @@ class document extends \core_search\document {
      * Array of file mimetypes that are compatible with AWS Rekognition.
      * Image types not in this list wont be processed. Currently Rekognition
      * only supports JPEG and PNG formats.
-     * 
+     *
      * @var array
      */
     protected static $acceptedimages = array(
@@ -157,10 +157,10 @@ class document extends \core_search\document {
     }
 
     /**
-    * Create AWS Rekognition client.
-    *
-    * @return client $rekclient Rekognition client.
-    */
+     * Create AWS Rekognition client.
+     *
+     * @return client $rekclient Rekognition client.
+     */
     private function get_rekognition_client() {
         $rekclient = new \Aws\Rekognition\RekognitionClient([
                 'version' => 'latest',
@@ -175,30 +175,30 @@ class document extends \core_search\document {
     }
 
     /**
-    * Analyse image using Rekognition.
-    *
-    * @var \stored_file $file The image file to analyze.
-    * @return string $imagetext Text of file description labels.
-    */
+     * Analyse image using Rekognition.
+     *
+     * @var \stored_file $file The image file to analyze.
+     * @return string $imagetext Text of file description labels.
+     */
     private function analyse_image($file) {
         $imageinfo = $file->get_imageinfo();
         $imagetext = '';
         $cananalyze = false;
-        
+
         // If we are not indexing images return early.
         if (!$this->imageindex) {
             return $imagetext;
         }
 
-        // check if we can analyze this type of file
+        // Check if we can analyze this type of file.
         if (in_array($imageinfo->mimetype, $this->acceptedtext)
                 && $imageinfo->height >= 80
-                && $imageinfo->width >= 80){
+                && $imageinfo->width >= 80) {
                     $cananalyze = true;
         }
 
-        if ($cananalyze){
-            // send image to AWS Rekognition for analysis
+        if ($cananalyze) {
+            // Send image to AWS Rekognition for analysis.
             $imagetext = $this->rekognition->detectLabels([
                     'Image' => [ // REQUIRED
                             'Bytes' => $file,
@@ -222,7 +222,7 @@ class document extends \core_search\document {
         $mimetype = $file->get_mimetype();
         $istext = false;
 
-        if (in_array($mimetype, $this->acceptedtext)){
+        if (in_array($mimetype, $this->acceptedtext)) {
             $istext = true;
         }
 
@@ -251,13 +251,12 @@ class document extends \core_search\document {
     public function export_file_for_engine($file) {
         $data = $this->export_for_engine();
         $imageinfo = $file->get_imageinfo();
-        error_log("=====================================================================================".$file->get_filename());
 
-        if ($imageinfo){
-            // If file is image send for analysis
+        if ($imageinfo) {
+            // If file is image send for analysis.
             $filetext = $this->analyse_image($file);
         } else if ($this->is_text($file)) {
-            // If file is text don't bother converting
+            // If file is text don't bother converting.
             $filetext = $file->get_content();
         } else {
             // Pass the file off to tika to extract content.
