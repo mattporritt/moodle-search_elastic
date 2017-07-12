@@ -185,16 +185,17 @@ class document extends \core_search\document {
         $imageinfo = $file->get_imageinfo();
         $imagetext = '';
         $cananalyze = false;
-
+        $acceptedtypes = $this->get_accepted_image_types();
+        $imagemime = $imageinfo['mimetype'];
+        
+        $acceptedimage = in_array($imagemime, $acceptedtypes);
         // If we are not indexing images return early.
         if (!$this->imageindex) {
             return $imagetext;
         }
 
         // Check if we can analyze this type of file.
-        if (in_array($imageinfo->mimetype, $this->get_accepted_image_types())
-                && $imageinfo->height >= 80
-                && $imageinfo->width >= 80) {
+        if ($acceptedimage && $imageinfo['height'] >= 80 && $imageinfo['width'] >= 80) {
                     $cananalyze = true;
         }
 
@@ -296,7 +297,7 @@ class document extends \core_search\document {
      * @return array
      */
     public static function get_accepted_text_types() {
-        return static::$acceptedtext;
+        return self::$acceptedtext;
     }
 
     /**
@@ -305,6 +306,6 @@ class document extends \core_search\document {
      * @return array
      */
     public static function get_accepted_image_types() {
-        return static::$acceptedimages;
+        return self::$acceptedimages;
     }
 }
