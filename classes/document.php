@@ -177,7 +177,7 @@ class document extends \core_search\document {
     /**
      * Analyse image using Rekognition.
      *
-     * @var \stored_file $file The image file to analyze.
+     * @param \stored_file $file The image file to analyze.
      * @return string $imagetext Text of file description labels.
      */
     private function analyse_image($file) {
@@ -200,7 +200,7 @@ class document extends \core_search\document {
         if ($cananalyze) {
             // Send image to AWS Rekognition for analysis.
             $imagetext = $this->rekognition->detectLabels([
-                    'Image' => [ // REQUIRED
+                    'Image' => [
                             'Bytes' => $file,
                     ],
                     'MaxLabels' => $this->maxlabels,
