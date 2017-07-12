@@ -119,7 +119,8 @@ class document extends \core_search\document {
      * Rekognition client.
      *
      */
-    public function __construct() {
+    public function __construct($itemid, $componentname, $areaname) {
+        parent::__construct($itemid, $componentname, $areaname);
         $this->config = get_config('search_elastic');
         $this->imageindex = (bool)$this->config->imageindex;
         $this->rekregion = $this->config->rekregion;
@@ -127,6 +128,8 @@ class document extends \core_search\document {
         $this->reksecret = $this->config->reksecretkey;
         $this->maxlabels = $this->config->maxlabels;
         $this->minconfidence = $this->config->minconfidence;
+        $this->tikaport = $this->config->tikaport;
+        $this->tikahostname = rtrim($this->config->tikahostname, "/");
 
         if ($this->imageindex) {
             $this->rekognition = $this->get_rekognition_client();
@@ -142,9 +145,8 @@ class document extends \core_search\document {
         // TODO: add timeout and retries for tika.
         $config = get_config('search_elastic');
         $extractedtext = '';
-        $client = new \curl();
-        $port = $config->tikaport;
-        $hostname = rtrim($config->tikahostname, "/");
+        $port = $this->tikaport;
+        $hostname = rtrim($this->tikahostname, "/");
         $url = $hostname . ':'. $port . '/tika/form';
 
         $response = $client->post($url, array('file' => $file));
