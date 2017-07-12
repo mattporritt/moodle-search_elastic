@@ -172,7 +172,6 @@ class document extends \core_search\document {
                         'secret' => $this->reksecret
                 ]
         ]);
-
         return $rekclient;
     }
 
@@ -193,7 +192,7 @@ class document extends \core_search\document {
         }
 
         // Check if we can analyze this type of file.
-        if (in_array($imageinfo->mimetype, $this->acceptedtext)
+        if (in_array($imageinfo->mimetype, $this->get_accepted_image_types())
                 && $imageinfo->height >= 80
                 && $imageinfo->width >= 80) {
                     $cananalyze = true;
@@ -224,7 +223,7 @@ class document extends \core_search\document {
         $mimetype = $file->get_mimetype();
         $istext = false;
 
-        if (in_array($mimetype, $this->acceptedtext)) {
+        if (in_array($mimetype, $this->get_accepted_text_types())) {
             $istext = true;
         }
 
@@ -253,6 +252,7 @@ class document extends \core_search\document {
     public function export_file_for_engine($file) {
         $data = $this->export_for_engine();
         $imageinfo = $file->get_imageinfo();
+        $filetext = '';
 
         if ($imageinfo) {
             // If file is image send for analysis.
@@ -262,7 +262,7 @@ class document extends \core_search\document {
             $filetext = $file->get_content();
         } else {
             // Pass the file off to tika to extract content.
-            $filetext = $this->extract_text($file);
+           // $filetext = $this->extract_text($file);
         }
 
         // Construct the document.
@@ -288,5 +288,23 @@ class document extends \core_search\document {
      */
     public static function get_required_fields_definition() {
         return static::$requiredfields;
+    }
+
+    /**
+     * Returns all accepted text file types.
+     *
+     * @return array
+     */
+    public static function get_accepted_text_types() {
+        return static::$acceptedtext;
+    }
+
+    /**
+     * Returns all accepted text file types.
+     *
+     * @return array
+     */
+    public static function get_accepted_image_types() {
+        return static::$acceptedimages;
     }
 }
