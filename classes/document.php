@@ -209,7 +209,7 @@ class document extends \core_search\document {
             // Send image to AWS Rekognition for analysis.
             $result = $this->rekognition->detectLabels(array(
                     'Image' => array(
-                            'Bytes' => $file->get_content(), //$image,
+                            'Bytes' => $file->get_content(),
                     ),
                     'Attributes' => array('ALL'),
                     'MaxLabels' => (int)$this->maxlabels,
@@ -219,7 +219,7 @@ class document extends \core_search\document {
             // Process the results from AWS Rekognition service
             // and extra result labels.
             $labelarray = array ();
-            foreach ($result['Labels'] as $label){
+            foreach ($result['Labels'] as $label) {
                 $labelarray[] = $label['Name'];
             }
             $imagetext = implode(', ', $labelarray);

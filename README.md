@@ -10,6 +10,7 @@ The following features are provided by this plugin:
 * File indexing
 * Request signing, compatible with Amazon Web Services (AWS)
 * Respects Moodle Proxy settings
+* Image recognition and indexing
 
 ## Supported Moodle Versions
 This plugin currently supports Moodle 3.1, 3.2 and 3.3
@@ -33,6 +34,47 @@ Currently this plugin is tested to work against the following versions of Elasti
 * 2.3.4
 * 2.4.4
 * 5.1.2
+
+## Elasticsearch Setup
+The following is the bare minimum to get Elasticsearch working in a Debian/Ubuntu Operating System environment. Consult the [Elasticsearch Documention](https://www.elastic.co/downloads/elasticsearch) for in depth instructions, or for details on how to install on other operating systems.
+
+NOTE: The instructions below should only be used for test and dev purposes. Don't do this in production.
+
+Elasticsearch requires Java as a prerequisite, to install Java:
+<pre><code>
+sudo apt-get install default-jre default-jdk
+</pre></code>
+
+Once Java is installed, the following commands will install and start Elasticsearch.
+<pre><code>
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
+sudo dpkg -i elasticsearch-5.1.2.deb
+sudo update-rc.d elasticsearch defaults
+sudo service elasticsearch start
+</pre></code>
+
+A quick test can be performed by running the following from the command line.
+<pre><code>
+curl -X GET 'http://localhost:9200'
+</pre></code>
+
+The output should look something like:
+<pre><code>
+{
+  "name" : "1QHLiux",
+  "cluster_name" : "elasticsearch",
+  "cluster_uuid" : "mLRqIsnVRrGdgg2OfHWNrg",
+  "version" : {
+    "number" : "5.1.2",
+    "build_hash" : "c8c4c16",
+    "build_date" : "2017-01-11T20:18:39.146Z",
+    "build_snapshot" : false,
+    "lucene_version" : "6.3.0"
+  },
+  "tagline" : "You Know, for Search"
+}
+
+</pre></code>
 
 ## File Indexing Support
 This plugin uses [Apache Tika](https://tika.apache.org/) for file indexing support. Tika parses files, extracts the text, and return it via a REST API.
@@ -68,7 +110,23 @@ Using Tika as a standalone service has the following advantages:
 * Can support file indexing for Elasticsearch setups that don't support file indexing plugins such as AWS.
 * No need to chagne setup or plugins based on Elasticsearch version.
 * You can share one Tika service across multiple Elasticsearch clusters.
-* Can run Tika on dedicated infrastrucutre that is not part of your search nodes.
+* Can run Tika on dedicated infrastructure that is not part of your search nodes.
+
+## Image Recognition and Indexing
+This plugin can use the Amazon Web Services (AWS) [Rekognition service(https://aws.amazon.com/rekognition/) to identify the contents of images. The identified content is then indexed by Elasticsearch and can be searched for in Moodle (cool huh?).
+
+**NOTE:** Indexing of files by Moodle's core Global Search is currently limited to only indexing files from a couple of places. Tracker issue [MDL-59459](https://tracker.moodle.org/browse/MDL-59459) has been raised to increase the coverage of the files indexed by Global Search.
+
+### Enabling image recognition and indexing support in Moodle
+Once you have setup Elasticsearch in AWS Moodle needs to be configured for Image Recognition.<br/>
+Assuming you have already followed the basic installation steps and the file indexing steps, to enable Image Recognition:
+
+1. Configure the Elasticsearch plugin at: *Site administration > Plugins > Search > Elastic*
+2. Select the *Enable image signing* checkbox.
+3. Set *Key ID*, *Secret Key* and *Region* of your AWS credentials and Rekognition region.
+4. Click the *Save Changes* button.
+
+**NOTE:** You will need a set of AWS API keys for an AWS IAM user with full Rekognition permissions. Setting this up is beyond the scope of this README. for further information see the [AWS Documentation](https://aws.amazon.com/rekognition/getting-started/).
 
 ## Request Signing
 Amazon Web Services (AWS) provide Elasticsearch as a managed service. This makes it easy to provision and manage and Elasticsearch cluster.<br/>

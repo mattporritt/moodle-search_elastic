@@ -44,19 +44,21 @@ if ($ADMIN->fulltree) {
                 get_string('index_desc', 'search_elastic'),
                 'moodle', PARAM_ALPHANUMEXT));
 
-                $settings->add(new admin_setting_configtext('search_elastic/sendsize',
+        $settings->add(new admin_setting_configtext('search_elastic/sendsize',
                 get_string('sendsize', 'search_elastic' ),
                 get_string('sendsize_desc', 'search_elastic'),
                 9000000, PARAM_INT, 8));
+
+        $settings->add(new admin_setting_configcheckbox('search_elastic/fileindexing',
+                get_string('fileindexing', 'search_elastic'),
+                get_string('fileindexing_help', 'search_elastic'), 0));
+
 
         // File indexing settings.
         $settings->add(new admin_setting_heading('search_elastic_fileindexing',
                 get_string('fileindexsettings', 'search_elastic'),
                 get_string('fileindexsettings_desc', 'search_elastic')
                 ));
-        $settings->add(new admin_setting_configcheckbox('search_elastic/fileindexing',
-                get_string('fileindexing', 'search_elastic'),
-                get_string('fileindexing_help', 'search_elastic'), 0));
 
         $settings->add(new admin_setting_configtext('search_elastic/tikahostname',
                 get_string('tikahostname', 'search_elastic' ),
@@ -91,7 +93,7 @@ if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_configtext('search_elastic/rekregion',
                 get_string('rekregion', 'search_elastic' ),
                 get_string('rekregion_desc', 'search_elastic'),
-                '', PARAM_TEXT));
+                'us-west-2', PARAM_TEXT));
 
         $settings->add(new admin_setting_configtext('search_elastic/maxlabels',
                  get_string('maxlabels', 'search_elastic' ),
