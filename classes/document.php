@@ -26,7 +26,7 @@ namespace search_elastic;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
+require($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
 
 /**
  * Elasticsearch engine.
@@ -187,27 +187,42 @@ class document extends \core_search\document {
         $cananalyze = false;
         $acceptedtypes = $this->get_accepted_image_types();
         $imagemime = $imageinfo['mimetype'];
-        
         $acceptedimage = in_array($imagemime, $acceptedtypes);
+        $filesize = $file->get_filesize();
+
         // If we are not indexing images return early.
         if (!$this->imageindex) {
             return $imagetext;
         }
 
         // Check if we can analyze this type of file.
-        if ($acceptedimage && $imageinfo['height'] >= 80 && $imageinfo['width'] >= 80) {
+        if ($acceptedimage &&
+                $imageinfo['height'] >= 80 &&
+                $imageinfo['width'] >= 80 &&
+                $filesize <= 5000000
+                ) {
                     $cananalyze = true;
         }
 
         if ($cananalyze) {
+
             // Send image to AWS Rekognition for analysis.
-            $imagetext = $this->rekognition->detectLabels([
-                    'Image' => [
-                            'Bytes' => $file,
-                    ],
-                    'MaxLabels' => $this->maxlabels,
-                    'MinConfidence' => $this->minconfidence
-            ]);
+            $result = $this->rekognition->detectLabels(array(
+                    'Image' => array(
+                            'Bytes' => $file->get_content(), //$image,
+                    ),
+                    'Attributes' => array('ALL'),
+                    'MaxLabels' => (int)$this->maxlabels,
+                    'MinConfidence' => (float)$this->minconfidence
+            ));
+
+            // Process the results from AWS Rekognition service
+            // and extra result labels.
+            $labelarray = array ();
+            foreach ($result['Labels'] as $label){
+                $labelarray[] = $label['Name'];
+            }
+            $imagetext = implode(', ', $labelarray);
         }
 
         return $imagetext;
@@ -262,8 +277,8 @@ class document extends \core_search\document {
             // If file is text don't bother converting.
             $filetext = $file->get_content();
         } else {
-            // Pass the file off to tika to extract content.
-           // $filetext = $this->extract_text($file);
+            // Pass the file off to Tika to extract content.
+            $filetext = $this->extract_text($file);
         }
 
         // Construct the document.
