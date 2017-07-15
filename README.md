@@ -117,6 +117,8 @@ This plugin can use the Amazon Web Services (AWS) [Rekognition service(https://a
 
 **NOTE:** Indexing of files by Moodle's core Global Search is currently limited to only indexing files from a couple of places. Tracker issue [MDL-59459](https://tracker.moodle.org/browse/MDL-59459) has been raised to increase the coverage of the files indexed by Global Search.
 
+Currently the best resource to use to test image search functionality it so add an image via the Moodle course file resource.
+
 ### Enabling image recognition and indexing support in Moodle
 Once you have setup Elasticsearch in AWS Moodle needs to be configured for Image Recognition.<br/>
 Assuming you have already followed the basic installation steps and the file indexing steps, to enable Image Recognition:
