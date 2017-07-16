@@ -386,7 +386,7 @@ class engine extends \core_search\engine {
                     !empty($options['stopat']) && microtime(true) >= $options['stopat']) {
                         $partial = true;
                         break;
-                    }
+            }
 
             if (!$document instanceof \core_search\document) {
                 continue;
