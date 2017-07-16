@@ -29,5 +29,6 @@ $functions = array(
                 'classpath'   => 'search/engine/elastic/externallib.php',
                 'description' => 'Returns search results based on provided search query',
                 'type'        => 'read',
+                'ajax' => true
         )
 );
