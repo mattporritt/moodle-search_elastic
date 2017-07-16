@@ -34,6 +34,7 @@ Currently this plugin is tested to work against the following versions of Elasti
 * 2.3.4
 * 2.4.4
 * 5.1.2
+* 5.5.0
 
 ## Elasticsearch Setup
 The following is the bare minimum to get Elasticsearch working in a Debian/Ubuntu Operating System environment. Consult the [Elasticsearch Documention](https://www.elastic.co/downloads/elasticsearch) for in depth instructions, or for details on how to install on other operating systems.
