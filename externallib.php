@@ -29,16 +29,59 @@ class search_elastic_external extends external_api {
      * @return external_function_parameters
      */
     public static function search_parameters() {
-        return new external_function_parameters(
-                array('welcomemessage' => new external_value(PARAM_TEXT, 'The welcome message. By default it is "Hello world,"', VALUE_DEFAULT, 'Hello world, '))
+         $parameters = new external_function_parameters(
+                array('welcomemessage' => new external_value(
+                          PARAM_TEXT,
+                          'The welcome message. By default it is "Hello world,"',
+                          VALUE_DEFAULT,
+                          'Hello world, '),
+                      'q'  => new external_value(
+                          PARAM_TEXT,
+                          'The search query',
+                          VALUE_DEFAULT,
+                          '*'),
+                      'title'  => new external_value(
+                          PARAM_TEXT,
+                          'The search query',
+                          VALUE_DEFAULT,
+                          '*'),
+                      'courses'  => new external_value(
+                          PARAM_TEXT,
+                          'Courses to return results from.',
+                          VALUE_DEFAULT,
+                          'Hello world, '),
+                      'searchareas'  => new external_value(
+                          PARAM_TEXT,
+                          'Search areas to return results from',
+                          VALUE_DEFAULT,
+                          'Hello world, '),
+                      'timestart'  => new external_value(
+                          PARAM_INT,
+                          'Return results newer than this. Value in seconds since Epoch',
+                          VALUE_DEFAULT,
+                          0),
+                      'timeend'  => new external_value(
+                          PARAM_INT,
+                          'Return results newer than this. Value in seconds since Epoch',
+                          VALUE_DEFAULT,
+                          0),
+                )
         );
+        
+        return $parameters;
     }
 
     /**
      * Returns welcome message
      * @return string welcome message
      */
-    public static function search($welcomemessage = 'Hello world, ') {
+    public static function search($welcomemessage = 'Hello world, ',
+                                  $q='*',
+                                  $title=false
+                                  $courses=false,
+                                  $searchareas=false,
+                                  $timestart=0,
+                                  $timeend=0) {
         global $USER;
 
         //Parameter validation
@@ -56,8 +99,17 @@ class search_elastic_external extends external_api {
         if (!has_capability('moodle/user:viewdetails', $context)) {
             throw new moodle_exception('cannotviewprofile');
         }
+        
+        // Search code goes here.
+        $filters = new \stdClass();
+        $usercontexts = array(); // Get user contexts.
+        
+        // Execute search.
+        $results = \search_elastic\engine\execute_query($filters, $usercontexts);
+        
+        // Process results.
 
-        return $params['welcomemessage'] . $USER->firstname ;;
+        return $params['welcomemessage'] . $USER->firstname ;
     }
 
     /**
