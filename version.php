@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2017071600;
-$plugin->release   = 2017071600;      // Same as version.
+$plugin->version = 2017071804;
+$plugin->release   = 2017071804;      // Same as version.
 $plugin->requires = 2016052304;
 $plugin->component = 'search_elastic';
 $plugin->maturity  = MATURITY_STABLE;

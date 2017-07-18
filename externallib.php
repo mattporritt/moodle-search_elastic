@@ -22,6 +22,8 @@
  */
 require_once($CFG->libdir . "/externallib.php");
 
+use core_search\manager;
+
 class search_elastic_external extends external_api {
 
     /**
@@ -35,39 +37,39 @@ class search_elastic_external extends external_api {
                           'The welcome message. By default it is "Hello world,"',
                           VALUE_DEFAULT,
                           'Hello world, '),
-                      'q'  => new external_value(
-                          PARAM_TEXT,
-                          'The search query',
-                          VALUE_DEFAULT,
-                          '*'),
-                      'title'  => new external_value(
-                          PARAM_TEXT,
-                          'The search query',
-                          VALUE_DEFAULT,
-                          '*'),
-                      'courses'  => new external_value(
-                          PARAM_TEXT,
-                          'Courses to return results from.',
-                          VALUE_DEFAULT,
-                          'Hello world, '),
-                      'searchareas'  => new external_value(
-                          PARAM_TEXT,
-                          'Search areas to return results from',
-                          VALUE_DEFAULT,
-                          'Hello world, '),
-                      'timestart'  => new external_value(
-                          PARAM_INT,
-                          'Return results newer than this. Value in seconds since Epoch',
-                          VALUE_DEFAULT,
-                          0),
-                      'timeend'  => new external_value(
-                          PARAM_INT,
-                          'Return results newer than this. Value in seconds since Epoch',
-                          VALUE_DEFAULT,
-                          0),
+//                       'q'  => new external_value(
+//                           PARAM_TEXT,
+//                           'The search query',
+//                           VALUE_DEFAULT,
+//                           '*'),
+//                       'title'  => new external_value(
+//                           PARAM_TEXT,
+//                           'The search query',
+//                           VALUE_DEFAULT,
+//                           '*'),
+//                       'courses'  => new external_value(
+//                           PARAM_TEXT,
+//                           'Courses to return results from.',
+//                           VALUE_DEFAULT,
+//                           'Hello world, '),
+//                       'searchareas'  => new external_value(
+//                           PARAM_TEXT,
+//                           'Search areas to return results from',
+//                           VALUE_DEFAULT,
+//                           'Hello world, '),
+//                       'timestart'  => new external_value(
+//                           PARAM_INT,
+//                           'Return results newer than this. Value in seconds since Epoch',
+//                           VALUE_DEFAULT,
+//                           0),
+//                       'timeend'  => new external_value(
+//                           PARAM_INT,
+//                           'Return results newer than this. Value in seconds since Epoch',
+//                           VALUE_DEFAULT,
+//                           0),
                 )
         );
-        
+
         return $parameters;
     }
 
@@ -77,7 +79,7 @@ class search_elastic_external extends external_api {
      */
     public static function search($welcomemessage = 'Hello world, ',
                                   $q='*',
-                                  $title=false
+                                  $title=false,
                                   $courses=false,
                                   $searchareas=false,
                                   $timestart=0,
@@ -91,24 +93,29 @@ class search_elastic_external extends external_api {
 
         //Context validation
         //OPTIONAL but in most web service it should present
-        $context = get_context_instance(CONTEXT_USER, $USER->id);
+        $context = context_user::instance($USER->id);
         self::validate_context($context);
 
         //Capability checking
         //OPTIONAL but in most web service it should present
-        if (!has_capability('moodle/user:viewdetails', $context)) {
-            throw new moodle_exception('cannotviewprofile');
+        if (!has_capability('moodle/search:query', $context)) {
+            throw new moodle_exception('cannot_search');
         }
-        
+
         // Search code goes here.
         $filters = new \stdClass();
-        $usercontexts = array(); // Get user contexts.
-        
-        // Execute search.
-        $results = \search_elastic\engine\execute_query($filters, $usercontexts);
-        
-        // Process results.
+        $filters->q = '*';
+        $filters->title = '';
+        $filters->timestart = 0;
+        $filters->timeend = 0;
 
+        $search = \core_search\manager::instance();
+ 
+        // Execute search.
+        $results = $search->search($filters);
+
+        // Process results.
+        //return print_r($results, true);
         return $params['welcomemessage'] . $USER->firstname ;
     }
 

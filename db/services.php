@@ -29,6 +29,17 @@ $functions = array(
                 'classpath'   => 'search/engine/elastic/externallib.php',
                 'description' => 'Returns search results based on provided search query',
                 'type'        => 'read',
+                'capabilities'  => 'moodle/search:query',
                 'ajax' => true
+        )
+);
+
+
+// We define the services to install as pre-build services. A pre-build service is not editable by administrator.
+$services = array(
+        'Search service' => array(
+                'functions' => array ('search_elastic_search'),
+                'restrictedusers' => 0,
+                'enabled'=>1,
         )
 );
