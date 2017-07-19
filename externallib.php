@@ -112,10 +112,17 @@ class search_elastic_external extends external_api {
         $search = \core_search\manager::instance();
  
         // Execute search.
-        $results = $search->search($filters);
+        $results = $search->search($filters, 1);
+        $docs = array();
+
+        foreach ($results as $result) {
+            $docs[] = $result->export_for_engine();
+ 
+        }
 
         // Process results.
-        //return print_r($results, true);
+        //error_log(print_r($results, true));
+        return print_r($docs, true);
         return $params['welcomemessage'] . $USER->firstname ;
     }
 
