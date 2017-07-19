@@ -296,6 +296,48 @@ class document extends \core_search\document {
 
         return $data;
     }
+    
+    /**
+     * Export the document data to be used as webservice result.
+     * @return array
+     */
+    public function export_for_webservice() {
+        list($componentname, $areaname) = \core_search\manager::extract_areaid_parts($this->get('areaid'));
+        $title = $this->is_set('title') ? $this->format_text($this->get('title')) : '';
+        $data = [
+            'componentname' => $componentname,
+            'areaname' => $areaname,
+            'courseurl' => course_get_url($this->get('courseid')),
+            'coursefullname' => format_string($this->get('coursefullname'), true, array('context' => $this->get('contextid'))),
+            'modified' => userdate($this->get('modified')),
+            'title' => ($title !== '') ? $title : get_string('notitle', 'search'),
+            'docurl' => $this->get_doc_url(),
+            'content' => $this->is_set('content') ? $this->format_text($this->get('content')) : null,
+            'contexturl' => $this->get_context_url(),
+            'description1' => $this->is_set('description1') ? $this->format_text($this->get('description1')) : null,
+            'description2' => $this->is_set('description2') ? $this->format_text($this->get('description2')) : null,
+        ];
+        // Now take any attached any files.
+        $files = $this->get_files();
+        if (!empty($files)) {
+            if (count($files) > 1) {
+                $filenames = array();
+                foreach ($files as $file) {
+                    $filenames[] = format_string($file->get_filename(), true, array('context' => $this->get('contextid')));
+                }
+                $data['multiplefiles'] = true;
+                $data['filenames'] = $filenames;
+            } else {
+                $file = reset($files);
+                $data['filename'] = format_string($file->get_filename(), true, array('context' => $this->get('contextid')));
+            }
+        }
+        if ($this->is_set('userid')) {
+            $data['userurl'] = new \moodle_url('/user/view.php', array('id' => $this->get('userid'), 'course' => $this->get('courseid')));
+            $data['userfullname'] = format_string($this->get('userfullname'), true, array('context' => $this->get('contextid')));
+        }
+        return $data;
+    }
 
     /**
      * Returns all required fields definitions.

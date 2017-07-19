@@ -116,7 +116,7 @@ class search_elastic_external extends external_api {
         $docs = array();
 
         foreach ($results as $result) {
-            $docs[] = $result->export_for_engine();
+            $docs[] = $result->export_for_webservice();
  
         }
 
