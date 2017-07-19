@@ -131,7 +131,25 @@ class search_elastic_external extends external_api {
      * @return external_description
      */
     public static function search_returns() {
-        return new external_value(PARAM_TEXT, 'The welcome message + user first name');
+        return new external_function_parameters(                                                                                    
+            array(
+                'result' => new external_single_structure(
+                    array(                                                                                                                  
+                        'componentname' => new external_value(PARAM_TEXT, 'desc'),
+            'areaname' => new external_value(PARAM_TEXT, 'desc'),
+            'courseurl' => new external_value(PARAM_RAW, 'desc'),
+            'coursefullname' => new external_value(PARAM_TEXT, 'desc'),
+            'modified' => new external_value(PARAM_INT, 'desc'),
+            'title' => new external_value(PARAM_TEXT, 'desc'),
+            'docurl' => new external_value(PARAM_RAW, 'desc'),
+            'content' => new external_value(PARAM_RAW, 'desc'),
+            'contexturl' => new external_value(PARAM_RAW, 'desc'),
+            'description1' => new external_value(PARAM_TEXT, 'desc'),
+            'description2' => new external_value(PARAM_TEXT, 'desc'),
+                    )
+                )
+            )
+        );
     }
 
 
