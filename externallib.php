@@ -112,12 +112,12 @@ class search_elastic_external extends external_api {
         $search = \core_search\manager::instance();
  
         // Execute search.
-        $results = $search->search($filters, 1);
+        $results = $search->search($filters, 10);
         $docs = array();
 
         foreach ($results as $result) {
             error_log(print_r($result->export_for_webservice(),true));
-            $docs[] = array('result' => $result->export_for_webservice());
+            $docs[] = $result->export_for_webservice();
  
         }
 
@@ -132,15 +132,14 @@ class search_elastic_external extends external_api {
      * @return external_description
      */
     public static function search_returns() {
-        return new external_function_parameters(
-            array(
-                'result' => new external_single_structure(
+        return new external_multiple_structure(
+            new external_single_structure(
                     array(
                         'componentname' => new external_value(PARAM_TEXT, 'desc'),
                         'areaname' => new external_value(PARAM_TEXT, 'desc'),
                         'courseurl' => new external_value(PARAM_RAW, 'desc'),
                         'coursefullname' => new external_value(PARAM_TEXT, 'desc'),
-                        'modified' => new external_value(PARAM_INT, 'desc'),
+                            'modified' => new external_value(PARAM_TEXT, 'desc'),
                         'title' => new external_value(PARAM_TEXT, 'desc'),
                         'docurl' => new external_value(PARAM_RAW, 'desc'),
                         'content' => new external_value(PARAM_RAW, 'desc'),
@@ -149,7 +148,6 @@ class search_elastic_external extends external_api {
                         'description2' => new external_value(PARAM_TEXT, 'desc'),
                     )
                 )
-            )
         );
     }
 
