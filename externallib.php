@@ -116,13 +116,14 @@ class search_elastic_external extends external_api {
         $docs = array();
 
         foreach ($results as $result) {
-            $docs[] = $result->export_for_webservice();
+            error_log(print_r($result->export_for_webservice(),true));
+            $docs[] = array('result' => $result->export_for_webservice());
  
         }
 
         // Process results.
         //error_log(print_r($results, true));
-        return print_r($docs, true);
+        return $docs;
         return $params['welcomemessage'] . $USER->firstname ;
     }
 
@@ -131,21 +132,21 @@ class search_elastic_external extends external_api {
      * @return external_description
      */
     public static function search_returns() {
-        return new external_function_parameters(                                                                                    
+        return new external_function_parameters(
             array(
                 'result' => new external_single_structure(
-                    array(                                                                                                                  
+                    array(
                         'componentname' => new external_value(PARAM_TEXT, 'desc'),
-            'areaname' => new external_value(PARAM_TEXT, 'desc'),
-            'courseurl' => new external_value(PARAM_RAW, 'desc'),
-            'coursefullname' => new external_value(PARAM_TEXT, 'desc'),
-            'modified' => new external_value(PARAM_INT, 'desc'),
-            'title' => new external_value(PARAM_TEXT, 'desc'),
-            'docurl' => new external_value(PARAM_RAW, 'desc'),
-            'content' => new external_value(PARAM_RAW, 'desc'),
-            'contexturl' => new external_value(PARAM_RAW, 'desc'),
-            'description1' => new external_value(PARAM_TEXT, 'desc'),
-            'description2' => new external_value(PARAM_TEXT, 'desc'),
+                        'areaname' => new external_value(PARAM_TEXT, 'desc'),
+                        'courseurl' => new external_value(PARAM_RAW, 'desc'),
+                        'coursefullname' => new external_value(PARAM_TEXT, 'desc'),
+                        'modified' => new external_value(PARAM_INT, 'desc'),
+                        'title' => new external_value(PARAM_TEXT, 'desc'),
+                        'docurl' => new external_value(PARAM_RAW, 'desc'),
+                        'content' => new external_value(PARAM_RAW, 'desc'),
+                        'contexturl' => new external_value(PARAM_RAW, 'desc'),
+                        'description1' => new external_value(PARAM_TEXT, 'desc'),
+                        'description2' => new external_value(PARAM_TEXT, 'desc'),
                     )
                 )
             )

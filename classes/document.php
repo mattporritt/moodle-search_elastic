@@ -27,6 +27,7 @@ namespace search_elastic;
 defined('MOODLE_INTERNAL') || die();
 
 require($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
+require_once($CFG->dirroot . '/course/lib.php');
 
 /**
  * Elasticsearch engine.
@@ -307,13 +308,13 @@ class document extends \core_search\document {
         $data = [
             'componentname' => $componentname,
             'areaname' => $areaname,
-            'courseurl' => course_get_url($this->get('courseid')),
+            'courseurl' => course_get_url($this->get('courseid'))->out(),
             'coursefullname' => format_string($this->get('coursefullname'), true, array('context' => $this->get('contextid'))),
             'modified' => userdate($this->get('modified')),
             'title' => ($title !== '') ? $title : get_string('notitle', 'search'),
-            'docurl' => $this->get_doc_url(),
+            'docurl' => $this->get_doc_url()->out(),
             'content' => $this->is_set('content') ? $this->format_text($this->get('content')) : null,
-            'contexturl' => $this->get_context_url(),
+            'contexturl' => $this->get_context_url()->out(),
             'description1' => $this->is_set('description1') ? $this->format_text($this->get('description1')) : null,
             'description2' => $this->is_set('description2') ? $this->format_text($this->get('description2')) : null,
         ];
