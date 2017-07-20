@@ -31,65 +31,36 @@ class search_elastic_external extends external_api {
      * @return external_function_parameters
      */
     public static function search_parameters() {
-         $parameters = new external_function_parameters(
-                array('welcomemessage' => new external_value(
-                          PARAM_TEXT,
-                          'The welcome message. By default it is "Hello world,"',
-                          VALUE_DEFAULT,
-                          'Hello world, '),
-//                       'q'  => new external_value(
-//                           PARAM_TEXT,
-//                           'The search query',
-//                           VALUE_DEFAULT,
-//                           '*'),
-//                       'title'  => new external_value(
-//                           PARAM_TEXT,
-//                           'The search query',
-//                           VALUE_DEFAULT,
-//                           '*'),
-//                       'courses'  => new external_value(
-//                           PARAM_TEXT,
-//                           'Courses to return results from.',
-//                           VALUE_DEFAULT,
-//                           'Hello world, '),
-//                       'searchareas'  => new external_value(
-//                           PARAM_TEXT,
-//                           'Search areas to return results from',
-//                           VALUE_DEFAULT,
-//                           'Hello world, '),
-//                       'timestart'  => new external_value(
-//                           PARAM_INT,
-//                           'Return results newer than this. Value in seconds since Epoch',
-//                           VALUE_DEFAULT,
-//                           0),
-//                       'timeend'  => new external_value(
-//                           PARAM_INT,
-//                           'Return results newer than this. Value in seconds since Epoch',
-//                           VALUE_DEFAULT,
-//                           0),
-                )
-        );
-
-        return $parameters;
+        return new external_function_parameters ( array (
+                'q' => new external_value(PARAM_TEXT, 'The search query', VALUE_DEFAULT, '*'),
+                'title' => new external_value(PARAM_TEXT, 'The search query', VALUE_DEFAULT, ''),
+                'courseids' => new external_multiple_structure(
+                        new external_value(PARAM_INT, 'Course ids'),
+                        'List of course id. If empty return all courses except front page course.', VALUE_OPTIONAL ),
+                'areaids' => new external_multiple_structure(
+                        new external_value(PARAM_INT, 'Area ids'),
+                        'List of course id. If empty return all courses except front page course.', VALUE_OPTIONAL ),
+                'timestart' => new external_value(PARAM_INT, 'Return results newer than this. Value in seconds since Epoch', VALUE_DEFAULT, 0 ),
+                'timeend' => new external_value(PARAM_INT, 'Return results older than this. Value in seconds since Epoch', VALUE_DEFAULT, 0 )
+        ) );
     }
 
     /**
      * Returns welcome message
      * @return string welcome message
      */
-    public static function search($welcomemessage = 'Hello world, ',
-                                  $q='*',
-                                  $title=false,
-                                  $courses=false,
-                                  $searchareas=false,
-                                  $timestart=0,
-                                  $timeend=0) {
+    public static function search($q,
+                                    $title=false,
+                                    $courseids=array(),
+                                    $areaids=array(),
+                                    $timestart=0,
+                                    $timeend=0) {
         global $USER;
 
         //Parameter validation
         //REQUIRED
         $params = self::validate_parameters(self::search_parameters(),
-                array('welcomemessage' => $welcomemessage));
+                array('q' => $q));
 
         //Context validation
         //OPTIONAL but in most web service it should present
@@ -110,21 +81,16 @@ class search_elastic_external extends external_api {
         $filters->timeend = 0;
 
         $search = \core_search\manager::instance();
- 
+
         // Execute search.
         $results = $search->search($filters, 10);
         $docs = array();
 
         foreach ($results as $result) {
-            error_log(print_r($result->export_for_webservice(),true));
             $docs[] = $result->export_for_webservice();
- 
         }
 
-        // Process results.
-        //error_log(print_r($results, true));
         return $docs;
-        return $params['welcomemessage'] . $USER->firstname ;
     }
 
     /**
@@ -139,7 +105,7 @@ class search_elastic_external extends external_api {
                         'areaname' => new external_value(PARAM_TEXT, 'desc'),
                         'courseurl' => new external_value(PARAM_RAW, 'desc'),
                         'coursefullname' => new external_value(PARAM_TEXT, 'desc'),
-                            'modified' => new external_value(PARAM_TEXT, 'desc'),
+                        'modified' => new external_value(PARAM_TEXT, 'desc'),
                         'title' => new external_value(PARAM_TEXT, 'desc'),
                         'docurl' => new external_value(PARAM_RAW, 'desc'),
                         'content' => new external_value(PARAM_RAW, 'desc'),
