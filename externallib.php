@@ -24,6 +24,13 @@ require_once($CFG->libdir . "/externallib.php");
 
 use core_search\manager;
 
+/**
+ * Elasticsearch Web Service
+ *
+ * @package    search_elastic
+ * @copyright  2017 Matt Porritt <mattp@catalyst-au.net>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class search_elastic_external extends external_api {
 
     /**
@@ -33,59 +40,53 @@ class search_elastic_external extends external_api {
     public static function search_parameters() {
         return new external_function_parameters ( array (
                 'q' => new external_value(PARAM_TEXT, 'The search query', VALUE_DEFAULT, '*'),
-                'title' => new external_value(PARAM_TEXT, 'The search query', VALUE_DEFAULT, ''),
+                'title' => new external_value(PARAM_TEXT, 'Show results that match this title', VALUE_DEFAULT, ''),
                 'courseids' => new external_multiple_structure(
                         new external_value(PARAM_INT, 'Course ids'),
-                        'List of course id. If empty return all courses except front page course.', VALUE_OPTIONAL ),
+                        'List of course ids. If empty return all courses.', VALUE_OPTIONAL ),
                 'areaids' => new external_multiple_structure(
                         new external_value(PARAM_INT, 'Area ids'),
-                        'List of course id. If empty return all courses except front page course.', VALUE_OPTIONAL ),
-                'timestart' => new external_value(PARAM_INT, 'Return results newer than this. Value in seconds since Epoch', VALUE_DEFAULT, 0 ),
-                'timeend' => new external_value(PARAM_INT, 'Return results older than this. Value in seconds since Epoch', VALUE_DEFAULT, 0 )
+                        'List of area ids. If empty return all areas.', VALUE_OPTIONAL ),
+                'timestart' => new external_value(PARAM_INT,
+                        'Return results newer than this. Value in seconds since Epoch', VALUE_DEFAULT, 0 ),
+                'timeend' => new external_value(PARAM_INT,
+                        'Return results older than this. Value in seconds since Epoch', VALUE_DEFAULT, 0 )
         ) );
     }
 
     /**
      * Returns welcome message
-     * @return string welcome message
+     * @return array $docs The search results
      */
-    public static function search($q,
-                                    $title=false,
-                                    $courseids=array(),
-                                    $areaids=array(),
-                                    $timestart=0,
-                                    $timeend=0) {
+    public static function search($q, $title, $courseids=false, $areaids=false, $timestart=0, $timeend=0) {
         global $USER;
 
-        //Parameter validation
-        //REQUIRED
+        // Parameter validation.
+        // This feels dumb and the docs are vague, buy it is required.
         $params = self::validate_parameters(self::search_parameters(),
-                array('q' => $q));
+                array('q' => $q,
+                       'title' => $title, 
+                       'courseids' => $courseids,
+                       'areaids' => $areaids, 
+                       'timestart' => $timestart, 
+                       'timeend' => $timeend
+                       ));
 
-        //Context validation
-        //OPTIONAL but in most web service it should present
+        // Context validation.
         $context = context_user::instance($USER->id);
         self::validate_context($context);
 
-        //Capability checking
-        //OPTIONAL but in most web service it should present
+        // Capability checking.
         if (!has_capability('moodle/search:query', $context)) {
             throw new moodle_exception('cannot_search');
         }
 
-        // Search code goes here.
-        $filters = new \stdClass();
-        $filters->q = '*';
-        $filters->title = '';
-        $filters->timestart = 0;
-        $filters->timeend = 0;
-
-        $search = \core_search\manager::instance();
-
         // Execute search.
-        $results = $search->search($filters, 10);
+        $search = \core_search\manager::instance();
+        $results = $search->search((object)$params);
+        
+        // Process the results.
         $docs = array();
-
         foreach ($results as $result) {
             $docs[] = $result->export_for_webservice();
         }
