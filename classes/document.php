@@ -119,6 +119,10 @@ class document extends \core_search\document {
      * Makes relevant config available and bootstraps
      * Rekognition client.
      *
+     * @param int $itemid An id unique to the search area
+     * @param string $componentname The search area component Frankenstyle name
+     * @param string $areaname The area name (the search area class name)
+     * @return void
      */
     public function __construct($itemid, $componentname, $areaname) {
         parent::__construct($itemid, $componentname, $areaname);
@@ -297,7 +301,7 @@ class document extends \core_search\document {
 
         return $data;
     }
-    
+
     /**
      * Export the document data to be used as webservice result.
      * @return array
@@ -334,8 +338,14 @@ class document extends \core_search\document {
             }
         }
         if ($this->is_set('userid')) {
-            $data['userurl'] = new \moodle_url('/user/view.php', array('id' => $this->get('userid'), 'course' => $this->get('courseid')));
-            $data['userfullname'] = format_string($this->get('userfullname'), true, array('context' => $this->get('contextid')));
+            $data['userurl'] = new \moodle_url(
+                    '/user/view.php',
+                    array('id' => $this->get('userid'), 'course' => $this->get('courseid'))
+                    );
+            $data['userfullname'] = format_string($this->get('userfullname'),
+                    true,
+                    array('context' => $this->get('contextid'))
+                    );
         }
         return $data;
     }

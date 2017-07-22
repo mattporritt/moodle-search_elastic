@@ -224,11 +224,11 @@ class query  {
             $title = $this->construct_title($filters->title);
             $query['query']['bool']['must'][] = $title;
         }
-        if (isset($filters->areaids)) {
+        if (isset($filters->areaids) && $filters->areaids != null && !empty($filters->areaids)) {
             $areaids = $this->construct_array($filters, 'areaids', 'areaid');
             array_push ($query['query']['bool']['filter']['bool']['must'], $areaids);
         }
-        if (isset($filters->courseids) && $filters->courseids != null) {
+        if (isset($filters->courseids) && $filters->courseids != null && !empty($filters->courseids)) {
             $courseids = $this->construct_array($filters, 'courseids', 'courseid');
             array_push ($query['query']['bool']['filter']['bool']['must'], $courseids);
         }
