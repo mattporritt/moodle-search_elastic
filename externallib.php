@@ -53,7 +53,7 @@ class search_elastic_external extends external_api {
                         new external_value(PARAM_INT, 'Course ids'),
                         'List of course ids. If empty return all courses.', VALUE_OPTIONAL),
                 'areaids' => new external_multiple_structure(
-                        new external_value(PARAM_INT, 'Area ids'),
+                        new external_value(PARAM_TEXT, 'Area ids'),
                         'List of area ids. If empty return all areas.', VALUE_OPTIONAL ),
         ) );
     }
@@ -181,7 +181,7 @@ class search_elastic_external extends external_api {
     public static function search_areas_returns() {
         return new external_multiple_structure(
                 new external_single_structure(
-                        array('areaid' => new external_value(PARAM_TEXT, 'The name of the document')                        )
+                        array('areaid' => new external_value(PARAM_TEXT, 'The search area ID'))
                         )
                 );
     }
