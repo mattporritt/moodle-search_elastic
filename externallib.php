@@ -59,18 +59,17 @@ class search_elastic_external extends external_api {
     }
 
     /**
-     * Returns welcome message
-     * @return array $docs The search results
+     * Returns search results
      *
-     * @param unknown $q
-     * @param unknown $timestart
-     * @param unknown $timeend
-     * @param unknown $title
-     * @param unknown $limit
-     * @param array $courseids
-     * @param array $areaids
+     * @param string $q The search string.
+     * @param integer $timestart Return results newer than this.
+     * @param integer $timeend Return results older than this.
+     * @param string $title Show results that match this title.
+     * @param integer $limit Limit results to this number.
+     * @param array $courseids Course ids.
+     * @param array $areaids Searcharea ids.
      * @throws moodle_exception
-     * @return void
+     * @return array $docs The search results
      */
     public static function search($q, $timestart, $timeend, $title, $limit, $courseids=array(), $areaids=array()) {
         global $USER;
@@ -132,6 +131,59 @@ class search_elastic_external extends external_api {
                     )
                 )
         );
+    }
+
+    /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function search_areas_parameters() {
+        return new external_function_parameters ( array (
+                'enabled' => new external_value(PARAM_BOOL, 'Return only enabled search areas', VALUE_DEFAULT, false)
+        ) );
+    }
+
+    /**
+     * Returns search area ids.
+     *
+     * @param bool $enabled return only enabled search areas
+     * @throws moodle_exception
+     * @return \core_search\base[] $results The search area ids
+     */
+    public static function search_areas($enabled) {
+        global $USER;
+
+        // Parameter validation.
+        // This feels dumb and the docs are vague, buy it is required.
+        $params = self::validate_parameters(self::search_areas_parameters(),
+                array('enabled' => $enabled));
+
+        // Context validation.
+        $context = context_user::instance($USER->id);
+        self::validate_context($context);
+
+        // Capability checking.
+        if (!has_capability('moodle/search:query', $context)) {
+            throw new moodle_exception('cannot_search');
+        }
+
+        // Execute search.
+        $search = \core_search\manager::instance();
+        $results = $search->get_search_areas_list($params['enabled']);
+
+        return $results;
+    }
+
+    /**
+     * Returns description of method result value
+     * @return external_description
+     */
+    public static function search_areas_returns() {
+        return new external_multiple_structure(
+                new external_single_structure(
+                        array('areaid' => new external_value(PARAM_TEXT, 'The name of the document')                        )
+                        )
+                );
     }
 
 }

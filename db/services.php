@@ -34,6 +34,15 @@ $functions = array(
                 'type'        => 'read',
                 'capabilities'  => 'moodle/search:query',
                 'ajax' => true
+        ),
+        'search_elastic_search_areas' => array(
+                'classname'   => 'search_elastic_external',
+                'methodname'  => 'search_areas',
+                'classpath'   => 'search/engine/elastic/externallib.php',
+                'description' => 'Returns search areas',
+                'type'        => 'read',
+                'capabilities'  => 'moodle/search:query',
+                'ajax' => true
         )
 );
 
@@ -41,7 +50,7 @@ $functions = array(
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
 $services = array(
         'Search service' => array(
-                'functions' => array ('search_elastic_search'),
+                'functions' => array('search_elastic_search', 'search_elastic_search_areas'),
                 'restrictedusers' => 0,
                 'enabled' => 1,
         )
