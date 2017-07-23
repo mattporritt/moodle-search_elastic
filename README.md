@@ -13,7 +13,11 @@ The following features are provided by this plugin:
 * Image recognition and indexing
 
 ## Supported Moodle Versions
-This plugin currently supports Moodle 3.1, 3.2 and 3.3
+This plugin currently supports Moodle:
+
+* 3.1
+* 3.2
+* 3.3
 
 ## Installation
 **NOTE:** Complete all of these steps before trying to enable the Global Search functionality in Moodle.
@@ -143,6 +147,18 @@ Assuming you have already followed the basic installation steps, to enable Reque
 2. Select the *Enable request signing* checkbox.
 3. Set *Key ID*, *Secret Key* and *Region* of your AWS credentials and Elasticsearch region.
 4. Click the *Save Changes* button.
+
+## Webservices
+This plugin exposes two AJAX enabled webservices, to allow you to integrate Moodle's Global search with other systems and services. The two available webservices are:
+
+* *search_elastic_search* - Returns search results based on provided search query.
+* *search_elastic_search_areas* - Returns the search area IDs for each available search area in Moodle.
+
+Setup and documentation of these services is connsistent with other Moodle core web services.
+
+This plugin sets up a pre-configured *External service* called *Search service* when the plugin is installed. This service adds and enables the two webservice methods provided by this plugin.
+
+**NOTE:** You will need to have Global search and this plugin enabled and configured correctly before you can use the provided web services.
 
 ## Test Setup
 In order to run the PHP Unit tests for this plugin you need to setup and configure an Elasticsearch instance as will as supply the instance details to Moodle.
