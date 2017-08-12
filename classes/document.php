@@ -156,7 +156,7 @@ class document extends \core_search\document {
         $client = new \search_elastic\esrequest();
         $response = $client->postfile($url, $file);
 
-        if ($response->getStatusCode()=== 200) {
+        if ($response->getStatusCode() == 200) {
             $extractedtext = (string) $response->getBody();
         }
 
