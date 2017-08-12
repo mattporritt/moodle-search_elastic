@@ -148,15 +148,16 @@ class document extends \core_search\document {
      */
     private function extract_text($file) {
         // TODO: add timeout and retries for tika.
-        $config = get_config('search_elastic');
         $extractedtext = '';
         $port = $this->tikaport;
-        $hostname = rtrim($this->tikahostname, "/");
+        $hostname = $this->tikahostname;
         $url = $hostname . ':'. $port . '/tika/form';
 
-        $response = $client->post($url, array('file' => $file));
-        if ($client->info['http_code'] === 200) {
-            $extractedtext = $response;
+        $client = new \search_elastic\esrequest();
+        $response = $client->postfile($url, $file);
+
+        if ($response->getStatusCode()=== 200) {
+            $extractedtext = (string) $response->getBody();
         }
 
         return $extractedtext;
