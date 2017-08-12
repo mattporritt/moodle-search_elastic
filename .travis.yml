@@ -26,26 +26,24 @@ env:
    - TEST_SEARCH_ELASTIC_PORT=9200
    - TEST_SEARCH_ELASTIC_INDEX=moodle_test
  matrix:
-  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=5.5.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=5.5.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE ESVER=5.5.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=master ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=master ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=master ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
-  - DB=pgsql MOODLE_BRANCH=master ESVER=5.5.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb TIKAURL=http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
+  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=5.5.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=5.5.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
+  - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE ESVER=5.5.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb
+  - DB=pgsql MOODLE_BRANCH=master ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+  - DB=pgsql MOODLE_BRANCH=master ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
+  - DB=pgsql MOODLE_BRANCH=master ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
+  - DB=pgsql MOODLE_BRANCH=master ESVER=5.5.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb
 
 before_install:
   - curl -O ${ESURL} && sudo dpkg -i --force-confnew elasticsearch-${ESVER}.deb && sudo service elasticsearch restart
-  - curl -O ${TIKAURL} && java -jar tika-server-1.16.jar &
   - cd ../..
   - composer selfupdate
   - composer create-project -n --no-dev moodlerooms/moodle-plugin-ci ci ^1
