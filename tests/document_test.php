@@ -28,6 +28,12 @@ global $CFG;
 require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/aws_rekognition.php');
 
+use \GuzzleHttp\Handler\MockHandler;
+use \GuzzleHttp\HandlerStack;
+use \GuzzleHttp\Middleware;
+use \GuzzleHttp\Psr7\Response;
+use \GuzzleHttp\Psr7\Request;
+
 /**
  * Elasticsearch engine.
  *
@@ -68,9 +74,9 @@ class search_elastic_document_testcase extends advanced_testcase {
     }
 
     /**
-     * Test unsigned esrequest get functionality
+     * Test image with AWS rekgonition
      */
-    public function test_export_file_for_engine_image() {
+    public function test_export_image_file_for_engine_image() {
         global $CFG;
         set_config('imageindex', 1, 'search_elastic');
 
@@ -110,10 +116,153 @@ class search_elastic_document_testcase extends advanced_testcase {
         $stub->set('owneruserid', $info->owneruserid);
         $stub->set('modified', $record->timemodified);
 
-        $foo = new MockRekognition;
-        $stub->method('get_rekognition_client')->willReturn($foo);
+        $rekognition = new MockRekognition;
+        $stub->method('get_rekognition_client')->willReturn($rekognition);
 
         $filearray = $stub->export_file_for_engine($file);
         $this->assertEquals('black', $filearray['filetext']);
+    }
+
+    /**
+     * Test text file extraction
+     */
+    public function test_export_text_file_for_engine_image() {
+        global $CFG;
+
+        // Create file to analyze
+        $fs = get_file_storage();
+        $filerecord= array(
+                'contextid' => 1,
+                'component' => 'mod_test',
+                'filearea' => 'search',
+                'itemid' => 0,
+                'filepath' => '/',
+                'filename' => 'testfile.txt');
+        $content = 'All the news that\'s fit to print';
+        $file = $fs->create_file_from_string($filerecord, $content);
+
+        // Construct the search object.
+        $rec = new \stdClass();
+        $rec->content = "elastic";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $info = unserialize($record->info);
+
+        // Mock out thw AWS Rekognition client and response.
+        // Add missing data to stub record object.
+        $stub = $this->getMockBuilder('\search_elastic\document')
+            ->setMethods(array('extract_text'))
+            ->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'))
+            ->getMock();
+
+        $stub->set('title', $info->title);
+        $stub->set('content', $info->content);
+        $stub->set('description1', $info->description1);
+        $stub->set('description1', $info->description2);
+        $stub->set('contextid', $info->contextid);
+        $stub->set('courseid', $info->courseid);
+        $stub->set('userid', $info->userid);
+        $stub->set('owneruserid', $info->owneruserid);
+        $stub->set('modified', $record->timemodified);
+
+        $filearray = $stub->export_file_for_engine($file);
+        $this->assertEquals($content, $filearray['filetext']);
+    }
+
+    /**
+     * Test binary text file extraction
+     */
+    public function test_export_binary_text_file_for_engine_image() {
+        global $CFG;
+
+        // Create file to analyze
+        $fs = get_file_storage();
+        $filerecord= array(
+                'contextid' => 1,
+                'component' => 'mod_test',
+                'filearea' => 'search',
+                'itemid' => 0,
+                'filepath' => '/',
+                'filename' => 'testfile.pdf');
+        $content = 'All the news that\'s fit to print';
+        $fileurl = $CFG->dirroot . '/search/engine/elastic/tests/fixtures/test.pdf';
+        $file = $fs->create_file_from_pathname($filerecord, $fileurl);
+
+        // Construct the search object.
+        $rec = new \stdClass();
+        $rec->content = "elastic";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $info = unserialize($record->info);
+
+        // Mock out thw AWS Rekognition client and response.
+        // Add missing data to stub record object.
+        $stub = $this->getMockBuilder('\search_elastic\document')
+            ->setMethods(array('extract_text'))
+            ->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'))
+            ->getMock();
+
+        $stub->set('title', $info->title);
+        $stub->set('content', $info->content);
+        $stub->set('description1', $info->description1);
+        $stub->set('description1', $info->description2);
+        $stub->set('contextid', $info->contextid);
+        $stub->set('courseid', $info->courseid);
+        $stub->set('userid', $info->userid);
+        $stub->set('owneruserid', $info->owneruserid);
+        $stub->set('modified', $record->timemodified);
+
+        $stub->method('extract_text')->willReturn($content);
+
+        $filearray = $stub->export_file_for_engine($file);
+        $this->assertEquals($content, $filearray['filetext']);
+    }
+
+    /**
+     * Test binary text file extraction request
+     */
+    public function test_export_binary_text_file_for_engine_image() {
+        global $CFG;
+
+        // Create file to analyze
+        $fs = get_file_storage();
+        $filerecord= array(
+                'contextid' => 1,
+                'component' => 'mod_test',
+                'filearea' => 'search',
+                'itemid' => 0,
+                'filepath' => '/',
+                'filename' => 'testfile.pdf');
+        $content = 'All the news that\'s fit to print';
+        $fileurl = $CFG->dirroot . '/search/engine/elastic/tests/fixtures/test.pdf';
+        $file = $fs->create_file_from_pathname($filerecord, $fileurl);
+
+        // Construct the search object.
+        $rec = new \stdClass();
+        $rec->content = "elastic";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $info = unserialize($record->info);
+
+        // Mock out thw AWS Rekognition client and response.
+        // Add missing data to stub record object.
+        $stub = $this->getMockBuilder('\search_elastic\document')
+            ->setMethods(array('__construct'))
+            ->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'))
+            ->getMock();
+
+        $stub->set('title', $info->title);
+        $stub->set('content', $info->content);
+        $stub->set('description1', $info->description1);
+        $stub->set('description1', $info->description2);
+        $stub->set('contextid', $info->contextid);
+        $stub->set('courseid', $info->courseid);
+        $stub->set('userid', $info->userid);
+        $stub->set('owneruserid', $info->owneruserid);
+        $stub->set('modified', $record->timemodified);
+
+
+        $filearray = $stub->extract_text($file, $client);
+        $this->assertEquals($content, $filearray['filetext']);
     }
 }

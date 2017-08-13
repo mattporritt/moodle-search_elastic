@@ -142,14 +142,13 @@ class document extends \core_search\document {
      * @param file $file
      * @return string|boolean
      */
-    private function extract_text($file) {
+    public function extract_text($file, $client) {
         // TODO: add timeout and retries for tika.
         $extractedtext = '';
         $port = $this->tikaport;
         $hostname = $this->tikahostname;
         $url = $hostname . ':'. $port . '/tika/form';
 
-        $client = new \search_elastic\esrequest();
         $response = $client->postfile($url, $file);
 
         if ($response->getStatusCode() == 200) {
@@ -280,7 +279,8 @@ class document extends \core_search\document {
             $filetext = $file->get_content();
         } else {
             // Pass the file off to Tika to extract content.
-            $filetext = $this->extract_text($file);
+            $client = new \search_elastic\esrequest();
+            $filetext = $this->extract_text($file, $client);
         }
 
         // Construct the document.

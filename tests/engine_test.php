@@ -29,19 +29,6 @@ require_once($CFG->dirroot . '/search/tests/fixtures/testable_core_search.php');
 require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_engine.php');
 
-class MockRekognition {
-    function detectLabels($params){
-        $results = array (
-                'Labels' => array (
-                        array ( 'Name' => 'black',
-                                'Confidence' => 91.745529174805
-                        )
-                )
-        );
-        return $results;
-    }
-}
-
 /**
  * Elasticsearch engine.
  *
@@ -394,55 +381,5 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
         $this->assertEquals(count($results), 1);
 
-    }
-
-    /**
-     * Test unsigned esrequest get functionality
-     */
-    public function test_export_file_for_engine_image() {
-        global $CFG;
-        set_config('imageindex', 1, 'search_elastic');
-
-        // Create file to analyze
-        $fs = get_file_storage();
-        $filerecord= array(
-                'contextid' => 1,
-                'component' => 'mod_test',
-                'filearea' => 'search',
-                'itemid' => 0,
-                'filepath' => '/',
-                'filename' => 'testfile.png');
-        $fileurl = $CFG->dirroot . '/search/engine/elastic/tests/pix/black.png';
-        $file = $fs->create_file_from_pathname($filerecord, $fileurl);
-
-        // Construct the search object and add it to the engine.
-        $rec = new \stdClass();
-        $rec->content = "elastic";
-        $area = new core_mocksearch\search\mock_search_area();
-        $record = $this->generator->create_record($rec);
-        $info = unserialize($record->info);
-
-        $stub = $this->getMockBuilder('\search_elastic\document')
-                    ->setMethods(array('get_rekognition_client'))
-                    ->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'))
-                    ->getMock();
-
-        $stub->set('title', $info->title);
-        $stub->set('content', $info->content);
-        $stub->set('description1', $info->description1);
-        $stub->set('description1', $info->description2);
-        $stub->set('contextid', $info->contextid);
-        $stub->set('courseid', $info->courseid);
-        $stub->set('userid', $info->userid);
-        $stub->set('owneruserid', $info->owneruserid);
-        $stub->set('modified', $record->timemodified);
-
-        $foo = new MockRekognition;
-        $stub->method('get_rekognition_client')->willReturn($foo);
-
-        $filearray = $stub->export_file_for_engine($file);
-
-        error_log(print_r($filearray, true));
-        // Check the results.
     }
 }
