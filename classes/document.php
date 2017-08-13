@@ -135,10 +135,6 @@ class document extends \core_search\document {
         $this->minconfidence = $this->config->minconfidence;
         $this->tikaport = $this->config->tikaport;
         $this->tikahostname = rtrim($this->config->tikahostname, "/");
-
-        if ($this->imageindex) {
-            $this->rekognition = $this->get_rekognition_client();
-        }
     }
 
     /**
@@ -169,7 +165,7 @@ class document extends \core_search\document {
      *
      * @return client $rekclient Rekognition client.
      */
-    private function get_rekognition_client() {
+    public function get_rekognition_client() {
         $rekclient = new \Aws\Rekognition\RekognitionClient([
                 'version' => 'latest',
                 'region'  => $this->rekregion,
@@ -211,9 +207,9 @@ class document extends \core_search\document {
         }
 
         if ($cananalyze) {
-
             // Send image to AWS Rekognition for analysis.
-            $result = $this->rekognition->detectLabels(array(
+            $client = $this->get_rekognition_client();
+            $result = $client->detectLabels(array(
                     'Image' => array(
                             'Bytes' => $file->get_content(),
                     ),

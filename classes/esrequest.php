@@ -260,10 +260,6 @@ class esrequest {
         $psr7request = new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $multipart);
         $proxy = $this->proxyconstruct();
 
-        if ($this->signing) {
-            $psr7request = $this->signrequest($psr7request);
-        }
-
         // Requests that receive a 4xx or 5xx response will throw a
         // Guzzle\Http\Exception\BadResponseException. We want to
         // handle this in a sane way and provide the caller with
