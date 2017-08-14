@@ -261,8 +261,22 @@ class search_elastic_document_testcase extends advanced_testcase {
         $stub->set('owneruserid', $info->owneruserid);
         $stub->set('modified', $record->timemodified);
 
+        // Create es request client with mocked stack
+        $container = [];
+        $history = Middleware::history($container);
 
-        $filearray = $stub->extract_text($file, $client);
+        // Create a mock and queue two responses.
+        $mock = new MockHandler([
+                new Response(200, ['Content-Type' => 'text/plain'])
+        ]);
+
+        $stack = HandlerStack::create($mock);
+        // Add the history middleware to the handler stack.
+        $stack->push($history);
+
+        $esclient = new \search_elastic\esrequest($stack);
+
+        $filearray = $stub->extract_text($file, $esclient);
         $this->assertEquals($content, $filearray['filetext']);
     }
 }
