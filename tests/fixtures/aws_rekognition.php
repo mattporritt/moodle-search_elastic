@@ -38,8 +38,9 @@ class MockRekognition {
      *
      * @param array $params params normally passed to client.
      * @return array $results The mock results.
+     * {@inheritdoc}
      */
-    function detectLabels($params){
+    public function detectLabels($params) {
         $results = array (
                 'Labels' => array (
                         array ( 'Name' => 'black',
