@@ -76,7 +76,7 @@ class search_elastic_document_testcase extends advanced_testcase {
     /**
      * Test image with AWS rekgonition
      */
-    public function test_export_image_file_for_engine_image() {
+    public function test_export_image_file_for_engine() {
         global $CFG;
         set_config('imageindex', 1, 'search_elastic');
 
@@ -126,7 +126,7 @@ class search_elastic_document_testcase extends advanced_testcase {
     /**
      * Test text file extraction
      */
-    public function test_export_text_file_for_engine_image() {
+    public function test_export_text_file_for_engine() {
         global $CFG;
 
         // Create file to analyze
@@ -172,7 +172,7 @@ class search_elastic_document_testcase extends advanced_testcase {
     /**
      * Test binary text file extraction
      */
-    public function test_export_binary_text_file_for_engine_image() {
+    public function test_export_binary_text_file_for_engine() {
         global $CFG;
 
         // Create file to analyze
@@ -221,8 +221,10 @@ class search_elastic_document_testcase extends advanced_testcase {
     /**
      * Test binary text file extraction request
      */
-    public function test_export_binary_text_file_for_engine_image() {
+    public function test_export_text_tika_init() {
         global $CFG;
+        set_config('tikahostname', 'http://127.0.0.1', 'search_elastic');
+        set_config('tikaport', 9998, 'search_elastic');
 
         // Create file to analyze
         $fs = get_file_storage();
@@ -267,7 +269,7 @@ class search_elastic_document_testcase extends advanced_testcase {
 
         // Create a mock and queue two responses.
         $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'])
+                new Response(200, ['Content-Type' => 'text/plain'], $content)
         ]);
 
         $stack = HandlerStack::create($mock);
@@ -276,7 +278,7 @@ class search_elastic_document_testcase extends advanced_testcase {
 
         $esclient = new \search_elastic\esrequest($stack);
 
-        $filearray = $stub->extract_text($file, $esclient);
-        $this->assertEquals($content, $filearray['filetext']);
+        $result = $stub->extract_text($file, $esclient);
+        $this->assertEquals($content, $result);
     }
 }
