@@ -87,8 +87,8 @@ This plugin uses [Apache Tika](https://tika.apache.org/) for file indexing suppo
 ### Tika Setup
 Seting up a Tika test service is straight forward. In most cases on a Linux environment, you can simply download the Java JAR then run the service.
 <pre><code>
-wget http://apache.mirror.amaze.com.au/tika/tika-server-1.14.jar
-java -jar tika-server-1.14.jar
+wget http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
+java -jar tika-server-1.16.jar
 </code></pre>
 
 This will start Tika on the host. By default the Tika service is available on: `http://localhost:9998`
