@@ -25,14 +25,20 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Mock AWS Rekognition response,
- * for use in testing.
+ * Mock AWS Rekognition responsefor use in testing.
  *
  * @package     search_elastic
  * @copyright   Matt Porritt <mattp@catalyst-au.net>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class MockRekognition {
+    /**
+     * A mock for detect labels method on
+     * AWS Rekognition client.
+     *
+     * @param array $params params normally passed to client.
+     * @return array $results The mock results.
+     */
     function detectLabels($params){
         $results = array (
                 'Labels' => array (

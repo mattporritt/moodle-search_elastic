@@ -80,9 +80,9 @@ class search_elastic_document_testcase extends advanced_testcase {
         global $CFG;
         set_config('imageindex', 1, 'search_elastic');
 
-        // Create file to analyze
+        // Create file to analyze.
         $fs = get_file_storage();
-        $filerecord= array(
+        $filerecord = array(
                 'contextid' => 1,
                 'component' => 'mod_test',
                 'filearea' => 'search',
@@ -101,10 +101,11 @@ class search_elastic_document_testcase extends advanced_testcase {
 
         // Mock out thw AWS Rekognition client and response.
         // Add missing data to stub record object.
-        $stub = $this->getMockBuilder('\search_elastic\document')
-            ->setMethods(array('get_rekognition_client'))
-            ->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'))
-            ->getMock();
+
+        $builder = $this->getMockBuilder('\search_elastic\document');
+        $builder->setMethods(array('get_rekognition_client'));
+        $builder->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'));
+        $stub = $builder->getMock();
 
         $stub->set('title', $info->title);
         $stub->set('content', $info->content);
@@ -129,9 +130,9 @@ class search_elastic_document_testcase extends advanced_testcase {
     public function test_export_text_file_for_engine() {
         global $CFG;
 
-        // Create file to analyze
+        // Create file to analyze.
         $fs = get_file_storage();
-        $filerecord= array(
+        $filerecord = array(
                 'contextid' => 1,
                 'component' => 'mod_test',
                 'filearea' => 'search',
@@ -150,10 +151,10 @@ class search_elastic_document_testcase extends advanced_testcase {
 
         // Mock out thw AWS Rekognition client and response.
         // Add missing data to stub record object.
-        $stub = $this->getMockBuilder('\search_elastic\document')
-            ->setMethods(array('extract_text'))
-            ->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'))
-            ->getMock();
+        $builder = $this->getMockBuilder('\search_elastic\document');
+        $builder->setMethods(array('extract_text'));
+        $builder->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'));
+        $stub = $builder->getMock();
 
         $stub->set('title', $info->title);
         $stub->set('content', $info->content);
@@ -175,9 +176,9 @@ class search_elastic_document_testcase extends advanced_testcase {
     public function test_export_binary_text_file_for_engine() {
         global $CFG;
 
-        // Create file to analyze
+        // Create file to analyze.
         $fs = get_file_storage();
-        $filerecord= array(
+        $filerecord = array(
                 'contextid' => 1,
                 'component' => 'mod_test',
                 'filearea' => 'search',
@@ -197,10 +198,10 @@ class search_elastic_document_testcase extends advanced_testcase {
 
         // Mock out thw AWS Rekognition client and response.
         // Add missing data to stub record object.
-        $stub = $this->getMockBuilder('\search_elastic\document')
-            ->setMethods(array('extract_text'))
-            ->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'))
-            ->getMock();
+        $builder = $this->getMockBuilder('\search_elastic\document');
+        $builder->setMethods(array('extract_text'));
+        $builder->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'));
+        $stub = $builder->getMock();
 
         $stub->set('title', $info->title);
         $stub->set('content', $info->content);
@@ -226,9 +227,9 @@ class search_elastic_document_testcase extends advanced_testcase {
         set_config('tikahostname', 'http://127.0.0.1', 'search_elastic');
         set_config('tikaport', 9998, 'search_elastic');
 
-        // Create file to analyze
+        // Create file to analyze.
         $fs = get_file_storage();
-        $filerecord= array(
+        $filerecord = array(
                 'contextid' => 1,
                 'component' => 'mod_test',
                 'filearea' => 'search',
@@ -248,10 +249,10 @@ class search_elastic_document_testcase extends advanced_testcase {
 
         // Mock out thw AWS Rekognition client and response.
         // Add missing data to stub record object.
-        $stub = $this->getMockBuilder('\search_elastic\document')
-            ->setMethods(array('__construct'))
-            ->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'))
-            ->getMock();
+        $builder = $this->getMockBuilder('\search_elastic\document');
+        $builder->setMethods(array('__construct'));
+        $builder->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'));
+        $stub = $builder->getMock();
 
         $stub->set('title', $info->title);
         $stub->set('content', $info->content);
@@ -263,7 +264,7 @@ class search_elastic_document_testcase extends advanced_testcase {
         $stub->set('owneruserid', $info->owneruserid);
         $stub->set('modified', $record->timemodified);
 
-        // Create es request client with mocked stack
+        // Create es request client with mocked stack.
         $container = [];
         $history = Middleware::history($container);
 
