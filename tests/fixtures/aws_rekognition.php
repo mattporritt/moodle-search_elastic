@@ -38,9 +38,10 @@ class MockRekognition {
      *
      * @param array $params params normally passed to client.
      * @return array $results The mock results.
-     * {@inheritdoc}
      */
+    // @codingStandardsIgnoreStart
     public function detectLabels($params) {
+        // @codingStandardsIgnoreEnd
         $results = array (
                 'Labels' => array (
                         array ( 'Name' => 'black',
