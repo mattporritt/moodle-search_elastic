@@ -241,6 +241,41 @@ class esrequest {
     }
 
     /**
+     * Posts a Moodle file object to provided URL.
+     *
+     * @param string $url URL to post file to.
+     * @param file $file Moodle file object to post
+     * @return \Psr\Http\Message\ResponseInterface|NULL
+     */
+    public function postfile($url, $file) {
+        $headers = [];
+        $contents = $file->get_content_file_handle();
+        $multipart = new \GuzzleHttp\Psr7\MultipartStream([
+                [
+                        'name' => 'upload_file',
+                        'contents' => $contents
+                ],
+        ]);
+
+        $psr7request = new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $multipart);
+        $proxy = $this->proxyconstruct();
+
+        // Requests that receive a 4xx or 5xx response will throw a
+        // Guzzle\Http\Exception\BadResponseException. We want to
+        // handle this in a sane way and provide the caller with
+        // a useful response. So we catch the error and return the
+        // resposne.
+        try {
+            $response = $this->client->send($psr7request, $proxy);
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+            $response = $e->getResponse();
+        }
+
+        return $response;
+
+    }
+
+    /**
      * Creates delete API requests.
      *
      * @param unknown $url

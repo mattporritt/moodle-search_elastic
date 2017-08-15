@@ -87,8 +87,8 @@ This plugin uses [Apache Tika](https://tika.apache.org/) for file indexing suppo
 ### Tika Setup
 Seting up a Tika test service is straight forward. In most cases on a Linux environment, you can simply download the Java JAR then run the service.
 <pre><code>
-wget http://apache.mirror.amaze.com.au/tika/tika-server-1.14.jar
-java -jar tika-server-1.14.jar
+wget http://apache.mirror.amaze.com.au/tika/tika-server-1.16.jar
+java -jar tika-server-1.16.jar
 </code></pre>
 
 This will start Tika on the host. By default the Tika service is available on: `http://localhost:9998`
@@ -113,9 +113,15 @@ It is common to see Elasticsearch implementations using an Elasticsearch file in
 Using Tika as a standalone service has the following advantages:
 
 * Can support file indexing for Elasticsearch setups that don't support file indexing plugins such as AWS.
-* No need to chagne setup or plugins based on Elasticsearch version.
+* No need to change setup or plugins based on Elasticsearch version.
 * You can share one Tika service across multiple Elasticsearch clusters.
 * Can run Tika on dedicated infrastructure that is not part of your search nodes.
+* Files stored using native Elasticsearch functionality are stored as separate records inside Elasticsearch, these are separate to the rest of the data stored relating to that file.
+* Ingesting files using native Elasticsearch functionality is very inefficient. Files are stored in the Elasticsearch internal database as base64 encoded strings. Base64 on average takes up 30% more space than the original binary. This is in addition to the content extracted from the file which is also stored in Elasticsearch.
+* The Elasticsearch documentation also states:
+<blockquote>
+Extracting contents from binary data is a resource intensive operation and consumes a lot of resources. It is highly recommended to run pipelines using this processor in a dedicated ingest node.
+</blockquote>
 
 ## Image Recognition and Indexing
 This plugin can use the Amazon Web Services (AWS) [Rekognition service(https://aws.amazon.com/rekognition/) to identify the contents of images. The identified content is then indexed by Elasticsearch and can be searched for in Moodle (cool huh?).

@@ -27,13 +27,11 @@ env:
  matrix:
   - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
   - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
-  - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
   - DB=pgsql MOODLE_BRANCH=MOODLE_31_STABLE ESVER=5.5.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb
   - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
   - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
   - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
   - DB=pgsql MOODLE_BRANCH=MOODLE_32_STABLE ESVER=5.5.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb
-
   - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE ESVER=2.3.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
   - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE ESVER=2.4.4 ESURL=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.4/elasticsearch-2.4.4.deb
   - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE ESVER=5.1.2 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb

@@ -135,28 +135,26 @@ class document extends \core_search\document {
         $this->minconfidence = $this->config->minconfidence;
         $this->tikaport = $this->config->tikaport;
         $this->tikahostname = rtrim($this->config->tikahostname, "/");
-
-        if ($this->imageindex) {
-            $this->rekognition = $this->get_rekognition_client();
-        }
     }
 
     /**
      * Use tika to extract text from file.
+     *
      * @param file $file
+     * @param esrequest\client $client client
      * @return string|boolean
      */
-    private function extract_text($file) {
+    public function extract_text($file, $client) {
         // TODO: add timeout and retries for tika.
-        $config = get_config('search_elastic');
         $extractedtext = '';
         $port = $this->tikaport;
-        $hostname = rtrim($this->tikahostname, "/");
+        $hostname = $this->tikahostname;
         $url = $hostname . ':'. $port . '/tika/form';
 
-        $response = $client->post($url, array('file' => $file));
-        if ($client->info['http_code'] === 200) {
-            $extractedtext = $response;
+        $response = $client->postfile($url, $file);
+
+        if ($response->getStatusCode() == 200) {
+            $extractedtext = (string) $response->getBody();
         }
 
         return $extractedtext;
@@ -168,7 +166,7 @@ class document extends \core_search\document {
      *
      * @return client $rekclient Rekognition client.
      */
-    private function get_rekognition_client() {
+    public function get_rekognition_client() {
         $rekclient = new \Aws\Rekognition\RekognitionClient([
                 'version' => 'latest',
                 'region'  => $this->rekregion,
@@ -210,9 +208,9 @@ class document extends \core_search\document {
         }
 
         if ($cananalyze) {
-
             // Send image to AWS Rekognition for analysis.
-            $result = $this->rekognition->detectLabels(array(
+            $client = $this->get_rekognition_client();
+            $result = $client->detectLabels(array(
                     'Image' => array(
                             'Bytes' => $file->get_content(),
                     ),
@@ -283,7 +281,8 @@ class document extends \core_search\document {
             $filetext = $file->get_content();
         } else {
             // Pass the file off to Tika to extract content.
-            $filetext = $this->extract_text($file);
+            $client = new \search_elastic\esrequest();
+            $filetext = $this->extract_text($file, $client);
         }
 
         // Construct the document.
