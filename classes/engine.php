@@ -462,11 +462,11 @@ class engine extends \core_search\engine {
                 $numdocsignored = $this->count;
 
             } else if ($responsebody->errors) {
-                debugging ( get_string ( 'addfail', 'search_elastic' ) .
-                        ' Error Code: ' . $response->getStatusCode() .
-                        print_r($responsebody, true), DEBUG_DEVELOPER );
                 foreach ($responsebody->items as $item) {
                     if ($item->index->status >= 300) {
+                        debugging ( get_string ( 'addfail', 'search_elastic' ) .
+                                ' Error Type: ' . $item->index->error->type .
+                                ' Error Reason: ' . $item->index->error->reason, DEBUG_DEVELOPER );
                         $numdocsignored ++;
                     }
                 }
