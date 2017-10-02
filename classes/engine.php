@@ -325,6 +325,11 @@ class engine extends \core_search\engine {
         $jsondoc = json_encode($docdata);
         $jsonpayload = $jsonmeta . "\n" . $jsondoc. "\n";
 
+        // Return false if we can't JSON encode the document data.
+        if ($jsonmeta == false || $jsondoc == false) {
+            $jsonpayload = false;
+        }
+
         return $jsonpayload;
     }
 
@@ -352,7 +357,9 @@ class engine extends \core_search\engine {
             $filedocdata = $document->export_file_for_engine($file);
 
             $jsonpayload = $this->create_payload($filedocdata);
-            $this->batch_add_documents($jsonpayload);
+            if ($jsonpayload) {
+                $this->batch_add_documents($jsonpayload);
+            }
         }
 
         $this->batch_add_documents(false, false, true);
@@ -401,7 +408,12 @@ class engine extends \core_search\engine {
 
             $numrecords++;
             $jsonpayload = $this->create_payload($docdata);
-            $numdocsignored += $this->batch_add_documents($jsonpayload, true);
+
+            if ($jsonpayload) {
+                $numdocsignored += $this->batch_add_documents($jsonpayload, true);
+            } else {
+                $numdocsignored ++;
+            }
 
             if ($options['indexfiles']) {
                 $searcharea->attach_files($document);
@@ -450,7 +462,7 @@ class engine extends \core_search\engine {
 
             // Process response.
             // If no errors were returned from bulk operation then numdocs = numrecords.
-            // If there are errors we need to itterate throught he response and count how many.
+            // If there are errors we need to iterate through he response and count how many.
             if ($response->getStatusCode() == 413) {
                 // TODO: add handling to retry sending payload one record at a time.
                 debugging ( get_string ( 'addfail', 'search_elastic' ) . ' Request Entity Too Large', DEBUG_DEVELOPER );
