@@ -77,3 +77,5 @@ $string['tikahostname'] = 'Tika Hostname';
 $string['tikahostname_desc'] = 'The FQDN of the Apache Tika endpoint';
 $string['tikaport'] = 'Tika Port';
 $string['tikaport_desc'] = 'The Port of the Apache Tika endpoint';
+$string['tikasendsize'] = 'Maximum file size';
+$string['tikasendsize_desc'] = 'Sending large files to Tika can cause out of memory issues. Therefore we limit it to a size in bytes.';

@@ -150,11 +150,14 @@ class document extends \core_search\document {
         $port = $this->tikaport;
         $hostname = $this->tikahostname;
         $url = $hostname . ':'. $port . '/tika/form';
+        $filesize = $file->get_filesize();
 
-        $response = $client->postfile($url, $file);
+        if ($filesize <= $this->config->tikasendsize) {
+            $response = $client->postfile($url, $file);
 
-        if ($response->getStatusCode() == 200) {
-            $extractedtext = (string) $response->getBody();
+            if ($response->getStatusCode() == 200) {
+                $extractedtext = (string) $response->getBody();
+            }
         }
 
         return $extractedtext;

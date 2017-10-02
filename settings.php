@@ -70,6 +70,11 @@ if ($ADMIN->fulltree) {
                 get_string('tikaport_desc', 'search_elastic'),
                 9998, PARAM_INT));
 
+        $settings->add(new admin_setting_configtext('search_elastic/tikasendsize',
+                get_string('tikasendsize', 'search_elastic' ),
+                get_string('tikasendsize_desc', 'search_elastic'),
+                512000000, PARAM_INT, 12));
+
         // Image search settings.
         $settings->add(new admin_setting_heading('search_elastic_rekognition',
                 get_string('rekognitionsettings', 'search_elastic'),
