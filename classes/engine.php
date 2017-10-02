@@ -511,7 +511,7 @@ class engine extends \core_search\engine {
         $response = $client->post($docurl, $jsondoc);
         $responsecode = $response->getStatusCode();
 
-        if ($responsecode !== 201) {
+        if ($responsecode !== 201 && $responsecode !== 200) {
             debugging(get_string('addfail', 'search_elastic') . $response->getBody(), DEBUG_DEVELOPER);
             return false;
         }
