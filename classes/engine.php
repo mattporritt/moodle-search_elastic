@@ -158,9 +158,6 @@ class engine extends \core_search\engine {
      */
     public function index_starting($fullindex = false) {
         if ($fullindex) {
-            // If we are doing a reindex then delete old index first.
-            $this->delete();
-
             // Check if index exists and create it if it doesn't.
             $hasindex = $this->check_index();
             if (!$hasindex) {
