@@ -27,7 +27,8 @@ $string['pluginname_desc'] = 'Search backend for the Elasticsearch search engine
 
 $string['addfail'] = 'Failed to add document to index';
 $string['fileindexing'] = 'Enable file indexing';
-$string['fileindexing_help'] = 'Enables file indexing for this plugin. With this option checked you will need to enter details of the Tika service in the "File indexing settings" below.';
+$string['fileindexing_help'] = 'Enables file indexing for this plugin. With this option checked you will need to enter details of the Tika service in the "File indexing settings" below.<br/>
+You will need to reindex all site contents after enabling this option for all files to be added.';
 $string['fileindexsettings'] = 'File indexing settings';
 $string['fileindexsettings_desc'] = 'Enter the details for the Tika service. These are required if file indexing is enabled above.';
 $string['hostname'] = 'Hostname';
