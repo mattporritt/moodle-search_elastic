@@ -20,6 +20,20 @@ This plugin currently supports Moodle:
 * 3.3
 * 3.4
 
+## Elasticsearch Version Support
+Currently this plugin is tested to work against the following versions of Elasticsearch:
+
+* 2.3.4
+* 2.4.4
+* 5.1.2
+* 5.5.0
+
+## Verified Platforms
+This plugin has been tested to work on the following cloud platforms:
+
+* [Microsoft Azure](https://azure.microsoft.com/en-au/)
+* [Amazon Webservices (AWS)](https://aws.amazon.com/)
+
 ## Installation
 **NOTE:** Complete all of these steps before trying to enable the Global Search functionality in Moodle.
 
@@ -33,18 +47,10 @@ This plugin currently supports Moodle:
 8. To create the index and populate Elasticsearch with your site's data, run this CLI script. `sudo -u www-data php search/cli/indexer.php --force`
 9. Enable Global search in *Site administration > Advanced features*
 
-## Elasticsearch Version Support
-Currently this plugin is tested to work against the following versions of Elasticsearch:
-
-* 2.3.4
-* 2.4.4
-* 5.1.2
-* 5.5.0
-
 ## Elasticsearch Setup
 The following is the bare minimum to get Elasticsearch working in a Debian/Ubuntu Operating System environment. Consult the [Elasticsearch Documention](https://www.elastic.co/downloads/elasticsearch) for in depth instructions, or for details on how to install on other operating systems.
 
-NOTE: The instructions below should only be used for test and dev purposes. Don't do this in production.
+NOTE: The instructions below should only be used for test and dev purposes. Don't do this in production. For a production setup we recommend Elasticsearch running as a cluster, getting started documentation can be found here: https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html
 
 Elasticsearch requires Java as a prerequisite, to install Java:
 <pre><code>
