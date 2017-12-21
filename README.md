@@ -10,7 +10,7 @@ The following features are provided by this plugin:
 * File indexing
 * Request signing, compatible with Amazon Web Services (AWS)
 * Respects Moodle Proxy settings
-* Image recognition and indexing
+* Image recognition and indexing (via external service)
 
 ## Supported Moodle Versions
 This plugin currently supports Moodle:
@@ -34,23 +34,12 @@ This plugin has been tested to work on the following cloud platforms:
 * [Microsoft Azure](https://azure.microsoft.com/en-au/)
 * [Amazon Webservices (AWS)](https://aws.amazon.com/)
 
-## Installation
-**NOTE:** Complete all of these steps before trying to enable the Global Search functionality in Moodle.
+## Generic Elasticsearch Setup
+To use this plugin first you will need to setup an Elaticsearch service.
 
-1. Get the code and copy/ install it to: `<moodledir>/search/engine/elastic`
-2. This plugin also depends on *local_aws* get the code from `https://github.com/catalyst/moodle-local_aws` and copy/ install it into `<moodledir>/local/aws`
-3. Run the upgrade: `sudo -u www-data php admin/cli/upgrade` **Note:** the user may be different to www-data on your system.
-4. Set up the plugin in *Site administration > Plugins > Search > Manage global search* by selecting *elastic* as the search engine.
-5. Configure the Elasticsearch plugin at: *Site administration > Plugins > Search > Elastic*
-6. Set *hostname* and *port* of your Elasticsearch server
-7. Optionally, change the *Request size* variable. Generally this can be left as is. Some Elasticsearch providers such as AWS have a limit on how big the HTTP payload can be. Therefore we limit it to a size in bytes.
-8. To create the index and populate Elasticsearch with your site's data, run this CLI script. `sudo -u www-data php search/cli/indexer.php --force`
-9. Enable Global search in *Site administration > Advanced features*
-
-## Elasticsearch Setup
 The following is the bare minimum to get Elasticsearch working in a Debian/Ubuntu Operating System environment. Consult the [Elasticsearch Documention](https://www.elastic.co/downloads/elasticsearch) for in depth instructions, or for details on how to install on other operating systems.
 
-NOTE: The instructions below should only be used for test and dev purposes. Don't do this in production. For a production setup we recommend Elasticsearch running as a cluster, getting started documentation can be found here: https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html
+**NOTE:** The instructions below should only be used for test and dev purposes. Don't do this in production. For a production setup we recommend Elasticsearch running as a cluster, getting started documentation can be found here: https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html
 
 Elasticsearch requires Java as a prerequisite, to install Java:
 <pre><code>
@@ -87,6 +76,81 @@ The output should look something like:
 }
 
 </pre></code>
+
+By default the Elasticsearch service is available on: `http://localhost:9200`
+
+## Azure Elasticsearch Setup
+To use this plugin first you will need to setup an Elaticsearch service.
+
+To use Microsoft Azure to provide an Elasticsearch service for Moodle:
+1. Create a Microsoft Azure account: [Account creation page](https://azure.microsoft.com/en-in/free/)
+2. Create a Linux virtual machine and connect to virtual machine: [Azure Linux virtual machine setup guide](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/quick-create-portal)
+3. Setup an Elasticsearch service:
+
+Elasticsearch requires Java as a prerequisite, to install Java:
+<pre><code>
+sudo apt-get install default-jre default-jdk
+</pre></code>
+
+Once Java is installed, the following commands will install and start Elasticsearch.
+<pre><code>
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb
+sudo dpkg -i elasticsearch-5.5.0.deb
+sudo update-rc.d elasticsearch defaults
+sudo service elasticsearch start
+</pre></code>
+
+A quick test can be performed by running the following from the command line.
+<pre><code>
+curl -X GET 'http://localhost:9200'
+</pre></code>
+
+The output should look something like:
+<pre><code>
+{
+  "name" : "1QHLiux",
+  "cluster_name" : "elasticsearch",
+  "cluster_uuid" : "mLRqIsnVRrGdgg2OfHWNrg",
+  "version" : {
+    "number" : "5.1.2",
+    "build_hash" : "c8c4c16",
+    "build_date" : "2017-01-11T20:18:39.146Z",
+    "build_snapshot" : false,
+    "lucene_version" : "6.3.0"
+  },
+  "tagline" : "You Know, for Search"
+}
+
+</pre></code>
+
+## AWS Elasticsearch Setup
+To use this plugin first you will need to setup an Elaticsearch service.
+
+To use Amazon Webservices (AWS) to provide an Elasticsearch service for Moodle:
+1. Create an AWS account: [Account creation guide](https://aws.amazon.com/premiumsupport/knowledge-center/create-and-activate-aws-account/)
+2. Setup an Elasticsearch service: [AWS Elasticsearch setup guide](http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createupdatedomains.html)
+
+## Moodle Plugin Installation
+Once you have setup an Elasticsearch service you can now install the Moodle plugin.
+
+These setup steps are the same regardless of how you have setup the Elasticsearch service.
+
+1. Get the code and copy/ install it to: `<moodledir>/search/engine/elastic`
+2. This plugin also depends on *local_aws* get the code from `https://github.com/catalyst/moodle-local_aws` and copy/ install it into `<moodledir>/local/aws` (This is required regardless of how your Elasticsearch service is being supplied.)
+3. Run the upgrade: `sudo -u www-data php admin/cli/upgrade` **Note:** the user may be different to www-data on your system.
+
+## Moodle Plugin Setup
+Once you have setup an Elasticsearch service you can now configure the Moodle plugin.
+
+These setup steps are the same regardless of how you have setup the Elasticsearch service.
+
+1. Log into Moodle as an administrator
+2. Set up the plugin in *Site administration > Plugins > Search > Manage global search* by selecting *elastic* as the search engine.
+3. Configure the Elasticsearch plugin at: *Site administration > Plugins > Search > Elastic*
+4. Set *hostname* and *port* of your Elasticsearch server
+5. Optionally, change the *Request size* variable. Generally this can be left as is. Some Elasticsearch providers such as AWS have a limit on how big the HTTP payload can be. Therefore we limit it to a size in bytes.
+6. To create the index and populate Elasticsearch with your site's data, run this CLI script. `sudo -u www-data php search/cli/indexer.php --force`
+7. Enable Global search in *Site administration > Advanced features*
 
 ## File Indexing Support
 This plugin uses [Apache Tika](https://tika.apache.org/) for file indexing support. Tika parses files, extracts the text, and return it via a REST API.
