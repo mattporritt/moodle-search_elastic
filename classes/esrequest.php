@@ -187,7 +187,7 @@ class esrequest {
      * @return \GuzzleHttp\Psr7\Response
      */
     public function put($url, $params=null) {
-        $headers = ['content-type' => 'application/x-www-form-urlencoded'];
+        $headers = ['content-type' => 'application/json'];
         $psr7request = new \GuzzleHttp\Psr7\Request('PUT', $url, $headers, $params);
         $proxy = $this->proxyconstruct();
 
@@ -218,9 +218,6 @@ class esrequest {
      */
     public function post($url, $params) {
         $headers = ['content-type' => 'application/json'];
-//         error_log(print_r($url, true));
-//         error_log(print_r($params, true));
-//         die;
         $psr7request = new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $params);
         $proxy = $this->proxyconstruct();
 

@@ -143,7 +143,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $this->assertEquals($request->getUri()->getPath(), '/foo');
         $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($contentheader, array('application/x-www-form-urlencoded'));
+        $this->assertEquals($contentheader, array('application/json'));
 
     }
 
@@ -187,7 +187,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $this->assertTrue($request->hasHeader('Authorization'));
         $this->assertRegexp('/key_id.{10}region/', $authheader[0]);
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($contentheader, array('application/x-www-form-urlencoded'));
+        $this->assertEquals($contentheader, array('application/json'));
     }
 
     /**
@@ -220,7 +220,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $this->assertEquals($request->getUri()->getPath(), '/foo');
         $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($contentheader, array('application/x-www-form-urlencoded'));
+        $this->assertEquals($contentheader, array('application/json'));
 
     }
 
@@ -264,7 +264,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $this->assertTrue($request->hasHeader('Authorization'));
         $this->assertRegexp('/key_id.{10}region/', $authheader[0]);
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($contentheader, array('application/x-www-form-urlencoded'));
+        $this->assertEquals($contentheader, array('application/json'));
     }
 
     /**
