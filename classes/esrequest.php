@@ -217,7 +217,10 @@ class esrequest {
      * @return \Psr\Http\Message\ResponseInterface|NULL
      */
     public function post($url, $params) {
-        $headers = ['content-type' => 'application/x-www-form-urlencoded'];
+        $headers = ['content-type' => 'application/json'];
+//         error_log(print_r($url, true));
+//         error_log(print_r($params, true));
+//         die;
         $psr7request = new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $params);
         $proxy = $this->proxyconstruct();
 
@@ -235,7 +238,6 @@ class esrequest {
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $response = $e->getResponse();
         }
-
         return $response;
 
     }

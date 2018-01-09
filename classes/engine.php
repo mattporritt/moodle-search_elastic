@@ -316,7 +316,7 @@ class engine extends \core_search\engine {
     private function create_payload($docdata) {
 
         $meta = array('index' => array('_index' => $this->config->index,
-                                       '_type' => $docdata['areaid'],
+                                       '_type' => 'doc',
                                        '_id' => $docdata['id']));
         $jsonmeta = json_encode($meta);
         $jsondoc = json_encode($docdata);
@@ -504,7 +504,7 @@ class engine extends \core_search\engine {
     public function add_document($document, $fileindexing = false) {
         $docdata = $document->export_for_engine();
         $url = $this->get_url();
-        $docurl = $url . '/'. $this->config->index . '/'.$docdata['areaid'] . '/' . $docdata['id'];
+        $docurl = $url . '/'. $this->config->index . '/doc/' . $docdata['id'];
         $jsondoc = json_encode($docdata);
 
         $client = new \search_elastic\esrequest();
