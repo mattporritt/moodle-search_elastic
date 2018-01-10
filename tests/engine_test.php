@@ -100,6 +100,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
             $this->generator = null;
         }
         $this->engine->delete('core_mocksearch-mock_search_area');
+        sleep(1);
     }
 
     /**
@@ -128,6 +129,73 @@ class search_elastic_engine_testcase extends advanced_testcase {
 
         $engine = new \search_elastic\engine();
         $engine->is_server_ready();
+    }
+
+    /**
+     * Test deleting docs by type id.
+     */
+    public function test_delete_by_areaid() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "elastic";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // Delete all entries in the area.
+        $this->engine->delete('core_mocksearch-mock_search_area');
+
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'elastic';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        // Execute the search.
+        $results = $this->search->search($querydata);
+
+        // Check the results there shouldn't be any.
+        $this->assertEquals(count($results), 0);
+
+    }
+
+    /**
+     * Test mapping updates for old versions of Elasticsearch.
+     */
+    public function test_get_mapping_old() {
+        $mapping = $this->engine->get_mapping(2.4);
+
+        // Check mapping has been updated.
+        $this->assertEquals($mapping['mappings']['doc']['properties']['id']['type'], 'string');
+        $this->assertEquals($mapping['mappings']['doc']['properties']['id']['index'], 'not_analyzed');
+        $this->assertEquals($mapping['mappings']['doc']['properties']['parentid']['type'], 'string');
+        $this->assertEquals($mapping['mappings']['doc']['properties']['parentid']['index'], 'not_analyzed');
+        $this->assertEquals($mapping['mappings']['doc']['properties']['title']['type'], 'string');
+        $this->assertEquals($mapping['mappings']['doc']['properties']['content']['type'], 'string');
+        $this->assertEquals($mapping['mappings']['doc']['properties']['areaid']['type'], 'string');
+        $this->assertEquals($mapping['mappings']['doc']['properties']['areaid']['index'], 'not_analyzed');
+    }
+
+    /**
+     * Test mapping updates for new versions of Elasticsearch.
+     */
+    public function test_get_mapping() {
+        $mapping = $this->engine->get_mapping(6);
+
+        // Check mapping has not been updated.
+        $this->assertEquals($mapping['mappings']['doc']['properties']['id']['type'], 'keyword');;
+        $this->assertEquals($mapping['mappings']['doc']['properties']['parentid']['type'], 'keyword');;
+        $this->assertEquals($mapping['mappings']['doc']['properties']['title']['type'], 'text');
+        $this->assertEquals($mapping['mappings']['doc']['properties']['content']['type'], 'text');
+        $this->assertEquals($mapping['mappings']['doc']['properties']['areaid']['type'], 'keyword');
     }
 
     /**
