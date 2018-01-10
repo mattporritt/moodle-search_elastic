@@ -27,6 +27,7 @@ Currently this plugin is tested to work against the following versions of Elasti
 * 2.4.4
 * 5.1.2
 * 5.5.0
+* 6.0.0
 
 ## Verified Platforms
 This plugin has been tested to work on the following cloud platforms:

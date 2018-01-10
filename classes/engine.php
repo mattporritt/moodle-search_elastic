@@ -105,14 +105,60 @@ class engine extends \core_search\engine {
     }
 
     /**
-     * Create index in Elasticsearch backend
+     * Get the version of the attached Elasticsearch service.
+     *
+     * @return integer $version The version of Elasticsearch service.
+     */
+    private function get_es_version() {
+        $url = $this->get_url();
+        $client = new \search_elastic\esrequest();
+        $response = $client->get($url);
+        $responsebody = json_decode($response->getBody());
+
+        $version = $responsebody->version->number;
+
+        return $version;
+    }
+
+    /**
+     * Get the Elasticsearch mapping.
+     *
+     * @param integer $version The version of Elasticsearch to get the mapping for.
+     * @return array $mapping  The Elasticsearch mapping.
+     */
+    public function get_mapping($version=false) {
+        $requiredfields = \search_elastic\document::get_required_fields_definition();
+        $mapping = array('mappings' => array('doc' => array('properties' => $requiredfields)));
+
+        // We need to change some of the mappings if Elasticsearch version is less than 5.
+        if (!$version) {
+            $version = $this->get_es_version();
+        }
+
+        if ($version < 5) {
+            $mapping['mappings']['doc']['properties']['id']['type'] = 'string';
+            $mapping['mappings']['doc']['properties']['id']['index'] = 'not_analyzed';
+            $mapping['mappings']['doc']['properties']['parentid']['type'] = 'string';
+            $mapping['mappings']['doc']['properties']['parentid']['index'] = 'not_analyzed';
+            $mapping['mappings']['doc']['properties']['title']['type'] = 'string';
+            $mapping['mappings']['doc']['properties']['content']['type'] = 'string';
+            $mapping['mappings']['doc']['properties']['areaid']['type'] = 'string';
+            $mapping['mappings']['doc']['properties']['areaid']['index'] = 'not_analyzed';
+        }
+
+        return $mapping;
+    }
+
+    /**
+     * Create index with mapping in Elasticsearch backend
      */
     private function create_index() {
         $url = $this->get_url();
         $client = new \search_elastic\esrequest();
         if (!empty($this->config->index) && $url) {
-            $index = $url . '/'. $this->config->index;
-            $response = $client->put($index);
+            $indexurl = $url . '/'. $this->config->index;
+            $mapping = $this->get_mapping();
+            $response = $client->put($indexurl, json_encode($mapping));
             $responsecode = $response->getStatusCode();
         } else {
             throw new \moodle_exception('noconfig', 'search_elastic', '');
@@ -164,24 +210,6 @@ class engine extends \core_search\engine {
                 $this->create_index();
             }
         }
-    }
-
-    /**
-     *
-     * {@inheritDoc}
-     * @see \core_search\engine::area_index_starting()
-     *
-     * @param \core_search\base $searcharea The search area.
-     * @param bool $fullindex is this a full index of site.
-     */
-    public function area_index_starting($searcharea, $fullindex = false) {
-        $requiredfields = \search_elastic\document::get_required_fields_definition();
-        $url = $this->get_url();
-        $mappingeurl = $url . '/'. $this->config->index. '/_mapping/'.$searcharea->get_area_id();
-        $mapping = array('properties' => $requiredfields);
-        $client = new \search_elastic\esrequest();
-
-        $client->put($mappingeurl, json_encode($mapping));
     }
 
     /**
@@ -251,7 +279,7 @@ class engine extends \core_search\engine {
         // Delete files that are no longer attached.
         foreach ($idstodelete as $id => $type) {
             // We directly delete the item using the client, as the engine delete_by_id won't work on file docs.
-            $this->delete_by_type_id ( $type, $id );
+            $this->delete_by_id ($id);
         }
     }
 
@@ -316,7 +344,7 @@ class engine extends \core_search\engine {
     private function create_payload($docdata) {
 
         $meta = array('index' => array('_index' => $this->config->index,
-                                       '_type' => $docdata['areaid'],
+                                       '_type' => 'doc',
                                        '_id' => $docdata['id']));
         $jsonmeta = json_encode($meta);
         $jsondoc = json_encode($docdata);
@@ -504,7 +532,7 @@ class engine extends \core_search\engine {
     public function add_document($document, $fileindexing = false) {
         $docdata = $document->export_for_engine();
         $url = $this->get_url();
-        $docurl = $url . '/'. $this->config->index . '/'.$docdata['areaid'] . '/' . $docdata['id'];
+        $docurl = $url . '/'. $this->config->index . '/doc/' . $docdata['id'];
         $jsondoc = json_encode($docdata);
 
         $client = new \search_elastic\esrequest();
@@ -564,7 +592,7 @@ class engine extends \core_search\engine {
                 $access = $searcharea->check_access($result->_source->itemid);
 
                 if ($access == \core_search\manager::ACCESS_DELETED) {
-                    $this->delete_by_type_id($result->_type, $result->_id);
+                    $this->delete_by_id($result->_id);
                 } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit) {
                     $docs[] = $this->to_document($searcharea, (array)$result->_source);
                     $doccount++;
@@ -583,13 +611,12 @@ class engine extends \core_search\engine {
     /**
      * Deletes the specified document.
      *
-     * @param string $type The document type to delete
      * @param string $id The document id to delete
      * @return void
      */
-    public function delete_by_type_id($type, $id) {
+    public function delete_by_id($id) {
         $url = $this->get_url();
-        $deleteurl = $url . '/'. $this->config->index . '/'. $type . '/'. $id;
+        $deleteurl = $url . '/'. $this->config->index . '/doc/'. $id;
         $client = new \search_elastic\esrequest();
 
         $client->delete($deleteurl);
@@ -629,12 +656,11 @@ class engine extends \core_search\engine {
                                         'match' => array('areaid' => $areaid)
                                     )
                                 )
-                            ),
-                           'fields' => array());
+                            ));
             $results = json_decode($client->post($url, json_encode($query))->getBody());
             if (isset($results->hits)) {
                 foreach ($results->hits->hits as $result) {
-                    $this->delete_by_type_id($result->_type, $result->_id);
+                    $this->delete_by_id($result->_id);
                 }
             }
         }

@@ -49,28 +49,25 @@ class document extends \core_search\document {
      */
     protected static $requiredfields = array(
             'id' => array(
-                    'type' => 'string',
-                    'index' => 'not_analyzed'
+                    'type' => 'keyword'
             ),
             'parentid' => array(
-                    'type' => 'string',
-                    'index' => 'not_analyzed'
+                    'type' => 'keyword'
             ),
             'itemid' => array(
                     'type' => 'integer'
             ),
             'title' => array(
-                    'type' => 'string'
+                    'type' => 'text'
             ),
             'content' => array(
-                    'type' => 'string'
+                    'type' => 'text'
             ),
             'contextid' => array(
                     'type' => 'integer'
             ),
             'areaid' => array(
-                    'type' => 'string',
-                    'index' => 'not_analyzed'
+                    'type' => 'keyword'
             ),
             'type' => array(
                     'type' => 'integer'
