@@ -24,22 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-if ($hassiteconfig) {
-    $ADMIN->add('searchplugins', new admin_category('search_elastic', get_string('pluginname', 'search_elastic')));
-
-    $pluginsettings = new admin_externalpage('search_elastic_settings',
-            get_string('menuenvsettings', 'search_elastic'),
-            new moodle_url('/search/engine/elastic/index.php'));
-
-    $boostsettings= new admin_externalpage('search_elastic_boostsettings',
-            get_string('menulastrefresh', 'search_elastic'),
-            new moodle_url('/search/engine/elastic/boost.php'));
-
-    $ADMIN->add('search_elastic', $pluginsettings);
-    $ADMIN->add('search_elastic', $boostsettings);
-
-    //$settings = null;
-}
+require_once(dirname(__FILE__) . '/../../config.php');
+require_once($CFG->libdir . '/adminlib.php');
+global $DB;
+admin_externalpage_setup('search_elastic_boostsettings');
 
 if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('search_elastic_settings', '', get_string('pluginname_desc', 'search_elastic')));
