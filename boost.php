@@ -34,7 +34,13 @@ $config = get_config('search_elastic');
 $form = new \search_elastic\boost_form();
 
 if ($data = $form->get_data()) {
-    redirect(new moodle_url('/search/engine/elastic/index.php'), get_string('changessaved'));
+
+    // Save plugin config.
+    foreach ($data as $name=>$value) {
+        set_config($name, $value, 'search_elastic');
+    }
+
+    redirect(new moodle_url('/search/engine/elastic/boost.php'), get_string('changessaved'));
 }
 
 echo $OUTPUT->header();
