@@ -28,126 +28,15 @@ if ($hassiteconfig) {
     $ADMIN->add('searchplugins', new admin_category('search_elastic', get_string('pluginname', 'search_elastic')));
 
     $pluginsettings = new admin_externalpage('search_elastic_settings',
-            get_string('menuenvsettings', 'search_elastic'),
+            get_string('adminsettings', 'search_elastic'),
             new moodle_url('/search/engine/elastic/index.php'));
 
     $boostsettings= new admin_externalpage('search_elastic_boostsettings',
-            get_string('menulastrefresh', 'search_elastic'),
+            get_string('boostsettings', 'search_elastic'),
             new moodle_url('/search/engine/elastic/boost.php'));
 
     $ADMIN->add('search_elastic', $pluginsettings);
     $ADMIN->add('search_elastic', $boostsettings);
 
-    //$settings = null;
-}
-
-if ($ADMIN->fulltree) {
-    $settings->add(new admin_setting_heading('search_elastic_settings', '', get_string('pluginname_desc', 'search_elastic')));
-
-    if (! during_initial_install ()) {
-        // Basic settings.
-        $settings->add(new admin_setting_configtext('search_elastic/hostname',
-                get_string('hostname', 'search_elastic' ),
-                get_string('hostname_desc', 'search_elastic'),
-                'http://127.0.0.1', PARAM_URL));
-
-        $settings->add(new admin_setting_configtext('search_elastic/port',
-                get_string('port', 'search_elastic' ),
-                get_string('port_desc', 'search_elastic'),
-                9200, PARAM_INT));
-
-        $settings->add(new admin_setting_configtext('search_elastic/index',
-                get_string('index', 'search_elastic' ),
-                get_string('index_desc', 'search_elastic'),
-                'moodle', PARAM_ALPHANUMEXT));
-
-        $settings->add(new admin_setting_configtext('search_elastic/sendsize',
-                get_string('sendsize', 'search_elastic' ),
-                get_string('sendsize_desc', 'search_elastic'),
-                9000000, PARAM_INT, 8));
-
-        $settings->add(new admin_setting_configcheckbox('search_elastic/fileindexing',
-                get_string('fileindexing', 'search_elastic'),
-                get_string('fileindexing_help', 'search_elastic'), 0));
-
-
-        // File indexing settings.
-        $settings->add(new admin_setting_heading('search_elastic_fileindexing',
-                get_string('fileindexsettings', 'search_elastic'),
-                get_string('fileindexsettings_desc', 'search_elastic')
-                ));
-
-        $settings->add(new admin_setting_configtext('search_elastic/tikahostname',
-                get_string('tikahostname', 'search_elastic' ),
-                get_string('tikahostname_desc', 'search_elastic'),
-                'http://127.0.0.1', PARAM_URL));
-
-        $settings->add(new admin_setting_configtext('search_elastic/tikaport',
-                get_string('tikaport', 'search_elastic' ),
-                get_string('tikaport_desc', 'search_elastic'),
-                9998, PARAM_INT));
-
-        $settings->add(new admin_setting_configtext('search_elastic/tikasendsize',
-                get_string('tikasendsize', 'search_elastic' ),
-                get_string('tikasendsize_desc', 'search_elastic'),
-                512000000, PARAM_INT, 12));
-
-        // Image search settings.
-        $settings->add(new admin_setting_heading('search_elastic_rekognition',
-                get_string('rekognitionsettings', 'search_elastic'),
-                get_string('rekognitionsettings_desc', 'search_elastic')
-                ));
-
-        $settings->add(new admin_setting_configcheckbox('search_elastic/imageindex',
-                get_string('imageindex', 'search_elastic'),
-                get_string('imageindex_desc', 'search_elastic'), 0));
-
-        $settings->add(new admin_setting_configtext('search_elastic/rekkeyid',
-                get_string('reksigningkeyid', 'search_elastic' ),
-                get_string('reksigningkeyid_desc', 'search_elastic'),
-                '', PARAM_TEXT));
-
-        $settings->add(new admin_setting_configtext('search_elastic/reksecretkey',
-                get_string('reksigningsecretkey', 'search_elastic' ),
-                get_string('reksigningsecretkey_desc', 'search_elastic'),
-                '', PARAM_TEXT));
-
-        $settings->add(new admin_setting_configtext('search_elastic/rekregion',
-                get_string('rekregion', 'search_elastic' ),
-                get_string('rekregion_desc', 'search_elastic'),
-                'us-west-2', PARAM_TEXT));
-
-        $settings->add(new admin_setting_configtext('search_elastic/maxlabels',
-                 get_string('maxlabels', 'search_elastic' ),
-                 get_string('maxlabels_desc', 'search_elastic'),
-                 10, PARAM_INT));
-
-        $settings->add(new admin_setting_configtext('search_elastic/minconfidence',
-                 get_string('minconfidence', 'search_elastic' ),
-                 get_string('minconfidence_desc', 'search_elastic'),
-                 90, PARAM_INT));
-
-        // Request Signing settings.
-        $settings->add(new admin_setting_heading('search_elastic_signing',
-                get_string('signingsettings', 'search_elastic'),
-                get_string('signingsettings_desc', 'search_elastic')
-                ));
-        $settings->add(new admin_setting_configcheckbox('search_elastic/signing',
-                get_string('signing', 'search_elastic'),
-                get_string('signing_desc', 'search_elastic'), 0));
-
-        $settings->add(new admin_setting_configtext('search_elastic/keyid',
-                get_string('signingkeyid', 'search_elastic' ),
-                get_string('signingkeyid_desc', 'search_elastic'),
-                '', PARAM_TEXT));
-
-        $settings->add(new admin_setting_configtext('search_elastic/secretkey',
-                 get_string('signingsecretkey', 'search_elastic' ),
-                 get_string('signingsecretkey_desc', 'search_elastic'),
-                 '', PARAM_TEXT));
-        $settings->add(new admin_setting_configtext('search_elastic/region',
-                 get_string('region', 'search_elastic' ),
-                 get_string('region_desc', 'search_elastic'),
-                 '', PARAM_TEXT));
-    }
+    $settings = null;
 }
