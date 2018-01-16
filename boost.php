@@ -45,5 +45,6 @@ if ($data = $form->get_data()) {
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('boostsettings', 'search_elastic'));
+echo html_writer::div(get_string('boostdescription', 'search_elastic'));
 $form->display();
 echo $OUTPUT->footer();

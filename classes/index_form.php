@@ -84,7 +84,6 @@ class index_form extends \moodleform {
             $mform->setDefault('sendsize', 9000000);
         }
 
-
         // File indexing settings.
         $mform->addElement('header', 'fileindexsettings', get_string('fileindexsettings', 'search_elastic'));
 
@@ -139,24 +138,24 @@ class index_form extends \moodleform {
             $mform->setDefault('imageindex', 0);
         }
 
-        $mform->addElement('text', 'reksigningkeyid',  get_string ('reksigningkeyid', 'search_elastic'));
-        $mform->setType('reksigningkeyid', PARAM_TEXT);
-        $mform->addHelpButton('reksigningkeyid', 'reksigningkeyid', 'search_elastic');
-        $mform->disabledIf('reksigningkeyid', 'imageindex');
-        if (isset($config->reksigningkeyid)) {
-            $mform->setDefault('reksigningkeyid', $config->reksigningkeyid);
+        $mform->addElement('text', 'rekkeyid',  get_string ('rekkeyid', 'search_elastic'));
+        $mform->setType('rekkeyid', PARAM_TEXT);
+        $mform->addHelpButton('rekkeyid', 'rekkeyid', 'search_elastic');
+        $mform->disabledIf('rekkeyid', 'imageindex');
+        if (isset($config->rekkeyid)) {
+            $mform->setDefault('rekkeyid', $config->rekkeyid);
         } else {
-            $mform->setDefault('reksigningkeyid', '');
+            $mform->setDefault('rekkeyid', '');
         }
 
-        $mform->addElement('text', 'reksigningsecretkey',  get_string ('reksigningsecretkey', 'search_elastic'));
-        $mform->setType('reksigningsecretkey', PARAM_TEXT);
-        $mform->addHelpButton('reksigningsecretkey', 'reksigningsecretkey', 'search_elastic');
-        $mform->disabledIf('reksigningsecretkey', 'imageindex');
-        if (isset($config->reksigningsecretkey)) {
-            $mform->setDefault('reksigningsecretkey', $config->reksigningsecretkey);
+        $mform->addElement('text', 'reksecretkey',  get_string ('reksecretkey', 'search_elastic'));
+        $mform->setType('reksecretkey', PARAM_TEXT);
+        $mform->addHelpButton('reksecretkey', 'reksecretkey', 'search_elastic');
+        $mform->disabledIf('reksecretkey', 'imageindex');
+        if (isset($config->reksecretkey)) {
+            $mform->setDefault('reksecretkey', $config->reksecretkey);
         } else {
-            $mform->setDefault('reksigningsecretkey', '');
+            $mform->setDefault('reksecretkey', '');
         }
 
         $mform->addElement('text', 'rekregion',  get_string ('rekregion', 'search_elastic'));
@@ -232,8 +231,6 @@ class index_form extends \moodleform {
         }
 
         $this->add_action_buttons();
-
-
     }
     //Custom validation should be added here
     function validation($data, $files) {

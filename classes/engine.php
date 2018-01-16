@@ -62,6 +62,43 @@ class engine extends \core_search\engine {
      */
     protected $count = 0;
 
+    protected $configdefaults = array(
+            'hostname' => 'http://127.0.0.1',
+            'port' => 9200,
+            'index' => 'mooodle',
+            'sendsize' => 9000000,
+            'fileindexing' => 0,
+            'tikahostname' => 'http://127.0.0.1',
+            'tikaport' => 9998,
+            'tikasendsize' => 512000000,
+            'imageindex' => 0,
+            'rekkeyid' => '',
+            'reksecretkey' => '',
+            'rekregion' => 'us-west-2',
+            'maxlabels' => 10,
+            'minconfidence' => 90,
+            'signing' => 0,
+            'signingkeyid' => '',
+            'signingsecretkey' => '',
+            'region' => 'us-west-2'
+    );
+
+    /**
+     * Initialises the search engine configuration.
+     *
+     * Search engine availability should be checked separately.
+     *
+     * @return void
+     */
+    public function __construct() {
+        parent::__construct();
+        $this->config = (object)array_merge($this->configdefaults, (array)$this->config);
+        foreach ($this->config as $name=>$value) {
+            set_config($name, $value, 'search_elastic');
+        }
+
+    }
+
     /**
      * Generates the Elasticsearch server endpoint URL from
      * the config hostname and port.
