@@ -450,4 +450,25 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $this->assertEquals(count($results), 1);
 
     }
+
+    /**
+     * Test results are returned for filtered search.
+     * Filter courses and areas.
+     */
+    public function test_course_area_boosting() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = 1;
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $doc->set('areaid', 'foo');
+        $this->engine->add_document($doc);
+
+        error_log(print_r($doc, true));
+
+
+    }
 }
