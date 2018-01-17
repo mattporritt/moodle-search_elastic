@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/search/tests/fixtures/testable_core_search.php');
 require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
+require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_engine.php');
 
 /**
@@ -87,6 +88,10 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $this->search = testable_core_search::instance($this->engine);
         $areaid = \core_search\manager::generate_areaid('core_mocksearch', 'mock_search_area');
         $this->search->add_search_area($areaid, new core_mocksearch\search\mock_search_area());
+        $this->area = new core_mocksearch\search\mock_search_area();
+        $areaboostid = \core_search\manager::generate_areaid('core_mocksearch', 'mock_boost_area');
+        $this->search->add_search_area($areaboostid, new core_mocksearch\search\mock_boost_area());
+        $this->areaboost = new core_mocksearch\search\mock_boost_area();
 
         $this->setAdminUser();
         $this->search->index(true);
@@ -99,7 +104,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
             $this->generator->teardown();
             $this->generator = null;
         }
-        $this->engine->delete('core_mocksearch-mock_search_area');
+        $this->engine->delete();
         sleep(1);
     }
 
@@ -207,7 +212,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         // Construct the search object and add it to the engine.
         $rec = new \stdClass();
         $rec->content = "elastic";
-        $area = new core_mocksearch\search\mock_search_area();
+        $area = $this->area;
         $record = $this->generator->create_record($rec);
         $doc = $area->get_document($record);
         $this->engine->add_document($doc);
@@ -238,7 +243,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         // Construct the search object and add it to the engine.
         $rec = new \stdClass();
         $rec->content = "this is a test quiz on frogs and toads";
-        $area = new core_mocksearch\search\mock_search_area();
+        $area = $this->area;
         $record = $this->generator->create_record($rec);
         $doc = $area->get_document($record);
         $this->engine->add_document($doc);
@@ -285,21 +290,21 @@ class search_elastic_engine_testcase extends advanced_testcase {
         // Construct the search object and add it to the engine.
         $rec = new \stdClass();
         $rec->content = "this is an assignment on frogs and toads";
-        $area = new core_mocksearch\search\mock_search_area();
+        $area = $this->area;
         $record = $this->generator->create_record($rec);
         $doc = $area->get_document($record);
         $this->engine->add_document($doc);
 
         $rec2 = new \stdClass();
         $rec2->content = "this is a quiz on fish and birds";
-        $area = new core_mocksearch\search\mock_search_area();
+        $area = $this->area;
         $record2 = $this->generator->create_record($rec2);
         $doc2 = $area->get_document($record2);
         $this->engine->add_document($doc2);
 
         $rec3 = new \stdClass();
         $rec3->content = "this is an activity about volcanic rocks";
-        $area = new core_mocksearch\search\mock_search_area();
+        $area = $this->area;
         $record3 = $this->generator->create_record($rec3);
         $doc3 = $area->get_document($record3);
         $this->engine->add_document($doc3);
@@ -341,7 +346,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $rec = new \stdClass();
         $rec->content = "this is an assignment on frogs and toads";
         $rec->courseid = 1;
-        $area = new core_mocksearch\search\mock_search_area();
+        $area = $this->area;
         $record = $this->generator->create_record($rec);
         $doc = $area->get_document($record);
         $this->engine->add_document($doc);
@@ -349,7 +354,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $rec2 = new \stdClass();
         $rec2->content = "this is an assignment on frogs and toads";
         $rec2->courseid = 2;
-        $area = new core_mocksearch\search\mock_search_area();
+        $area = $this->area;
         $record2 = $this->generator->create_record($rec2);
         $doc2 = $area->get_document($record2);
         $this->engine->add_document($doc2);
@@ -380,7 +385,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         // Construct the search object and add it to the engine.
         $rec = new \stdClass();
         $rec->content = "this is an assignment on frogs and toads";
-        $area = new core_mocksearch\search\mock_search_area();
+        $area = $this->area;
         $record = $this->generator->create_record($rec);
         $doc = $area->get_document($record);
         $this->engine->add_document($doc);
@@ -420,7 +425,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $rec = new \stdClass();
         $rec->content = "this is an assignment on frogs and toads";
         $rec->courseid = 1;
-        $area = new core_mocksearch\search\mock_search_area();
+        $area = $this->area;
         $record = $this->generator->create_record($rec);
         $doc = $area->get_document($record);
         $this->engine->add_document($doc);
@@ -428,7 +433,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $rec2 = new \stdClass();
         $rec2->content = "this is an assignment on frogs and toads";
         $rec2->courseid = 2;
-        $area = new core_mocksearch\search\mock_search_area();
+        $area = $this->area;
         $record2 = $this->generator->create_record($rec2);
         $doc2 = $area->get_document($record2);
         $this->engine->add_document($doc2);
@@ -460,14 +465,41 @@ class search_elastic_engine_testcase extends advanced_testcase {
         // Construct the search object and add it to the engine.
         $rec = new \stdClass();
         $rec->content = "this is an assignment on frogs and toads";
-        $rec->courseid = 1;
-        $area = new core_mocksearch\search\mock_search_area();
+        $area = $this->area;
         $record = $this->generator->create_record($rec);
         $doc = $area->get_document($record);
-        $doc->set('areaid', 'foo');
         $this->engine->add_document($doc);
 
-        error_log(print_r($doc, true));
+        $rec2 = new \stdClass();
+        $rec2->content = "this is a quiz on fish and frogs";
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        $rec3 = new \stdClass();
+        $rec3->content = "this is an assignment about volcanic rocks";
+        $area = $this->areaboost;
+        $record3 = $this->generator->create_record($rec3);
+        $doc3 = $area->get_document($record3);
+        $this->engine->add_document($doc3);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'assignment frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        // Execute the search.
+        $results = $this->search->search($querydata);
+
+      //  error_log(print_r($results, true));
+        // Check the results.
+        $this->assertEquals($results[0]->get('content'), $rec3->content);
 
 
     }
