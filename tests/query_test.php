@@ -1,4 +1,6 @@
 <?php
+use search_elastic;
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,20 +17,38 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info.
+ * Elastic search engine query unit tests.
+ *
+ * @package    search_elastic
+ * @copyright  Matt Porritt <mattp@catalyst-au.net>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+
+/**
+ * Elasticsearch engine.
  *
  * @package     search_elastic
  * @copyright   Matt Porritt <mattp@catalyst-au.net>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class search_elastic_query_testcase extends advanced_testcase {
 
-defined('MOODLE_INTERNAL') || die();
+    /**
+     * Test getting areas that have been boosted in plugin config
+     */
+    public function test_get_boosted_areas() {
+        $this->resetAfterTest();
+        set_config('boost_mod_assign-activity', 20, 'search_elastic');
+        set_config('boost_mod_feedback-activity', 10, 'search_elastic');
 
-$plugin->version = 2018011900;
-$plugin->release   = 2018011900;      // Same as version.
-$plugin->requires = 2016052304;
-$plugin->component = 'search_elastic';
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->dependencies = array(
-        'local_aws' => 2017030100
-);
+        $query = new \search_elastic\query();
+
+        $bosstedareas = $query->get_boosted_areas();
+
+        error_log(print_r($bosstedareas, true));
+    }
+}

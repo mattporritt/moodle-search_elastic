@@ -196,6 +196,26 @@ class query  {
     }
 
     /**
+     *
+     * @return mixed[]|string[]|boolean[]|unknown[]|StdClass[]|NULL[]
+     */
+    public function get_boosted_areas(){
+        $configitems = get_config('search_elastic');
+        $boostedareas = array();
+        $query = 'boost_';
+
+        foreach ($configitems as $item => $value) {
+            if (substr($item, 0, strlen($query)) === $query && $value > 10) {
+                $area = substr($item, strlen($query));
+                $boostedareas[$area] = $value;
+            }
+        }
+
+        return $boostedareas;
+    }
+
+
+    /**
      * Construct the Elasticsearch query
      *
      * @param array $filters

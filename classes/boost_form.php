@@ -43,13 +43,14 @@ class boost_form extends \moodleform {
         $mform = $this->_form;
 
         foreach ($searchareas as $areaid => $searcharea) {
-            $mform->addElement('text', $areaid,  $searcharea->get_visible_name());
-            $mform->setType($areaid, PARAM_INT);
-            $mform->addHelpButton($areaid, 'boostvalue', 'search_elastic');
-            if (isset($config->$areaid)) {
-                $mform->setDefault($areaid, $config->$areaid);
+            $boostconfig = 'boost_' . $areaid;
+            $mform->addElement('text', $boostconfig,  $searcharea->get_visible_name());
+            $mform->setType($boostconfig, PARAM_INT);
+            $mform->addHelpButton($boostconfig, 'boostvalue', 'search_elastic');
+            if (isset($config->$boostconfig)) {
+                $mform->setDefault($boostconfig, $config->$boostconfig);
             } else {
-                $mform->setDefault($areaid, 10);
+                $mform->setDefault($boostconfig, 10);
             }
         }
 
