@@ -16,6 +16,8 @@
 
 namespace core_mocksearch\search;
 
+defined('MOODLE_INTERNAL') || die;
+
 /**
  * Component implementing search for testing purposes.
  *
@@ -24,9 +26,6 @@ namespace core_mocksearch\search;
  * @copyright David Monllao {@link http://www.davidmonllao.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die;
-
 class mock_boost_area extends \core_mocksearch\search\mock_search_area {
 
     /** @var float If set, waits when doing the indexing query (seconds) */
