@@ -36,7 +36,7 @@ $form = new \search_elastic\boost_form();
 if ($data = $form->get_data()) {
 
     // Save plugin config.
-    foreach ($data as $name=>$value) {
+    foreach ($data as $name => $value) {
         set_config($name, $value, 'search_elastic');
     }
 

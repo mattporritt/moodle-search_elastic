@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -72,7 +71,7 @@ class search_elastic_query_testcase extends advanced_testcase {
      * Test query boostin construction.
      */
     public function test_construct_boosting() {
-        $boostedareas = array('boost_mod_assign-activity'=> 2);
+        $boostedareas = array('boost_mod_assign-activity' => 2);
 
         // We're testing a private method, so we need to setup reflector magic.
         $method = new ReflectionMethod('\search_elastic\query', 'consruct_boosting');

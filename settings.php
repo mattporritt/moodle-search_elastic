@@ -31,7 +31,7 @@ if ($hassiteconfig) {
             get_string('adminsettings', 'search_elastic'),
             new moodle_url('/search/engine/elastic/index.php'));
 
-    $boostsettings= new admin_externalpage('search_elastic_boostsettings',
+    $boostsettings = new admin_externalpage('search_elastic_boostsettings',
             get_string('boostsettings', 'search_elastic'),
             new moodle_url('/search/engine/elastic/boost.php'));
 

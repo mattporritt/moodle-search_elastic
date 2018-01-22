@@ -37,6 +37,9 @@ require_once("$CFG->libdir/formslib.php");
  */
 class boost_form extends \moodleform {
 
+    /**
+     * Build form for the boost setting admin page for plugin.
+     */
     public function definition() {
         $config = get_config('search_elastic');
         $searchareas = \core_search\manager::get_search_areas_list(true);
@@ -56,9 +59,6 @@ class boost_form extends \moodleform {
 
         $this->add_action_buttons();
     }
-    //Custom validation should be added here
-    function validation($data, $files) {
-        return array();
-    }
+
 }
 

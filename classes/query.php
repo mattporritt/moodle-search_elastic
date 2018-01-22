@@ -214,10 +214,10 @@ class query  {
     }
 
     /**
-     *
-     * @return mixed[]|string[]|boolean[]|unknown[]|StdClass[]|NULL[]
+     * Returns an array of the configured boosted areas and boost values.
+     * @return array $boostedareas An array of the boosted areas and boost values.
      */
-    public function get_boosted_areas(){
+    public function get_boosted_areas() {
         $configitems = get_config('search_elastic');
         $boostedareas = array();
         $query = 'boost_';

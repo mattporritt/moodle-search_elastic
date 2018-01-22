@@ -62,6 +62,10 @@ class engine extends \core_search\engine {
      */
     protected $count = 0;
 
+    /**
+     *
+     * @var array Configuration defaults.
+     */
     protected $configdefaults = array(
             'hostname' => 'http://127.0.0.1',
             'port' => 9200,
@@ -93,7 +97,7 @@ class engine extends \core_search\engine {
     public function __construct() {
         parent::__construct();
         $this->config = (object)array_merge($this->configdefaults, (array)$this->config);
-        foreach ($this->config as $name=>$value) {
+        foreach ($this->config as $name => $value) {
             set_config($name, $value, 'search_elastic');
         }
 

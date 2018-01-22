@@ -37,6 +37,9 @@ require_once("$CFG->libdir/formslib.php");
  */
 class index_form extends \moodleform {
 
+    /**
+     * Build form for the general setting admin page for plugin.
+     */
     public function definition() {
         $config = get_config('search_elastic');
         $mform = $this->_form;
@@ -87,7 +90,10 @@ class index_form extends \moodleform {
         // File indexing settings.
         $mform->addElement('header', 'fileindexsettings', get_string('fileindexsettings', 'search_elastic'));
 
-        $mform->addElement('advcheckbox', 'fileindexing',  get_string ('fileindexing', 'search_elastic'), 'Enable', array(), array(0, 1));
+        $mform->addElement('advcheckbox',
+                'fileindexing',
+                get_string ('fileindexing', 'search_elastic'),
+                'Enable', array(), array(0, 1));
         $mform->setType('fileindexing', PARAM_INT);
         $mform->addHelpButton('fileindexing', 'fileindexing', 'search_elastic');
         if (isset($config->fileindexing)) {
@@ -126,10 +132,13 @@ class index_form extends \moodleform {
             $mform->setDefault('tikasendsize', 512000000);
         }
 
-        // AWS Rekognition settings
+        // AWS Rekognition settings.
         $mform->addElement('header', 'rekognitionsettings', get_string('rekognitionsettings', 'search_elastic'));
 
-        $mform->addElement('advcheckbox', 'imageindex',  get_string ('imageindex', 'search_elastic'), 'Enable', array(), array(0, 1));
+        $mform->addElement('advcheckbox',
+                'imageindex',
+                get_string ('imageindex', 'search_elastic'),
+                'Enable', array(), array(0, 1));
         $mform->setType('imageindex', PARAM_INT);
         $mform->addHelpButton('imageindex', 'imageindex', 'search_elastic');
         if (isset($config->imageindex)) {
@@ -232,8 +241,5 @@ class index_form extends \moodleform {
 
         $this->add_action_buttons();
     }
-    //Custom validation should be added here
-    function validation($data, $files) {
-        return array();
-    }
+
 }
