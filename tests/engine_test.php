@@ -463,6 +463,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
      * Filter courses and areas.
      */
     public function test_course_area_boosting() {
+        set_config('boost_core_mocksearch-mock_boost_area', 20, 'search_elastic');
 
         // Construct the search object and add it to the engine.
         $rec = new \stdClass();
@@ -499,10 +500,8 @@ class search_elastic_engine_testcase extends advanced_testcase {
         // Execute the search.
         $results = $this->search->search($querydata);
 
-      //  error_log(print_r($results, true));
         // Check the results.
         $this->assertEquals($results[0]->get('content'), $rec3->content);
-
 
     }
 }

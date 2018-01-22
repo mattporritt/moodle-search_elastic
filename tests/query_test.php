@@ -49,6 +49,55 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $bosstedareas = $query->get_boosted_areas();
 
-        error_log(print_r($bosstedareas, true));
+        $this->assertEquals($bosstedareas['mod_assign-activity'], 2); // Check the results.
+        $this->assertEquals(count($bosstedareas), 1);
+
+    }
+
+    /**
+     * Test getting areas return empty area when there is no boosting.
+     */
+    public function test_get_boosted_areas_empty() {
+        $this->resetAfterTest();
+
+        $query = new \search_elastic\query();
+
+        $bosstedareas = $query->get_boosted_areas();
+
+        $this->assertEquals(empty($bosstedareas), true); // Check the results.
+        $this->assertEquals(count($bosstedareas), 0);
+
+    }
+
+    /**
+     * Test query boostin construction.
+     */
+    public function test_construct_boosting() {
+        $boostedareas = array('boost_mod_assign-activity'=> 2);
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('\search_elastic\query', 'consruct_boosting');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new \search_elastic\query, $boostedareas); // Get result of invoked method.
+
+        $expected = array('match' => array('areaid' => array('query' => 'boost_mod_assign-activity', 'boost' => 2)));
+
+        $this->assertEquals($proxy[0], $expected);
+    }
+
+    /**
+     * Test query boosting construction empty.
+     */
+    public function test_construct_boosting_empty() {
+        $boostedareas = array();
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('\search_elastic\query', 'consruct_boosting');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new \search_elastic\query, $boostedareas); // Get result of invoked method.
+
+        $expected = array();
+
+        $this->assertEquals($proxy, $expected);
     }
 }

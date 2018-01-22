@@ -63,6 +63,7 @@ class query  {
         $this->query = array('query' => array(
                                 'bool' => array(
                                     'must' => array(),
+                                    'should' => array(),
                                     'filter' => array('bool' => array('must' => array()))
                             )),
                              'size' => $returnlimit,
@@ -196,6 +197,23 @@ class query  {
     }
 
     /**
+     * Take array of search areas to be boosted and constructs the query.
+     *
+     * @param array $boostedareas The areas that need to be boosted at query time.
+     * @return array $boostedarray Array of areas that should be boosted.
+     */
+    private function consruct_boosting($boostedareas) {
+
+        $boostarray = array();
+
+        foreach ($boostedareas as $area => $value) {
+            array_push($boostarray, array('match' => array('areaid' => array('query' => $area, 'boost' => $value))));
+        }
+
+        return $boostarray;
+    }
+
+    /**
      *
      * @return mixed[]|string[]|boolean[]|unknown[]|StdClass[]|NULL[]
      */
@@ -207,7 +225,7 @@ class query  {
         foreach ($configitems as $item => $value) {
             if (substr($item, 0, strlen($query)) === $query && $value > 10) {
                 $area = substr($item, strlen($query));
-                $boostedareas[$area] = $value;
+                $boostedareas[$area] = ($value / 10);
             }
         }
 
@@ -224,6 +242,7 @@ class query  {
      */
     public function get_query($filters, $usercontexts) {
         $query = $this->query;
+        $boostedareas = $this->get_boosted_areas();
 
         // Add query text.
         if ($filters->q != '*') {
@@ -255,6 +274,12 @@ class query  {
         if ($filters->timestart != 0  || $filters->timeend != 0) {
             $timerange = $this->construct_time_range($filters);
             array_push ($query['query']['bool']['filter']['bool']['must'], $timerange);
+        }
+
+        // Add boosting.
+        if ($boostedareas) {
+            $boosting = $this->consruct_boosting($boostedareas);
+            array_push ($query['query']['bool']['should'], $boosting);
         }
 
         return $query;
