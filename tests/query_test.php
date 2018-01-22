@@ -1,5 +1,4 @@
 <?php
-use search_elastic;
 
 // This file is part of Moodle - http://moodle.org/
 //

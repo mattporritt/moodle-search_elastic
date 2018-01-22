@@ -59,7 +59,7 @@ class search_elastic_document_testcase extends advanced_testcase {
 
     public function setUp() {
         $this->resetAfterTest();
-
+        new \search_elastic\engine();
         $this->generator = self::getDataGenerator()->get_plugin_generator('core_search');
         $this->generator->setup();
     }

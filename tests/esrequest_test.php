@@ -45,6 +45,14 @@ use \GuzzleHttp\Psr7\Request;
 class search_elastic_esrequest_testcase extends advanced_testcase {
 
     /**
+     * Test setup.
+     */
+    public function setUp() {
+        $this->resetAfterTest(true);
+        new \search_elastic\engine();
+    }
+
+    /**
      * Test unsigned esrequest get functionality
      */
     public function test_get() {
