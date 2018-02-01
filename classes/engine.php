@@ -464,7 +464,7 @@ class engine extends \core_search\engine {
             if (!$document instanceof \core_search\document) {
                 continue;
             }
-            if ($options['lastindexedtime'] == 0) {
+            if (isset($options['lastindexedtime']) && $options['lastindexedtime'] == 0) {
                 // If we have never indexed this area before, it must be new.
                 $document->set_is_new(true);
             }
