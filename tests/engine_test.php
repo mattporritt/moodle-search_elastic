@@ -502,4 +502,20 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $this->assertEquals($results[0]->get('content'), $rec3->content);
 
     }
+
+    /**
+     * Test result highlighting is applied.
+     */
+    public function test_highlight_result() {
+        $result = new \stdClass();
+        $result->highlight = new \stdClass();
+        $result->highlight->content = array('search test @@HI_S@@book@@HI_E@@ description description');
+
+        $this->engine->highlight_result($result);
+
+
+
+
+
+    }
 }

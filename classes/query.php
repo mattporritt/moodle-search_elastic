@@ -258,7 +258,7 @@ class query  {
      * @param array $query query array.
      * @return array $query updated query array with highlighting elements.
      */
-    public function set_hightlighting($query) {
+    public function set_highlighting($query) {
         $hightlighting = array(
                 'pre_tags' => array(self::HIGHLIGHT_START),
                 'post_tags' => array(self::HIGHLIGHT_END),

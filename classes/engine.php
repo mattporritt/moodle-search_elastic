@@ -433,6 +433,29 @@ class engine extends \core_search\engine {
     }
 
     /**
+     *
+     */
+    public function highlight_result($result) {
+
+        if (property_exists($result, 'highlight')) {
+
+            $query = new \search_elastic\query();
+
+            foreach ($result->highlight as $highlightfield => $value) {
+                error_log($value[0]);
+
+            }
+            $highlightedsource = $result;
+
+        } else {
+            $highlightedsource = $result;
+        }
+
+        return $highlightedsource;
+
+    }
+
+    /**
      * Loop through given iterator of search documents
      * and and have the search engine back end add them
      * to the index.
@@ -637,8 +660,9 @@ class engine extends \core_search\engine {
                 } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit) {
 
                     // Add hightlighting to document
+                    $highlightedresult = $this->highlight_result($result);
 
-                    $docs[] = $this->to_document($searcharea, (array)$result->_source);
+                    $docs[] = $this->to_document($searcharea, (array)$highlightedresult->_source);
                     $doccount++;
                 }
                 if ($access == \core_search\manager::ACCESS_GRANTED) {

@@ -102,7 +102,7 @@ class search_elastic_query_testcase extends advanced_testcase {
     /**
      * Test query response highlighting.
      */
-    public function test_set_hightlighting() {
+    public function test_set_highlightingg() {
         $this->resetAfterTest();
 
         $query = new \search_elastic\query();
@@ -116,7 +116,7 @@ class search_elastic_query_testcase extends advanced_testcase {
                 '_source' => array('excludes' => array('filetext'))
         );
 
-        $hightlighting = $query->set_hightlighting($queryarray);
+        $hightlighting = $query->set_highlighting($queryarray);
         $jsonresult = json_encode($hightlighting);
 
         $jsonexpected = '{"query":{"bool":{"must":[],"should":[],"filter":{"bool":{"must":[]}}}},"size":100,'.
