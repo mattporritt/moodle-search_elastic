@@ -53,6 +53,26 @@ class query  {
     private $query = array();
 
     /**
+     * Highlighting fragsize. Slightly larger than output size (500) to allow for ... appending.
+     */
+    const FRAGMENT_SIZE = 510;
+
+    /**
+     * Marker for the start of a highlight.
+     */
+    const HIGHLIGHT_START = '@@HI_S@@';
+
+    /**
+     * Marker for the end of a highlight.
+     */
+    const HIGHLIGHT_END = '@@HI_E@@';
+
+    /**
+     * @var array Fields that can be highlighted.
+     */
+    protected $highlightfields = array('title', 'content', 'description1', 'description2');
+
+    /**
      * construct basic query structure
      */
     public function __construct() {
@@ -232,6 +252,29 @@ class query  {
         return $boostedareas;
     }
 
+    /**
+     * Add highlighting elements to query array.
+     *
+     * @param array $query query array.
+     * @return array $query updated query array with highlighting elements.
+     */
+    public function set_hightlighting($query) {
+        $hightlighting = array(
+                'pre_tags' => array(self::HIGHLIGHT_START),
+                'post_tags' => array(self::HIGHLIGHT_END),
+                'fragment_size' => self::FRAGMENT_SIZE,
+                'encoder' => 'html',
+                'fields' => array()
+        );
+
+        foreach ($this->highlightfields as $field) {
+            $hightlighting['fields'][$field] = new \stdClass();
+        }
+
+        $query['highlight'] = $hightlighting;
+
+        return $query;
+    }
 
     /**
      * Construct the Elasticsearch query
@@ -275,6 +318,9 @@ class query  {
             $timerange = $this->construct_time_range($filters);
             array_push ($query['query']['bool']['filter']['bool']['must'], $timerange);
         }
+
+        // Add highlighting.
+        $query = $this->set_highlighting($query);
 
         // Add boosting.
         if ($boostedareas) {

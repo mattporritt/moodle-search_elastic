@@ -635,6 +635,9 @@ class engine extends \core_search\engine {
                 if ($access == \core_search\manager::ACCESS_DELETED) {
                     $this->delete_by_id($result->_id);
                 } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit) {
+
+                    // Add hightlighting to document
+
                     $docs[] = $this->to_document($searcharea, (array)$result->_source);
                     $doccount++;
                 }

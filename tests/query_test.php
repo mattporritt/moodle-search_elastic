@@ -98,4 +98,32 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $this->assertEquals($proxy, $expected);
     }
+
+    /**
+     * Test query response highlighting.
+     */
+    public function test_set_hightlighting() {
+        $this->resetAfterTest();
+
+        $query = new \search_elastic\query();
+        $queryarray = array('query' => array(
+                'bool' => array(
+                        'must' => array(),
+                        'should' => array(),
+                        'filter' => array('bool' => array('must' => array()))
+                )),
+                'size' => 100,
+                '_source' => array('excludes' => array('filetext'))
+        );
+
+        $hightlighting = $query->set_hightlighting($queryarray);
+        $jsonresult = json_encode($hightlighting);
+
+        $jsonexpected = '{"query":{"bool":{"must":[],"should":[],"filter":{"bool":{"must":[]}}}},"size":100,'.
+                        '"_source":{"excludes":["filetext"]},"highlight":{"pre_tags":["@@HI_S@@"],'.
+                        '"post_tags":["@@HI_E@@"],"fragment_size":510,"encoder":"html","fields":{"title":{},'.
+                        '"content":{},"description1":{},"description2":{}}}}';
+
+        $this->assertEquals($jsonresult, $jsonexpected);
+    }
 }
