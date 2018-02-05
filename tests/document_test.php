@@ -282,4 +282,44 @@ class search_elastic_document_testcase extends advanced_testcase {
         $result = $stub->extract_text($file, $esclient);
         $this->assertEquals($content, $result);
     }
+
+    /**
+     * Test hightlight string replacement is done correctly.
+     */
+    public function test_highlight_text() {
+        $text = 'search test @@HI_S@@book@@HI_E@@ description description';
+        $expected = 'search test <span class="highlight">book</span> description description';
+
+        $builder = $this->getMockBuilder('\search_elastic\document');
+        $builder->disableOriginalConstructor();
+        $stub = $builder->getMock();
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('\search_elastic\document', 'format_text');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke($stub, $text); // Get result of invoked method.
+
+
+        $this->assertEquals($expected, $proxy);
+    }
+
+    /**
+     * Test hightlight string replacement is down correctly for multiple replacements.
+     */
+    public function test_highlight_text_multiple() {
+        $text = 'this is an @@HI_S@@assignment@@HI_E@@ @@HI_S@@on@@HI_E@@ @@HI_S@@frogs@@HI_E@@ and toads';
+        $expected = 'this is an <span class="highlight">assignment on frogs</span> and toads';
+
+        $builder = $this->getMockBuilder('\search_elastic\document');
+        $builder->disableOriginalConstructor();
+        $stub = $builder->getMock();
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('\search_elastic\document', 'format_text');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke($stub, $text); // Get result of invoked method.
+
+
+        $this->assertEquals($expected, $proxy);
+    }
 }

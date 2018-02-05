@@ -231,7 +231,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $results = $this->search->search($querydata);
 
         // Check the results.
-        $this->assertEquals($results[0]->get('content'), $querydata->q);
+        $this->assertEquals($results[0]->get('content'), '@@HI_S@@elastic@@HI_E@@');
 
     }
 
@@ -260,7 +260,9 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $querydata->timeend = 0;
 
         $results = $this->search->search($querydata); // Execute the search.
-        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+        $this->assertEquals(
+                $results[0]->get('content'),
+                'this is a @@HI_S@@test@@HI_E@@ @@HI_S@@quiz@@HI_E@@ on frogs and toads'); // Check the results.
 
         // Multi term out of order query.
         $querydata = new stdClass();
@@ -269,7 +271,9 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $querydata->timeend = 0;
 
         $results = $this->search->search($querydata); // Execute the search.
-        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+        $this->assertEquals(
+                $results[0]->get('content'),
+                'this is a @@HI_S@@test@@HI_E@@ @@HI_S@@quiz@@HI_E@@ on frogs and toads'); // Check the results.
 
         // Multi term partial words query.
         $querydata = new stdClass();
@@ -278,7 +282,9 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $querydata->timeend = 0;
 
         $results = $this->search->search($querydata); // Execute the search.
-        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+        $this->assertEquals(
+                $results[0]->get('content'),
+                'this is a @@HI_S@@test@@HI_E@@ quiz on @@HI_S@@frogs@@HI_E@@ and toads'); // Check the results.
 
     }
 
@@ -321,7 +327,9 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $querydata->timeend = 0;
 
         $results = $this->search->search($querydata); // Execute the search.
-        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+        $this->assertEquals(
+                $results[0]->get('content'),
+                'this is an @@HI_S@@assignment@@HI_E@@ on @@HI_S@@frogs@@HI_E@@ and toads'); // Check the results.
         $this->assertEquals(count($results), 1);
 
         // Multi term out of order query.
@@ -371,7 +379,9 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $querydata->courseids = [1, ];
 
         $results = $this->search->search($querydata); // Execute the search.
-        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+        $this->assertEquals(
+                $results[0]->get('content'),
+                'this is an @@HI_S@@assignment@@HI_E@@ @@HI_S@@on@@HI_E@@ @@HI_S@@frogs@@HI_E@@ and toads'); // Check the results.
         $this->assertEquals(count($results), 1);
 
     }
@@ -451,7 +461,9 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $querydata->areaids = ['core_mocksearch-mock_search_area', ];
 
         $results = $this->search->search($querydata); // Execute the search.
-        $this->assertEquals($results[0]->get('content'), $rec->content); // Check the results.
+        $this->assertEquals(
+                $results[0]->get('content'),
+                'this is an @@HI_S@@assignment@@HI_E@@ @@HI_S@@on@@HI_E@@ @@HI_S@@frogs@@HI_E@@ and toads'); // Check the results.
         $this->assertEquals(count($results), 1);
 
     }
@@ -499,7 +511,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $results = $this->search->search($querydata);
 
         // Check the results.
-        $this->assertEquals($results[0]->get('content'), $rec3->content);
+        $this->assertEquals($results[0]->get('content'), 'this is an @@HI_S@@assignment@@HI_E@@ about volcanic rocks');
 
     }
 
@@ -509,13 +521,11 @@ class search_elastic_engine_testcase extends advanced_testcase {
     public function test_highlight_result() {
         $result = new \stdClass();
         $result->highlight = new \stdClass();
+        $result->_source = new \stdClass();
         $result->highlight->content = array('search test @@HI_S@@book@@HI_E@@ description description');
+        $result->_source->content = 'search test @@HI_S@@book@@HI_E@@ description description';
 
         $this->engine->highlight_result($result);
-
-
-
-
-
     }
+
 }

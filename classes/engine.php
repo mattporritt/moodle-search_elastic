@@ -442,7 +442,7 @@ class engine extends \core_search\engine {
             $query = new \search_elastic\query();
 
             foreach ($result->highlight as $highlightfield => $value) {
-                error_log($value[0]);
+                $result->_source->$highlightfield = $value[0]; // Replace _source element with highlight element.
 
             }
             $highlightedsource = $result;
