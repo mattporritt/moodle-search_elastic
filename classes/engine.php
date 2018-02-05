@@ -433,7 +433,11 @@ class engine extends \core_search\engine {
     }
 
     /**
+     * Get the highlighted result sections and use them to replace the
+     * source sections.
      *
+     * @param object $result the original search result.
+     * @return object $highlightedsource the result object with highlighting.
      */
     public function highlight_result($result) {
 
@@ -659,7 +663,7 @@ class engine extends \core_search\engine {
                     $this->delete_by_id($result->_id);
                 } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit) {
 
-                    // Add hightlighting to document
+                    // Add hightlighting to document.
                     $highlightedresult = $this->highlight_result($result);
 
                     $docs[] = $this->to_document($searcharea, (array)$highlightedresult->_source);

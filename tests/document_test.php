@@ -299,7 +299,6 @@ class search_elastic_document_testcase extends advanced_testcase {
         $method->setAccessible(true); // Allow accessing of private method.
         $proxy = $method->invoke($stub, $text); // Get result of invoked method.
 
-
         $this->assertEquals($expected, $proxy);
     }
 
@@ -318,7 +317,6 @@ class search_elastic_document_testcase extends advanced_testcase {
         $method = new ReflectionMethod('\search_elastic\document', 'format_text');
         $method->setAccessible(true); // Allow accessing of private method.
         $proxy = $method->invoke($stub, $text); // Get result of invoked method.
-
 
         $this->assertEquals($expected, $proxy);
     }
