@@ -93,6 +93,8 @@ class enrich_form extends \moodleform {
         // AWS Rekognition settings.
         $mform->addElement('header', 'imagerecognitionsettings', get_string('imagerecognitionsettings', 'search_elastic'));
 
+        $mform->addElement('select', 'imageindex_select', get_string('forumtype', 'forum'), array(0 => 'none', 1 => 'aws'));
+
         $mform->addElement('advcheckbox',
                 'imageindex',
                 get_string ('imageindex', 'search_elastic'),

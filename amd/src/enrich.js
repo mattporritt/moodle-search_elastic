@@ -23,13 +23,25 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      3.4
  */
-define(['jquery', 'core/fragment'], function($, fragment) {
+define(['jquery', 'core/fragment', 'core/templates'], function($, fragment, templates) {
 
     var Enrich = {};
 
-    Enrich.init = function (){
+    function updateForm (value, node) {
+        node.fadeOut("slow", function() {
+            templates.replaceNodeContents(node, '<p>ddd</p>', '');
+            node.fadeIn("slow");
+        });
+    }
 
-       window.console.log('foobar');
+    Enrich.init = function () {
+
+       $('[name=imageindex_select]').change(function(){
+           if (this.value !== 0){
+               var parentnode = $(this).parent().parent().parent();
+               updateForm(this.value, parentnode);
+           }
+       });
 
     };
 
