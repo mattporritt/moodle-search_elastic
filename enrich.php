@@ -22,26 +22,29 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require_once(dirname(__FILE__) . '/../../../config.php');
+require_once($CFG->libdir . '/adminlib.php');
+
 defined('MOODLE_INTERNAL') || die();
 
-if ($hassiteconfig) {
-    $ADMIN->add('searchplugins', new admin_category('search_elastic', get_string('pluginname', 'search_elastic')));
+admin_externalpage_setup('search_elastic_enrichsettings');
 
-    $pluginsettings = new admin_externalpage('search_elastic_settings',
-            get_string('adminsettings', 'search_elastic'),
-            new moodle_url('/search/engine/elastic/index.php'));
 
-    $boostsettings = new admin_externalpage('search_elastic_boostsettings',
-            get_string('boostsettings', 'search_elastic'),
-            new moodle_url('/search/engine/elastic/boost.php'));
+$config = get_config('search_elastic');
+$form = new \search_elastic\enrich_form();
 
-    $enrichsettings = new admin_externalpage('search_elastic_enrichsettings',
-            get_string('enrichsettings', 'search_elastic'),
-            new moodle_url('/search/engine/elastic/enrich.php'));
+if ($data = $form->get_data()) {
 
-    $ADMIN->add('search_elastic', $pluginsettings);
-    $ADMIN->add('search_elastic', $boostsettings);
-    $ADMIN->add('search_elastic', $enrichsettings);
+    // Save plugin config.
+    foreach ($data as $name => $value) {
+        set_config($name, $value, 'search_elastic');
+    }
 
-    $settings = null;
+    redirect(new moodle_url('/search/engine/elastic/enrich.php'), get_string('changessaved'));
 }
+
+// Build the page output.
+echo $OUTPUT->header();
+echo $OUTPUT->heading(get_string('enrichsettings', 'search_elastic'));
+$form->display();
+echo $OUTPUT->footer();

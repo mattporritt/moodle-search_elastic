@@ -32,6 +32,7 @@ $string['boostdescription'] = 'These settings control the boosting settings for 
 $string['boostsettings'] = 'Boosting settings';
 $string['boostvalue'] = '';
 $string['boostvalue_help'] = 'Set the value you want this search area to be boosted by in the search results. Higher boost values give more priority.';
+$string['enrichsettings'] = 'Data Enrichment settings';
 $string['fileindexing'] = 'Enable file indexing';
 $string['fileindexing_help'] = 'Enables file indexing for this plugin. With this option checked you will need to enter details of the Tika service in the "File indexing settings" below.<br/>
 You will need to reindex all site contents after enabling this option for all files to be added.';
@@ -43,6 +44,7 @@ $string['index'] = 'Index';
 $string['index_help'] = 'Namespace index to store search data in backend';
 $string['imageindex'] = 'Enable image indexing';
 $string['imageindex_help'] = 'When enabled Moodle will use AWS Rekognition to index images. If enabled File indexing must also be enabled and configured above.';
+$string['imagerecognitionsettings'] = 'Image Recognition settings';
 $string['indexfail'] = 'Failed to create index';
 $string['maxlabels'] = 'Maxiumum Labels';
 $string['maxlabels_help'] = 'The maximum number of result labels returned by Rekognition.';
