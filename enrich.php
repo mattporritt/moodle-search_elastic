@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 
 admin_externalpage_setup('search_elastic_enrichsettings');
 
+$PAGE->requires->js_call_amd('search_elastic/enrich', 'init');
 
 $config = get_config('search_elastic');
 $form = new \search_elastic\enrich_form();
