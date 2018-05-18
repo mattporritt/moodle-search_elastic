@@ -23,23 +23,36 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      3.4
  */
-define(['jquery', 'core/fragment', 'core/templates'], function($, fragment, templates) {
+define(['jquery', 'core/fragment', 'core/templates'], function($, Fragment, templates) {
 
+    /**
+     * Module level variables.
+     */
     var Enrich = {};
+    var contextid;
 
-    function updateForm (value, node) {
-        node.fadeOut("slow", function() {
-            templates.replaceNodeContents(node, '<p>ddd</p>', '');
-            node.fadeIn("slow");
-        });
+    function updateForm (formData) {
+        var params = {jsonformdata: JSON.stringify(formData)};
+        Fragment.loadFragment('search_elastic', 'new_enrich_form', contextid, params).done(
+                function(foo){
+                    $('.form_container').html(foo);
+                    }
+                );
+
+//        node.fadeOut("slow", function() {
+//            templates.replaceNodeContents(node, '<p>ddd</p>', '');
+//            node.fadeIn("slow");
+//        });
     }
 
-    Enrich.init = function () {
+    Enrich.init = function(context) {
+     // Save the context ID in a closure variable.
+        contextid = context;
 
        $('[name=imageindex_select]').change(function(){
            if (this.value !== 0){
-               var parentnode = $(this).parent().parent().parent();
-               updateForm(this.value, parentnode);
+               var formData = $('.form_container form').serialize();
+               updateForm(formData);
            }
        });
 

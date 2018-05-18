@@ -29,7 +29,9 @@ defined('MOODLE_INTERNAL') || die();
 
 admin_externalpage_setup('search_elastic_enrichsettings');
 
-$PAGE->requires->js_call_amd('search_elastic/enrich', 'init');
+$context = context_system::instance();
+
+$PAGE->requires->js_call_amd('search_elastic/enrich', 'init', array($context->id));
 
 $config = get_config('search_elastic');
 $form = new \search_elastic\enrich_form();
@@ -47,5 +49,7 @@ if ($data = $form->get_data()) {
 // Build the page output.
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('enrichsettings', 'search_elastic'));
+echo html_writer::start_div('form_container');
 $form->display();
+echo html_writer::end_div();
 echo $OUTPUT->footer();
