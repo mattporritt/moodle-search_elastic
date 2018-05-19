@@ -23,7 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      3.4
  */
-define(['jquery', 'core/fragment', 'core/templates'], function($, Fragment, templates) {
+define(['jquery', 'core/fragment', 'core/templates', 'core/yui'], function($, Fragment, templates, Y) {
 
     /**
      * Module level variables.
@@ -31,31 +31,24 @@ define(['jquery', 'core/fragment', 'core/templates'], function($, Fragment, temp
     var Enrich = {};
     var contextid;
 
-    function updateForm (formData) {
+    function updateForm() {
+        var formData = $('.form_container form').serialize();
         var params = {jsonformdata: JSON.stringify(formData)};
         Fragment.loadFragment('search_elastic', 'new_enrich_form', contextid, params).done(
                 function(foo){
                     $('.form_container').html(foo);
+                    $('[name=imageindexselect]').change(updateForm);
+                    Y.use('moodle-core-formchangechecker', function() {
+                        M.core_formchangechecker.reset_form_dirty_state();
+                    });
                     }
                 );
-
-//        node.fadeOut("slow", function() {
-//            templates.replaceNodeContents(node, '<p>ddd</p>', '');
-//            node.fadeIn("slow");
-//        });
     }
 
     Enrich.init = function(context) {
      // Save the context ID in a closure variable.
         contextid = context;
-
-       $('[name=imageindex_select]').change(function(){
-           if (this.value !== 0){
-               var formData = $('.form_container form').serialize();
-               updateForm(formData);
-           }
-       });
-
+       $('[name=imageindexselect]').change(updateForm);
     };
 
     return Enrich;

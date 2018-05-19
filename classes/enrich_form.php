@@ -24,6 +24,8 @@
 
 namespace search_elastic;
 
+use html_writer;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once("$CFG->libdir/formslib.php");
@@ -38,12 +40,30 @@ require_once("$CFG->libdir/formslib.php");
 class enrich_form extends \moodleform {
 
     /**
+     *
+     * @param unknown $element
+     * @param unknown $default
+     * @param unknown $mform
+     * @param unknown $config
+     */
+    private function setDefault($element, $default, &$mform, $config) {
+        if (isset($customdata[$element])) {
+            $mform->setDefault($element, $customdata[$element]);
+        } elseif (isset($config->{$element})) {
+            $mform->setDefault($element, $config->{$element});
+        } else {
+            $mform->setDefault($element, $default);
+        }
+    }
+
+    /**
      * Build form for the general setting admin page for plugin.
      */
     public function definition() {
         $config = get_config('search_elastic');
         $mform = $this->_form;
-
+        $customdata = $this->_customdata;
+        $mform->setDisableShortforms(); // Shortforms don't work well with the form replacement.
 
         // File indexing settings.
         $mform->addElement('header', 'fileindexsettings', get_string('fileindexsettings', 'search_elastic'));
@@ -54,107 +74,86 @@ class enrich_form extends \moodleform {
                 'Enable', array(), array(0, 1));
         $mform->setType('fileindexing', PARAM_INT);
         $mform->addHelpButton('fileindexing', 'fileindexing', 'search_elastic');
-        if (isset($config->fileindexing)) {
-            $mform->setDefault('fileindexing', $config->fileindexing);
-        } else {
-            $mform->setDefault('fileindexing', 0);
-        }
+        $this->setDefault('fileindexing', 0, $mform, $config);
 
         $mform->addElement('text', 'tikahostname',  get_string ('tikahostname', 'search_elastic'));
         $mform->setType('tikahostname', PARAM_URL);
         $mform->addHelpButton('tikahostname', 'tikahostname', 'search_elastic');
-        $mform->disabledIf('tikahostname', 'fileindexing');
-        if (isset($config->tikahostname)) {
-            $mform->setDefault('tikahostname', $config->tikahostname);
-        } else {
-            $mform->setDefault('tikahostname', 'http://127.0.0.1');
-        }
+        $this->setDefault('tikahostname', 'http://127.0.0.1', $mform, $config);
 
         $mform->addElement('text', 'tikaport',  get_string ('tikaport', 'search_elastic'));
         $mform->setType('tikaport', PARAM_INT);
         $mform->addHelpButton('tikaport', 'tikaport', 'search_elastic');
-        $mform->disabledIf('tikaport', 'fileindexing');
-        if (isset($config->tikaport)) {
-            $mform->setDefault('tikaport', $config->tikaport);
-        } else {
-            $mform->setDefault('tikaport', 9998);
-        }
+        $this->setDefault('tikaport', 9998, $mform, $config);
 
         $mform->addElement('text', 'tikasendsize',  get_string ('tikasendsize', 'search_elastic'));
         $mform->setType('tikasendsize', PARAM_ALPHANUMEXT);
         $mform->addHelpButton('tikasendsize', 'tikasendsize', 'search_elastic');
-        $mform->disabledIf('tikasendsize', 'fileindexing');
-        if (isset($config->tikasendsize)) {
-            $mform->setDefault('tikasendsize', $config->tikasendsize);
-        } else {
-            $mform->setDefault('tikasendsize', 512000000);
-        }
+        $this->setDefault('tikasendsize', 512000000, $mform, $config);
 
-        // AWS Rekognition settings.
+        // Image recognition settings.
+
+        // Heading.
         $mform->addElement('header', 'imagerecognitionsettings', get_string('imagerecognitionsettings', 'search_elastic'));
+        $desccontent = html_writer::div(get_string('imagerecognitionsettingsdesc', 'search_elastic'), 'form_description');
+        $mform->addElement('html', $desccontent);
 
-        $mform->addElement('select', 'imageindex_select', get_string('forumtype', 'forum'), array(0 => 'none', 1 => 'aws'));
-
-        $mform->addElement('advcheckbox',
-                'imageindex',
-                get_string ('imageindex', 'search_elastic'),
-                'Enable', array(), array(0, 1));
+        // Enable image processing.
+        $mform->addElement(
+            'advcheckbox',
+            'imageindex',
+            get_string ('imageindex', 'search_elastic'),
+            'Enable', array(), array(0, 1));
         $mform->setType('imageindex', PARAM_INT);
         $mform->addHelpButton('imageindex', 'imageindex', 'search_elastic');
-        if (isset($config->imageindex)) {
-            $mform->setDefault('imageindex', $config->imageindex);
+        $this->setDefault('imageindex', 0, $mform, $config);
+
+        // Image recognition processor selection.
+        $imageprocessors = array(
+            0 => get_string('none', 'search_elastic'),
+            1 => get_string('aws', 'search_elastic')
+        );
+        $select = $mform->addElement('select', 'imageindexselect', get_string('imageindexselect', 'search_elastic'), $imageprocessors);
+        $mform->addHelpButton('imageindexselect', 'imageindexselect', 'search_elastic');
+        if (isset($customdata['imageindexselect'])) {
+            $select->setSelected($customdata['imageindexselect']);
+            $imageprocessor = $customdata['imageindexselect'];
+        } elseif (isset($config->imageindexselect)) {
+            $select->setSelected($config->imageindexselect);
+            $imageprocessor = $config->imageindexselect;
         } else {
-            $mform->setDefault('imageindex', 0);
+            $select->setSelected(0);
+            $imageprocessor = 0;
         }
 
-        $mform->addElement('text', 'rekkeyid',  get_string ('rekkeyid', 'search_elastic'));
-        $mform->setType('rekkeyid', PARAM_TEXT);
-        $mform->addHelpButton('rekkeyid', 'rekkeyid', 'search_elastic');
-        $mform->disabledIf('rekkeyid', 'imageindex');
-        if (isset($config->rekkeyid)) {
-            $mform->setDefault('rekkeyid', $config->rekkeyid);
-        } else {
-            $mform->setDefault('rekkeyid', '');
-        }
+        // Add image recognition form elements based on processor selection.
+        // TODO: Make this class based or similar. We don't want it conditional when there will be multiple providers.
+        if ($imageprocessor == 1) {
+            // AWS Rekognition settings.
+            $mform->addElement('text', 'rekkeyid',  get_string ('rekkeyid', 'search_elastic'));
+            $mform->setType('rekkeyid', PARAM_TEXT);
+            $mform->addHelpButton('rekkeyid', 'rekkeyid', 'search_elastic');
+            $this->setDefault('rekkeyid', '', $mform, $config);
 
-        $mform->addElement('text', 'reksecretkey',  get_string ('reksecretkey', 'search_elastic'));
-        $mform->setType('reksecretkey', PARAM_TEXT);
-        $mform->addHelpButton('reksecretkey', 'reksecretkey', 'search_elastic');
-        $mform->disabledIf('reksecretkey', 'imageindex');
-        if (isset($config->reksecretkey)) {
-            $mform->setDefault('reksecretkey', $config->reksecretkey);
-        } else {
-            $mform->setDefault('reksecretkey', '');
-        }
+            $mform->addElement('text', 'reksecretkey',  get_string ('reksecretkey', 'search_elastic'));
+            $mform->setType('reksecretkey', PARAM_TEXT);
+            $mform->addHelpButton('reksecretkey', 'reksecretkey', 'search_elastic');
+            $this->setDefault('reksecretkey', '', $mform, $config);
 
-        $mform->addElement('text', 'rekregion',  get_string ('rekregion', 'search_elastic'));
-        $mform->setType('rekregion', PARAM_TEXT);
-        $mform->addHelpButton('rekregion', 'rekregion', 'search_elastic');
-        $mform->disabledIf('rekregion', 'imageindex');
-        if (isset($config->rekregion)) {
-            $mform->setDefault('rekregion', $config->rekregion);
-        } else {
-            $mform->setDefault('rekregion', 'us-west-2');
-        }
+            $mform->addElement('text', 'rekregion',  get_string ('rekregion', 'search_elastic'));
+            $mform->setType('rekregion', PARAM_TEXT);
+            $mform->addHelpButton('rekregion', 'rekregion', 'search_elastic');
+            $this->setDefault('rekregion', 'us-west-2', $mform, $config);
 
-        $mform->addElement('text', 'maxlabels',  get_string ('maxlabels', 'search_elastic'));
-        $mform->setType('maxlabels', PARAM_INT);
-        $mform->addHelpButton('maxlabels', 'maxlabels', 'search_elastic');
-        $mform->disabledIf('maxlabels', 'imageindex');
-        if (isset($config->maxlabels)) {
-            $mform->setDefault('maxlabels', $config->maxlabels);
-        } else {
-            $mform->setDefault('maxlabels', 10);
-        }
+            $mform->addElement('text', 'maxlabels',  get_string ('maxlabels', 'search_elastic'));
+            $mform->setType('maxlabels', PARAM_INT);
+            $mform->addHelpButton('maxlabels', 'maxlabels', 'search_elastic');
+            $this->setDefault('maxlabels', 10, $mform, $config);
 
-        $mform->addElement('text', 'minconfidence',  get_string ('minconfidence', 'search_elastic'));
-        $mform->setType('minconfidence', PARAM_INT);
-        $mform->addHelpButton('minconfidence', 'minconfidence', 'search_elastic');
-        $mform->disabledIf('minconfidence', 'imageindex');
-        if (isset($config->minconfidence)) {
-            $mform->setDefault('minconfidence', $config->minconfidence);
-        } else {
-            $mform->setDefault('minconfidence', 90);
+            $mform->addElement('text', 'minconfidence',  get_string ('minconfidence', 'search_elastic'));
+            $mform->setType('minconfidence', PARAM_INT);
+            $mform->addHelpButton('minconfidence', 'minconfidence', 'search_elastic');
+            $this->setDefault('minconfidence', 90, $mform, $config);
         }
 
         $this->add_action_buttons();

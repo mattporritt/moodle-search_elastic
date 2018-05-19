@@ -32,7 +32,10 @@ defined('MOODLE_INTERNAL') || die;
  * @return string
  */
 function search_elastic_output_fragment_new_enrich_form($args) {
-    $mform = new \search_elastic\enrich_form();
+    $serialiseddata = json_decode($args['jsonformdata']);
+    $customdata = [];
+    parse_str($serialiseddata, $customdata);
+    $mform = new \search_elastic\enrich_form(null, $customdata);
 
     ob_start();
     $mform->display();
