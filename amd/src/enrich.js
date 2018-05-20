@@ -31,6 +31,19 @@ define(['jquery', 'core/fragment', 'core/templates'], function($, Fragment, temp
     var Enrich = {};
     var contextid;
 
+    function updateSelects() {
+        var ischecked = $("[name=fileindexing]").is(':checked');
+        window.console.log(ischecked);
+        if (ischecked === true) {
+            $('[name=imageindexselect]').prop('disabled', false);
+            $('[name=fileindexselect]').prop('disabled', false);
+        } else {
+            $('[name=imageindexselect]').prop('disabled', true).val("0");
+            $('[name=fileindexselect]').prop('disabled', true).val("0");
+            updateForm();
+        }
+    }
+
     function updateForm() {
         var formData = $('.form_container form').serialize();
         var params = {jsonformdata: JSON.stringify(formData)};
@@ -39,6 +52,8 @@ define(['jquery', 'core/fragment', 'core/templates'], function($, Fragment, temp
                     $('.form_container').html(foo);
                     $('[name=imageindexselect]').change(updateForm);
                     $('[name=fileindexselect]').change(updateForm);
+                    $('[name=fileindexing]').change(updateSelects);
+                    //updateSelects();
                     }
                 );
     }
@@ -48,6 +63,8 @@ define(['jquery', 'core/fragment', 'core/templates'], function($, Fragment, temp
         contextid = context;
         $('[name=imageindexselect]').change(updateForm);
         $('[name=fileindexselect]').change(updateForm);
+        $('[name=fileindexing]').change(updateSelects);
+        updateSelects();
     };
 
     return Enrich;

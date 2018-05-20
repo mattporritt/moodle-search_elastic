@@ -39,6 +39,8 @@ require_once("$CFG->libdir/formslib.php");
  */
 class enrich_form extends \moodleform {
 
+    private $customdata;
+
     /**
      *
      * @param unknown $element
@@ -47,11 +49,14 @@ class enrich_form extends \moodleform {
      * @param unknown $config
      */
     private function setDefault($element, $default, &$mform, $config) {
-        if (isset($customdata[$element])) {
-            $mform->setDefault($element, $customdata[$element]);
+        if (isset($this->customdata[$element])) {
+            error_log('a');
+            $mform->setDefault($element, $this->customdata[$element]);
         } elseif (isset($config->{$element})) {
+            error_log('b');
             $mform->setDefault($element, $config->{$element});
         } else {
+            error_log('c');
             $mform->setDefault($element, $default);
         }
     }
@@ -62,7 +67,7 @@ class enrich_form extends \moodleform {
     public function definition() {
         $config = get_config('search_elastic');
         $mform = $this->_form;
-        $customdata = $this->_customdata;
+        $this->customdata = $this->_customdata;
         $mform->setDisableShortforms(); // Shortforms don't work well with the form replacement.
 
         // File indexing settings.
@@ -93,9 +98,9 @@ class enrich_form extends \moodleform {
         );
         $select = $mform->addElement('select', 'fileindexselect', get_string('fileindexselect', 'search_elastic'), $fileprocessors);
         $mform->addHelpButton('fileindexselect', 'fileindexselect', 'search_elastic');
-        if (isset($customdata['fileindexselect'])) {
-            $select->setSelected($customdata['fileindexselect']);
-            $fileprocessor = $customdata['fileindexselect'];
+        if (isset($this->customdata['fileindexselect'])) {
+            $select->setSelected($this->customdata['fileindexselect']);
+            $fileprocessor = $this->customdata['fileindexselect'];
         } elseif (isset($config->fileindexselect)) {
             $select->setSelected($config->fileindexselect);
             $fileprocessor = $config->fileindexselect;
@@ -136,9 +141,9 @@ class enrich_form extends \moodleform {
         );
         $select = $mform->addElement('select', 'imageindexselect', get_string('imageindexselect', 'search_elastic'), $imageprocessors);
         $mform->addHelpButton('imageindexselect', 'imageindexselect', 'search_elastic');
-        if (isset($customdata['imageindexselect'])) {
-            $select->setSelected($customdata['imageindexselect']);
-            $imageprocessor = $customdata['imageindexselect'];
+        if (isset($this->customdata['imageindexselect'])) {
+            $select->setSelected($this->customdata['imageindexselect']);
+            $imageprocessor = $this->customdata['imageindexselect'];
         } elseif (isset($config->imageindexselect)) {
             $select->setSelected($config->imageindexselect);
             $imageprocessor = $config->imageindexselect;
