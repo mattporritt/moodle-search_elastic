@@ -23,7 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      3.4
  */
-define(['jquery', 'core/fragment', 'core/templates', 'core/yui'], function($, Fragment, templates, Y) {
+define(['jquery', 'core/fragment', 'core/templates'], function($, Fragment, templates) {
 
     /**
      * Module level variables.
@@ -38,9 +38,7 @@ define(['jquery', 'core/fragment', 'core/templates', 'core/yui'], function($, Fr
                 function(foo){
                     $('.form_container').html(foo);
                     $('[name=imageindexselect]').change(updateForm);
-                    Y.use('moodle-core-formchangechecker', function() {
-                        M.core_formchangechecker.reset_form_dirty_state();
-                    });
+                    $('[name=fileindexselect]').change(updateForm);
                     }
                 );
     }
@@ -48,7 +46,8 @@ define(['jquery', 'core/fragment', 'core/templates', 'core/yui'], function($, Fr
     Enrich.init = function(context) {
      // Save the context ID in a closure variable.
         contextid = context;
-       $('[name=imageindexselect]').change(updateForm);
+        $('[name=imageindexselect]').change(updateForm);
+        $('[name=fileindexselect]').change(updateForm);
     };
 
     return Enrich;

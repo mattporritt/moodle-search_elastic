@@ -66,8 +66,12 @@ class enrich_form extends \moodleform {
         $mform->setDisableShortforms(); // Shortforms don't work well with the form replacement.
 
         // File indexing settings.
+        // Heading.
         $mform->addElement('header', 'fileindexsettings', get_string('fileindexsettings', 'search_elastic'));
+        $desccontent = html_writer::div(get_string('fileindexsettingsdesc', 'search_elastic'), 'form_description');
+        $mform->addElement('html', $desccontent);
 
+        // Enable file indexing.
         $mform->addElement('advcheckbox',
                 'fileindexing',
                 get_string ('fileindexing', 'search_elastic'),
@@ -76,37 +80,54 @@ class enrich_form extends \moodleform {
         $mform->addHelpButton('fileindexing', 'fileindexing', 'search_elastic');
         $this->setDefault('fileindexing', 0, $mform, $config);
 
-        $mform->addElement('text', 'tikahostname',  get_string ('tikahostname', 'search_elastic'));
-        $mform->setType('tikahostname', PARAM_URL);
-        $mform->addHelpButton('tikahostname', 'tikahostname', 'search_elastic');
-        $this->setDefault('tikahostname', 'http://127.0.0.1', $mform, $config);
+        // Text extraction settings.
+        // Heading.
+        $mform->addElement('header', 'textextractionsettings', get_string('textextractionsettings', 'search_elastic'));
+        $desccontent = html_writer::div(get_string('textextractionsettingsdesc', 'search_elastic'), 'form_description');
+        $mform->addElement('html', $desccontent);
 
-        $mform->addElement('text', 'tikaport',  get_string ('tikaport', 'search_elastic'));
-        $mform->setType('tikaport', PARAM_INT);
-        $mform->addHelpButton('tikaport', 'tikaport', 'search_elastic');
-        $this->setDefault('tikaport', 9998, $mform, $config);
+        // Text extraction processor selection.
+        $fileprocessors = array(
+            0 => get_string('none', 'search_elastic'),
+            1 => get_string('tika', 'search_elastic')
+        );
+        $select = $mform->addElement('select', 'fileindexselect', get_string('fileindexselect', 'search_elastic'), $fileprocessors);
+        $mform->addHelpButton('fileindexselect', 'fileindexselect', 'search_elastic');
+        if (isset($customdata['fileindexselect'])) {
+            $select->setSelected($customdata['fileindexselect']);
+            $fileprocessor = $customdata['fileindexselect'];
+        } elseif (isset($config->fileindexselect)) {
+            $select->setSelected($config->fileindexselect);
+            $fileprocessor = $config->fileindexselect;
+        } else {
+            $select->setSelected(0);
+            $fileprocessor = 0;
+        }
 
-        $mform->addElement('text', 'tikasendsize',  get_string ('tikasendsize', 'search_elastic'));
-        $mform->setType('tikasendsize', PARAM_ALPHANUMEXT);
-        $mform->addHelpButton('tikasendsize', 'tikasendsize', 'search_elastic');
-        $this->setDefault('tikasendsize', 512000000, $mform, $config);
+        // Add file processing form elements based on processor selection.
+        // TODO: Make this class based or similar. We don't want it conditional when there will be multiple providers.
+        if ($fileprocessor == 1) {
+            $mform->addElement('text', 'tikahostname',  get_string ('tikahostname', 'search_elastic'));
+            $mform->setType('tikahostname', PARAM_URL);
+            $mform->addHelpButton('tikahostname', 'tikahostname', 'search_elastic');
+            $this->setDefault('tikahostname', 'http://127.0.0.1', $mform, $config);
+
+            $mform->addElement('text', 'tikaport',  get_string ('tikaport', 'search_elastic'));
+            $mform->setType('tikaport', PARAM_INT);
+            $mform->addHelpButton('tikaport', 'tikaport', 'search_elastic');
+            $this->setDefault('tikaport', 9998, $mform, $config);
+
+            $mform->addElement('text', 'tikasendsize',  get_string ('tikasendsize', 'search_elastic'));
+            $mform->setType('tikasendsize', PARAM_ALPHANUMEXT);
+            $mform->addHelpButton('tikasendsize', 'tikasendsize', 'search_elastic');
+            $this->setDefault('tikasendsize', 512000000, $mform, $config);
+        }
 
         // Image recognition settings.
-
         // Heading.
         $mform->addElement('header', 'imagerecognitionsettings', get_string('imagerecognitionsettings', 'search_elastic'));
         $desccontent = html_writer::div(get_string('imagerecognitionsettingsdesc', 'search_elastic'), 'form_description');
         $mform->addElement('html', $desccontent);
-
-        // Enable image processing.
-        $mform->addElement(
-            'advcheckbox',
-            'imageindex',
-            get_string ('imageindex', 'search_elastic'),
-            'Enable', array(), array(0, 1));
-        $mform->setType('imageindex', PARAM_INT);
-        $mform->addHelpButton('imageindex', 'imageindex', 'search_elastic');
-        $this->setDefault('imageindex', 0, $mform, $config);
 
         // Image recognition processor selection.
         $imageprocessors = array(

@@ -49,5 +49,6 @@ if ($data = $form->get_data()) {
 // Build the page output.
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('enrichsettings', 'search_elastic'));
+echo html_writer::div(get_string('enrichdesc', 'search_elastic'), 'enrich_description');
 echo html_writer::div($form->render(), 'form_container');
 echo $OUTPUT->footer();
