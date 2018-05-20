@@ -68,6 +68,7 @@ define(['jquery', 'core/fragment'], function($, Fragment) {
         $('[name=fileindexselect]').change(updateForm);
         $('[name=fileindexing]').change(updateSelects);
         updateSelects();
+        $(window).on('beforeunload', function(){});
     };
 
     return Enrich;

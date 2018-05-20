@@ -35,7 +35,8 @@ function search_elastic_output_fragment_new_enrich_form($args) {
     $serialiseddata = json_decode($args['jsonformdata']);
     $customdata = [];
     parse_str($serialiseddata, $customdata);
-    $mform = new \search_elastic\enrich_form(null, $customdata);
+    $url = new moodle_url('/search/engine/elastic/enrich.php');
+    $mform = new \search_elastic\enrich_form($url, $customdata);
 
     ob_start();
     $mform->display();
