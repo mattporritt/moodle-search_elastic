@@ -23,7 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      3.4
  */
-define(['jquery', 'core/fragment', 'core/templates'], function($, Fragment, templates) {
+define(['jquery', 'core/fragment'], function($, Fragment) {
 
     /**
      * Module level variables.
@@ -31,16 +31,19 @@ define(['jquery', 'core/fragment', 'core/templates'], function($, Fragment, temp
     var Enrich = {};
     var contextid;
 
-    function updateSelects() {
+    function updateSelects(event, callupdateform=true) {
         var ischecked = $("[name=fileindexing]").is(':checked');
-        window.console.log(ischecked);
+
         if (ischecked === true) {
             $('[name=imageindexselect]').prop('disabled', false);
             $('[name=fileindexselect]').prop('disabled', false);
         } else {
             $('[name=imageindexselect]').prop('disabled', true).val("0");
             $('[name=fileindexselect]').prop('disabled', true).val("0");
-            updateForm();
+            if (callupdateform===true){
+                updateForm();
+            }
+
         }
     }
 
@@ -53,7 +56,7 @@ define(['jquery', 'core/fragment', 'core/templates'], function($, Fragment, temp
                     $('[name=imageindexselect]').change(updateForm);
                     $('[name=fileindexselect]').change(updateForm);
                     $('[name=fileindexing]').change(updateSelects);
-                    //updateSelects();
+                    updateSelects(false, false);
                     }
                 );
     }

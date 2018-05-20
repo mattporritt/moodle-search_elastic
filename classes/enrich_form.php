@@ -50,13 +50,10 @@ class enrich_form extends \moodleform {
      */
     private function setDefault($element, $default, &$mform, $config) {
         if (isset($this->customdata[$element])) {
-            error_log('a');
             $mform->setDefault($element, $this->customdata[$element]);
         } elseif (isset($config->{$element})) {
-            error_log('b');
             $mform->setDefault($element, $config->{$element});
         } else {
-            error_log('c');
             $mform->setDefault($element, $default);
         }
     }
