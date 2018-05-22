@@ -67,6 +67,14 @@ class enrich_form extends \moodleform {
         $this->customdata = $this->_customdata;
         $mform->setDisableShortforms(); // Shortforms don't work well with the form replacement.
 
+        if (isset($this->customdata['fileindexing'])) {
+            $indexfiles = $this->customdata['fileindexing'];
+        } elseif (isset($config->fileindexing)) {
+            $indexfiles = $config->fileindexing;
+        } else {
+            $indexfiles = 0;
+        }
+
         // File indexing settings.
         // Heading.
         $mform->addElement('header', 'fileindexsettings', get_string('fileindexsettings', 'search_elastic'));
@@ -108,7 +116,7 @@ class enrich_form extends \moodleform {
 
         // Add file processing form elements based on processor selection.
         // TODO: Make this class based or similar. We don't want it conditional when there will be multiple providers.
-        if ($fileprocessor == 1) {
+        if ($fileprocessor == 1 && $indexfiles == 1) {
             $mform->addElement('text', 'tikahostname',  get_string ('tikahostname', 'search_elastic'));
             $mform->setType('tikahostname', PARAM_URL);
             $mform->addHelpButton('tikahostname', 'tikahostname', 'search_elastic');
@@ -151,7 +159,7 @@ class enrich_form extends \moodleform {
 
         // Add image recognition form elements based on processor selection.
         // TODO: Make this class based or similar. We don't want it conditional when there will be multiple providers.
-        if ($imageprocessor == 1) {
+        if ($imageprocessor == 1 && $indexfiles == 1) {
             // AWS Rekognition settings.
             $mform->addElement('text', 'rekkeyid',  get_string ('rekkeyid', 'search_elastic'));
             $mform->setType('rekkeyid', PARAM_TEXT);

@@ -31,6 +31,9 @@ define(['jquery', 'core/fragment'], function($, Fragment) {
     var Enrich = {};
     var contextid;
 
+    /**
+     * @private
+     */
     function updateSelects(event, callupdateform=true) {
         var ischecked = $("[name=fileindexing]").is(':checked');
 
@@ -47,12 +50,15 @@ define(['jquery', 'core/fragment'], function($, Fragment) {
         }
     }
 
+    /**
+     * @private
+     */
     function updateForm() {
         var formData = $('.form_container form').serialize();
         var params = {jsonformdata: JSON.stringify(formData)};
         Fragment.loadFragment('search_elastic', 'new_enrich_form', contextid, params).done(
-                function(foo){
-                    $('.form_container').html(foo);
+                function(formHTML){
+                    $('.form_container').html(formHTML);
                     $('[name=imageindexselect]').change(updateForm);
                     $('[name=fileindexselect]').change(updateForm);
                     $('[name=fileindexing]').change(updateSelects);
@@ -61,6 +67,9 @@ define(['jquery', 'core/fragment'], function($, Fragment) {
                 );
     }
 
+    /**
+     *
+     */
     Enrich.init = function(context) {
      // Save the context ID in a closure variable.
         contextid = context;
@@ -68,7 +77,6 @@ define(['jquery', 'core/fragment'], function($, Fragment) {
         $('[name=fileindexselect]').change(updateForm);
         $('[name=fileindexing]').change(updateSelects);
         updateSelects();
-        $(window).on('beforeunload', function(){});
     };
 
     return Enrich;
