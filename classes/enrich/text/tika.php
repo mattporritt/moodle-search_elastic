@@ -72,6 +72,10 @@ class tika extends base_enrich {
             'application/epub+zip'
     );
 
+    static public function get_step_name() {
+        return get_string('tika', 'search_elastic');
+    }
+
     /**
      * Analyse file and return results.
      *

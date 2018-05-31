@@ -59,6 +59,47 @@ class enrich_form extends \moodleform {
     }
 
     /**
+     * Given an enrichment class type return an array of all the
+     * available class names for that type.
+     *
+     * @param string $type
+     * @return array $classnames Array of enrich classes names.
+     */
+    private function get_enrich_classes($type){
+        $classnames = array();
+        $typedir = __DIR__ . '/enrich/' . $type;
+        $handle = opendir($typedir);
+        while (($file = readdir($handle)) !== false) {
+            preg_match('/\b([^.]*)/', $file, $matches);
+            foreach ($matches as $classname) {
+                $classnames[] = '\search_elastic\enrich\\' . $type . '\\' . $classname;
+            }
+        }
+        closedir($handle);
+        $classnames = array_unique($classnames);
+
+        return $classnames;
+    }
+
+    /**
+     * Given an array of data enrichment classnames return an array of values, and classnames
+     * to be used in the file enrichment form.
+     *
+     * @param array $classnames Array of classnames.
+     * @return array $options Array with classes as key and human readbale names as values.
+     */
+    private function get_enrich_options($classnames){
+        $options = array();
+        foreach($classnames as $classname) {
+            if ($classname != '\search_elastic\enrich\text\plain_text') { // Filter out plain text process as it always applies.
+                $options[$classname] = $classname::get_step_name();
+            }
+        }
+
+        return $options;
+    }
+
+    /**
      * Build form for the general setting admin page for plugin.
      */
     public function definition() {
@@ -97,12 +138,13 @@ class enrich_form extends \moodleform {
         $mform->addElement('html', $desccontent);
 
         // Text extraction processor selection.
-        $fileprocessors = array(
-            0 => get_string('none', 'search_elastic'),
-            1 => get_string('tika', 'search_elastic')
-        );
+        $fileprocessors = array(0 => get_string('none', 'search_elastic'));
+        $classnames = $this->get_enrich_classes('text');
+        $fileprocessors = array_merge($fileprocessors, $this->get_enrich_options($classnames));
+
         $select = $mform->addElement('select', 'fileindexselect', get_string('fileindexselect', 'search_elastic'), $fileprocessors);
         $mform->addHelpButton('fileindexselect', 'fileindexselect', 'search_elastic');
+
         if (isset($this->customdata['fileindexselect'])) {
             $select->setSelected($this->customdata['fileindexselect']);
             $fileprocessor = $this->customdata['fileindexselect'];
@@ -116,6 +158,9 @@ class enrich_form extends \moodleform {
 
         // Add file processing form elements based on processor selection.
         // TODO: Make this class based or similar. We don't want it conditional when there will be multiple providers.
+        if ($fileprocessor != 0 && $indexfiles == 1) {
+            $fileprocessor::form_definition_extra();
+        }
         if ($fileprocessor == 1 && $indexfiles == 1) {
             $mform->addElement('text', 'tikahostname',  get_string ('tikahostname', 'search_elastic'));
             $mform->setType('tikahostname', PARAM_URL);

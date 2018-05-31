@@ -36,6 +36,13 @@ defined('MOODLE_INTERNAL') || die;
 abstract class base_enrich {
 
     /**
+     * Returns the step name.
+     *
+     * @return string human readable step name.
+     */
+    abstract static public function get_step_name();
+
+    /**
      * Array of file mimetypes that enrichment class supports
      * processing of / extracting data from.
      *

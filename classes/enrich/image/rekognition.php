@@ -48,6 +48,10 @@ class rekognition extends base_enrich {
         'image/png'
     );
 
+    static public function get_step_name() {
+        return get_string('aws', 'search_elastic');
+    }
+
     /**
      * Checks if supplied file is can be analyzed by this enrichment class.
      *

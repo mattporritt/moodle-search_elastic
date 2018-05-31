@@ -53,6 +53,10 @@ class plain_text extends base_enrich {
         'text/ecmascript'
     );
 
+    static public function get_step_name() {
+        return '';
+    }
+
     /**
      * Analyse file and return results.
      *
