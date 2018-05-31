@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Document representation.
+ * Extract imformation from image files using AWS Rekognition.
  *
  * @package     search_elastic
  * @copyright   Matt Porritt <mattp@catalyst-au.net>
@@ -29,12 +29,85 @@ use search_elastic\enrich\base\base_enrich;
 defined('MOODLE_INTERNAL') || die;
 
 /**
- * Base data enrichment class.
+ * Extract imformation from image files using AWS Rekognition.
  *
  * @package    search_elastic
  * @copyright  Matt Porritt <mattp@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class rekognition extends base_enrich {
+
+    /**
+     * Array of file mimetypes that enrichment class supports
+     * processing of / extracting data from.
+     *
+     * @var array
+     */
+    protected $acceptedmime = array(
+        'image/jpeg',
+        'image/png'
+    );
+
+    /**
+     * Checks if supplied file is can be analyzed by this enrichment class.
+     *
+     * @param \stored_file $file File to check.
+     * @return boolean
+     */
+    public function can_analyze($file) {
+        // TODO: properly override this for rekognition to check dimensions etc.
+        $mimetype = $file->get_mimetype();
+        $cananalyze = false;
+
+        if (in_array($mimetype, $this->get_accepted_file_types())) {
+            $cananalyze = true;
+        }
+
+        return $cananalyze;
+    }
+
+    /**
+     * Analyse file and return results.
+     *
+     * @param \stored_file $file The image file to analyze.
+     * @return string $imagetext Text of file description labels.
+     */
+    public function analyze_file($file){
+        return '';
+    }
+
+    /**
+     * A callback to add fields to the enrich form, specific to enrichment class.
+     *
+     * @param \moodleform $form
+     * @param \MoodleQuickForm $mform
+     * @param mixed $customdata
+     */
+    public function form_definition_extra($form, $mform, $customdata){
+        $mform->addElement('text', 'rekkeyid',  get_string ('rekkeyid', 'search_elastic'));
+        $mform->setType('rekkeyid', PARAM_TEXT);
+        $mform->addHelpButton('rekkeyid', 'rekkeyid', 'search_elastic');
+        $this->setDefault('rekkeyid', '', $mform, $config);
+
+        $mform->addElement('text', 'reksecretkey',  get_string ('reksecretkey', 'search_elastic'));
+        $mform->setType('reksecretkey', PARAM_TEXT);
+        $mform->addHelpButton('reksecretkey', 'reksecretkey', 'search_elastic');
+        $this->setDefault('reksecretkey', '', $mform, $config);
+
+        $mform->addElement('text', 'rekregion',  get_string ('rekregion', 'search_elastic'));
+        $mform->setType('rekregion', PARAM_TEXT);
+        $mform->addHelpButton('rekregion', 'rekregion', 'search_elastic');
+        $this->setDefault('rekregion', 'us-west-2', $mform, $config);
+
+        $mform->addElement('text', 'maxlabels',  get_string ('maxlabels', 'search_elastic'));
+        $mform->setType('maxlabels', PARAM_INT);
+        $mform->addHelpButton('maxlabels', 'maxlabels', 'search_elastic');
+        $this->setDefault('maxlabels', 10, $mform, $config);
+
+        $mform->addElement('text', 'minconfidence',  get_string ('minconfidence', 'search_elastic'));
+        $mform->setType('minconfidence', PARAM_INT);
+        $mform->addHelpButton('minconfidence', 'minconfidence', 'search_elastic');
+        $this->setDefault('minconfidence', 90, $mform, $config);
+    }
 
 }

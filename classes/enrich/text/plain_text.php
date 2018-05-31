@@ -15,25 +15,29 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Base data enrichment class.
+ * Extract text from plain text files.
  *
  * @package     search_elastic
  * @copyright   Matt Porritt <mattp@catalyst-au.net>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace search_elastic\enrich\base;
+namespace search_elastic\enrich\text;
+
+defined('MOODLE_INTERNAL') || die;
+
+use search_elastic\enrich\base\base_enrich;
 
 defined('MOODLE_INTERNAL') || die;
 
 /**
- * Base data enrichment class.
+ * Extract text from files using Tika.
  *
  * @package    search_elastic
  * @copyright  Matt Porritt <mattp@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class base_enrich {
+class plain_text extends base_enrich {
 
     /**
      * Array of file mimetypes that enrichment class supports
@@ -41,33 +45,13 @@ abstract class base_enrich {
      *
      * @var array
      */
-    protected $acceptedmime = array();
-
-    /**
-     * Returns all accepted file types.
-     *
-     * @return array
-     */
-    public static function get_accepted_file_types() {
-        return $this->acceptedmime;
-    }
-
-    /**
-     * Checks if supplied file is can be analyzed by this enrichment class.
-     *
-     * @param \stored_file $file File to check.
-     * @return boolean
-     */
-    public function can_analyze($file) {
-        $mimetype = $file->get_mimetype();
-        $cananalyze = false;
-
-        if (in_array($mimetype, $this->get_accepted_file_types())) {
-            $cananalyze = true;
-        }
-
-        return $cananalyze;
-    }
+    protected $acceptedmime = array(
+        'text/plain',
+        'text/csv',
+        'text/css',
+        'text/javascript',
+        'text/ecmascript'
+    );
 
     /**
      * Analyse file and return results.
@@ -75,7 +59,10 @@ abstract class base_enrich {
      * @param \stored_file $file The image file to analyze.
      * @return string $imagetext Text of file description labels.
      */
-    abstract public function analyze_file($file);
+    public function analyze_file($file){
+        return '';
+    }
+
 
     /**
      * A callback to add fields to the enrich form, specific to enrichment class.
@@ -84,6 +71,9 @@ abstract class base_enrich {
      * @param \MoodleQuickForm $mform
      * @param mixed $customdata
      */
-    abstract public function form_definition_extra($form, $mform, $customdata);
+    public function form_definition_extra($form, $mform, $customdata){
+        // This is a no-op for this class.
+    }
 
 }
+
