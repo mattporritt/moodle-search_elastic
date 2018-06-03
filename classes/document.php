@@ -96,7 +96,7 @@ class document extends \core_search\document {
     public function __construct($itemid, $componentname, $areaname) {
         parent::__construct($itemid, $componentname, $areaname);
         $this->config = get_config('search_elastic');
-        $this->fileindexing = (bool)$this->config->fileindexing;
+        $this->fileindexing = (isset($this->config->fileindexing) ? (bool)$this->config->fileindexing : false);
     }
 
     /**
@@ -157,6 +157,32 @@ class document extends \core_search\document {
     }
 
     /**
+     * Get the enabled enrichment processors
+     *
+     * @return array $processors
+     */
+    private function get_enrichment_processors() {
+        $processors = array();
+
+        if ($this->fileindexing == true) { // Only look for processors if file indexing is enabled.
+
+            $processors[] = '\search_elastic\enrich\text\plain_text';  // Plain text processing is always enabled.
+
+            // Text extraction processing.
+            if (isset($this->config->fileindexselect) && $this->config->fileindexselect != '') {
+                $processors[] = $this->config->fileindexselect;
+            }
+
+            // Image recognition processing.
+            if (isset($this->config->imageindexselect) && $this->config->imageindexselect != '') {
+                $processors[] = $this->config->imageindexselect;
+            }
+        }
+
+        return $processors;
+    }
+
+    /**
      * Export the data for the given file in relation to this document.
      *
      * @param \stored_file $file The stored file we are talking about.
@@ -166,13 +192,11 @@ class document extends \core_search\document {
         $data = $this->export_for_engine();
         $filetext = '';
 
-        if ($this->fileindexing == true) {
-            $processors = $this->get_enrichment_processors();  // Make a list of enabled enrichment processors.
-            foreach ($processors as $processor) {  // Loop thorugh processors to see if they support this files mimetype.
-                $proc = new $processor($this->config);
-                if ($proc->can_analyze($file)) {  // Sequentially process the file apppending results to $filetext.
-                    $filetext .= $proc->analyze_file($file);
-                }
+        $processors = $this->get_enrichment_processors();  // Make a list of enabled enrichment processors.
+        foreach ($processors as $processor) {  // Loop thorugh processors to see if they support this files mimetype.
+            $proc = new $processor($this->config);
+            if ($proc->can_analyze($file)) {  // Sequentially process the file apppending results to $filetext.
+                $filetext .= $proc->analyze_file($file);
             }
         }
 

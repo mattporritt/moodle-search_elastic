@@ -70,21 +70,7 @@ class engine extends \core_search\engine {
             'hostname' => 'http://127.0.0.1',
             'port' => 9200,
             'index' => 'mooodle',
-            'sendsize' => 9000000,
-            'fileindexing' => 0,
-            'tikahostname' => 'http://127.0.0.1',
-            'tikaport' => 9998,
-            'tikasendsize' => 512000000,
-            'imageindex' => 0,
-            'rekkeyid' => '',
-            'reksecretkey' => '',
-            'rekregion' => 'us-west-2',
-            'maxlabels' => 10,
-            'minconfidence' => 90,
-            'signing' => 0,
-            'signingkeyid' => '',
-            'signingsecretkey' => '',
-            'region' => 'us-west-2'
+            'sendsize' => 9000000
     );
 
     /**

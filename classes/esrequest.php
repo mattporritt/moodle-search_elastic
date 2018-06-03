@@ -55,7 +55,7 @@ class esrequest {
      */
     public function __construct($handler = false) {
         $this->config = get_config('search_elastic');
-        $this->signing = (bool)$this->config->signing;
+        $this->signing = (isset($this->config->signing) ? (bool)$this->config->signing : false);
 
         // Allow the caller to instansite the Guzzle client
         // with a custom handler.
