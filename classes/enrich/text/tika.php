@@ -82,10 +82,9 @@ class tika extends base_enrich {
      * @param \stored_file $file The image file to analyze.
      * @return string $imagetext Text of file description labels.
      */
-    public function analyze_file($file){
+    public function analyze_file($file) {
         return '';
     }
-
 
     /**
      * A callback to add fields to the enrich form, specific to enrichment class.
@@ -94,21 +93,21 @@ class tika extends base_enrich {
      * @param \MoodleQuickForm $mform
      * @param mixed $customdata
      */
-    public function form_definition_extra($form, $mform, $customdata){
+    static public function form_definition_extra($form, $mform, $customdata, $config) {
         $mform->addElement('text', 'tikahostname',  get_string ('tikahostname', 'search_elastic'));
         $mform->setType('tikahostname', PARAM_URL);
         $mform->addHelpButton('tikahostname', 'tikahostname', 'search_elastic');
-        $this->setDefault('tikahostname', 'http://127.0.0.1', $mform, $config);
+        self::setDefault('tikahostname', 'http://127.0.0.1', $mform, $customdata, $config);
 
         $mform->addElement('text', 'tikaport',  get_string ('tikaport', 'search_elastic'));
         $mform->setType('tikaport', PARAM_INT);
         $mform->addHelpButton('tikaport', 'tikaport', 'search_elastic');
-        $this->setDefault('tikaport', 9998, $mform, $config);
+        self::setDefault('tikaport', 9998, $mform, $customdata, $config);
 
         $mform->addElement('text', 'tikasendsize',  get_string ('tikasendsize', 'search_elastic'));
         $mform->setType('tikasendsize', PARAM_ALPHANUMEXT);
         $mform->addHelpButton('tikasendsize', 'tikasendsize', 'search_elastic');
-        $this->setDefault('tikasendsize', 512000000, $mform, $config);
+        self::setDefault('tikasendsize', 512000000, $mform, $customdata, $config);
     }
 
 }

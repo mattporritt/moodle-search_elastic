@@ -76,7 +76,7 @@ class rekognition extends base_enrich {
      * @param \stored_file $file The image file to analyze.
      * @return string $imagetext Text of file description labels.
      */
-    public function analyze_file($file){
+    public function analyze_file($file) {
         return '';
     }
 
@@ -87,31 +87,31 @@ class rekognition extends base_enrich {
      * @param \MoodleQuickForm $mform
      * @param mixed $customdata
      */
-    public function form_definition_extra($form, $mform, $customdata){
+    static public function form_definition_extra($form, $mform, $customdata, $config) {
         $mform->addElement('text', 'rekkeyid',  get_string ('rekkeyid', 'search_elastic'));
         $mform->setType('rekkeyid', PARAM_TEXT);
         $mform->addHelpButton('rekkeyid', 'rekkeyid', 'search_elastic');
-        $this->setDefault('rekkeyid', '', $mform, $config);
+        self::setDefault('rekkeyid', '', $mform, $customdata, $config);
 
         $mform->addElement('text', 'reksecretkey',  get_string ('reksecretkey', 'search_elastic'));
         $mform->setType('reksecretkey', PARAM_TEXT);
         $mform->addHelpButton('reksecretkey', 'reksecretkey', 'search_elastic');
-        $this->setDefault('reksecretkey', '', $mform, $config);
+        self::setDefault('reksecretkey', '', $mform, $customdata, $config);
 
         $mform->addElement('text', 'rekregion',  get_string ('rekregion', 'search_elastic'));
         $mform->setType('rekregion', PARAM_TEXT);
         $mform->addHelpButton('rekregion', 'rekregion', 'search_elastic');
-        $this->setDefault('rekregion', 'us-west-2', $mform, $config);
+        self::setDefault('rekregion', 'us-west-2', $mform, $customdata, $config);
 
         $mform->addElement('text', 'maxlabels',  get_string ('maxlabels', 'search_elastic'));
         $mform->setType('maxlabels', PARAM_INT);
         $mform->addHelpButton('maxlabels', 'maxlabels', 'search_elastic');
-        $this->setDefault('maxlabels', 10, $mform, $config);
+        self::setDefault('maxlabels', 10, $mform, $customdata, $config);
 
         $mform->addElement('text', 'minconfidence',  get_string ('minconfidence', 'search_elastic'));
         $mform->setType('minconfidence', PARAM_INT);
         $mform->addHelpButton('minconfidence', 'minconfidence', 'search_elastic');
-        $this->setDefault('minconfidence', 90, $mform, $config);
+        self::setDefault('minconfidence', 90, $mform, $customdata, $config);
     }
 
 }

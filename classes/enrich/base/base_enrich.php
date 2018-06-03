@@ -90,7 +90,27 @@ abstract class base_enrich {
      * @param \moodleform $form
      * @param \MoodleQuickForm $mform
      * @param mixed $customdata
+     * @param mixed $config
      */
-    abstract public function form_definition_extra($form, $mform, $customdata);
+    abstract static function form_definition_extra($form, $mform, $customdata, $config);
+
+    /**
+     * Form element default set helper method.
+     *
+     * @param mixed $element Element name to set default for.
+     * @param mixed $default Default value to set for element.
+     * @param \moodleform $form Moodle form object.
+     * @param mixed $customdata Customdata passed to the form.
+     * @param mixed $config Search plugin configuration.
+     */
+    static protected function setDefault($element, $default, &$mform, $customdata, $config) {
+        if (isset($customdata[$element])) {
+            $mform->setDefault($element, $customdata[$element]);
+        } elseif (isset($config->{$element})) {
+            $mform->setDefault($element, $config->{$element});
+        } else {
+            $mform->setDefault($element, $default);
+        }
+    }
 
 }

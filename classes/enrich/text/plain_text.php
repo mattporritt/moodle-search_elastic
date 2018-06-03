@@ -63,7 +63,7 @@ class plain_text extends base_enrich {
      * @param \stored_file $file The image file to analyze.
      * @return string $imagetext Text of file description labels.
      */
-    public function analyze_file($file){
+    public function analyze_file($file) {
         return '';
     }
 
@@ -75,7 +75,7 @@ class plain_text extends base_enrich {
      * @param \MoodleQuickForm $mform
      * @param mixed $customdata
      */
-    public function form_definition_extra($form, $mform, $customdata){
+    static public function form_definition_extra($form, $mform, $customdata, $config) {
         // This is a no-op for this class.
     }
 

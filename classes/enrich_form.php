@@ -39,14 +39,19 @@ require_once("$CFG->libdir/formslib.php");
  */
 class enrich_form extends \moodleform {
 
+    /**
+     * @var mixed $customdata Customdata passed to the form.
+     */
     private $customdata;
 
     /**
+     * Form element default set helper method.
      *
-     * @param unknown $element
-     * @param unknown $default
-     * @param unknown $mform
-     * @param unknown $config
+     * @param mixed $element Element name to set default for.
+     * @param mixed $default Default value to set for element.
+     * @param \moodleform $form Moodle form object.
+     * @param mixed $customdata Customdata passed to the form.
+     * @param mixed $config Search plugin configuration.
      */
     private function setDefault($element, $default, &$mform, $config) {
         if (isset($this->customdata[$element])) {
@@ -138,7 +143,7 @@ class enrich_form extends \moodleform {
         $mform->addElement('html', $desccontent);
 
         // Text extraction processor selection.
-        $fileprocessors = array(0 => get_string('none', 'search_elastic'));
+        $fileprocessors = array('' => get_string('none', 'search_elastic'));
         $classnames = $this->get_enrich_classes('text');
         $fileprocessors = array_merge($fileprocessors, $this->get_enrich_options($classnames));
 
@@ -152,30 +157,13 @@ class enrich_form extends \moodleform {
             $select->setSelected($config->fileindexselect);
             $fileprocessor = $config->fileindexselect;
         } else {
-            $select->setSelected(0);
-            $fileprocessor = 0;
+            $select->setSelected('');
+            $fileprocessor = '';
         }
 
         // Add file processing form elements based on processor selection.
-        // TODO: Make this class based or similar. We don't want it conditional when there will be multiple providers.
-        if ($fileprocessor != 0 && $indexfiles == 1) {
-            $fileprocessor::form_definition_extra();
-        }
-        if ($fileprocessor == 1 && $indexfiles == 1) {
-            $mform->addElement('text', 'tikahostname',  get_string ('tikahostname', 'search_elastic'));
-            $mform->setType('tikahostname', PARAM_URL);
-            $mform->addHelpButton('tikahostname', 'tikahostname', 'search_elastic');
-            $this->setDefault('tikahostname', 'http://127.0.0.1', $mform, $config);
-
-            $mform->addElement('text', 'tikaport',  get_string ('tikaport', 'search_elastic'));
-            $mform->setType('tikaport', PARAM_INT);
-            $mform->addHelpButton('tikaport', 'tikaport', 'search_elastic');
-            $this->setDefault('tikaport', 9998, $mform, $config);
-
-            $mform->addElement('text', 'tikasendsize',  get_string ('tikasendsize', 'search_elastic'));
-            $mform->setType('tikasendsize', PARAM_ALPHANUMEXT);
-            $mform->addHelpButton('tikasendsize', 'tikasendsize', 'search_elastic');
-            $this->setDefault('tikasendsize', 512000000, $mform, $config);
+        if ($fileprocessor != '' && $indexfiles == 1) {
+            $fileprocessor::form_definition_extra($this, $this->_form, $this->_customdata, $config);
         }
 
         // Image recognition settings.
@@ -185,12 +173,13 @@ class enrich_form extends \moodleform {
         $mform->addElement('html', $desccontent);
 
         // Image recognition processor selection.
-        $imageprocessors = array(
-            0 => get_string('none', 'search_elastic'),
-            1 => get_string('aws', 'search_elastic')
-        );
+        $imageprocessors = array('' => get_string('none', 'search_elastic'));
+        $classnames = $this->get_enrich_classes('image');
+        $imageprocessors = array_merge($imageprocessors, $this->get_enrich_options($classnames));
+
         $select = $mform->addElement('select', 'imageindexselect', get_string('imageindexselect', 'search_elastic'), $imageprocessors);
         $mform->addHelpButton('imageindexselect', 'imageindexselect', 'search_elastic');
+
         if (isset($this->customdata['imageindexselect'])) {
             $select->setSelected($this->customdata['imageindexselect']);
             $imageprocessor = $this->customdata['imageindexselect'];
@@ -198,38 +187,13 @@ class enrich_form extends \moodleform {
             $select->setSelected($config->imageindexselect);
             $imageprocessor = $config->imageindexselect;
         } else {
-            $select->setSelected(0);
-            $imageprocessor = 0;
+            $select->setSelected('');
+            $imageprocessor = '';
         }
 
         // Add image recognition form elements based on processor selection.
-        // TODO: Make this class based or similar. We don't want it conditional when there will be multiple providers.
-        if ($imageprocessor == 1 && $indexfiles == 1) {
-            // AWS Rekognition settings.
-            $mform->addElement('text', 'rekkeyid',  get_string ('rekkeyid', 'search_elastic'));
-            $mform->setType('rekkeyid', PARAM_TEXT);
-            $mform->addHelpButton('rekkeyid', 'rekkeyid', 'search_elastic');
-            $this->setDefault('rekkeyid', '', $mform, $config);
-
-            $mform->addElement('text', 'reksecretkey',  get_string ('reksecretkey', 'search_elastic'));
-            $mform->setType('reksecretkey', PARAM_TEXT);
-            $mform->addHelpButton('reksecretkey', 'reksecretkey', 'search_elastic');
-            $this->setDefault('reksecretkey', '', $mform, $config);
-
-            $mform->addElement('text', 'rekregion',  get_string ('rekregion', 'search_elastic'));
-            $mform->setType('rekregion', PARAM_TEXT);
-            $mform->addHelpButton('rekregion', 'rekregion', 'search_elastic');
-            $this->setDefault('rekregion', 'us-west-2', $mform, $config);
-
-            $mform->addElement('text', 'maxlabels',  get_string ('maxlabels', 'search_elastic'));
-            $mform->setType('maxlabels', PARAM_INT);
-            $mform->addHelpButton('maxlabels', 'maxlabels', 'search_elastic');
-            $this->setDefault('maxlabels', 10, $mform, $config);
-
-            $mform->addElement('text', 'minconfidence',  get_string ('minconfidence', 'search_elastic'));
-            $mform->setType('minconfidence', PARAM_INT);
-            $mform->addHelpButton('minconfidence', 'minconfidence', 'search_elastic');
-            $this->setDefault('minconfidence', 90, $mform, $config);
+        if ($imageprocessor != '' && $indexfiles == 1) {
+            $imageprocessor::form_definition_extra($this, $this->_form, $this->_customdata, $config);
         }
 
         $this->add_action_buttons();
