@@ -53,6 +53,11 @@ class plain_text extends base_enrich {
         'text/ecmascript'
     );
 
+    /**
+     * Returns the step name.
+     *
+     * @return string human readable step name.
+     */
     static public function get_step_name() {
         return '';
     }
@@ -64,7 +69,9 @@ class plain_text extends base_enrich {
      * @return string $imagetext Text of file description labels.
      */
     public function analyze_file($file) {
-        return '';
+        $filetext = $file->get_content();
+
+        return $filetext;
     }
 
 
@@ -74,6 +81,7 @@ class plain_text extends base_enrich {
      * @param \moodleform $form
      * @param \MoodleQuickForm $mform
      * @param mixed $customdata
+     * @param mixed $config
      */
     static public function form_definition_extra($form, $mform, $customdata, $config) {
         // This is a no-op for this class.

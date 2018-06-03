@@ -28,6 +28,8 @@ use search_elastic\enrich\base\base_enrich;
 
 defined('MOODLE_INTERNAL') || die;
 
+require($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
+
 /**
  * Extract imformation from image files using AWS Rekognition.
  *
@@ -43,11 +45,31 @@ class rekognition extends base_enrich {
      *
      * @var array
      */
-    protected $acceptedmime = array(
+    protected static $acceptedmime = array(
         'image/jpeg',
         'image/png'
     );
 
+    /**
+     * The constructor for the class, will be overwritten in most cases.
+     *
+     * @param mixed $config Search plugin configuration.
+     */
+    public function __construct($config) {
+        $this->config = $config;
+        $this->rekregion = $this->config->rekregion;
+        $this->rekkey = $this->config->rekkeyid;
+        $this->reksecret = $this->config->reksecretkey;
+        $this->maxlabels = $this->config->maxlabels;
+        $this->minconfidence = $this->config->minconfidence;
+    }
+
+
+    /**
+     * Returns the step name.
+     *
+     * @return string human readable step name.
+     */
     static public function get_step_name() {
         return get_string('aws', 'search_elastic');
     }
@@ -71,13 +93,66 @@ class rekognition extends base_enrich {
     }
 
     /**
+     * Create AWS Rekognition client.
+     *
+     * @return client $rekclient Rekognition client.
+     */
+    public function get_rekognition_client() {
+        $rekclient = new \Aws\Rekognition\RekognitionClient([
+            'version' => 'latest',
+            'region'  => $this->rekregion,
+            'credentials' => [
+                'key'    => $this->rekkey,
+                'secret' => $this->reksecret
+            ]
+        ]);
+        return $rekclient;
+    }
+
+    /**
      * Analyse file and return results.
      *
      * @param \stored_file $file The image file to analyze.
      * @return string $imagetext Text of file description labels.
      */
     public function analyze_file($file) {
-        return '';
+        $imageinfo = $file->get_imageinfo();
+        $imagetext = '';
+        $cananalyze = false;
+        $acceptedtypes = $this->get_accepted_image_types();
+        $imagemime = $imageinfo['mimetype'];
+        $filesize = $file->get_filesize();
+
+        // Check if we can analyze this type of file.
+        if ($imageinfo['height'] >= 80 &&
+            $imageinfo['width'] >= 80 &&
+            $filesize <= 5000000
+            ) {
+                $cananalyze = true;
+        }
+
+        if ($cananalyze) {
+            // Send image to AWS Rekognition for analysis.
+            $client = $this->get_rekognition_client();
+            $result = $client->detectLabels(array(
+                'Image' => array(
+                    'Bytes' => $file->get_content(),
+                ),
+                'Attributes' => array('ALL'),
+                'MaxLabels' => (int)$this->maxlabels,
+                'MinConfidence' => (float)$this->minconfidence
+            ));
+
+            // Process the results from AWS Rekognition service
+            // and extra result labels.
+            $labelarray = array ();
+            foreach ($result['Labels'] as $label) {
+                $labelarray[] = $label['Name'];
+            }
+            $imagetext = implode(', ', $labelarray);
+        }
+
+        return $imagetext;
     }
 
     /**
@@ -86,32 +161,33 @@ class rekognition extends base_enrich {
      * @param \moodleform $form
      * @param \MoodleQuickForm $mform
      * @param mixed $customdata
+     * @param mixed $config
      */
     static public function form_definition_extra($form, $mform, $customdata, $config) {
         $mform->addElement('text', 'rekkeyid',  get_string ('rekkeyid', 'search_elastic'));
         $mform->setType('rekkeyid', PARAM_TEXT);
         $mform->addHelpButton('rekkeyid', 'rekkeyid', 'search_elastic');
-        self::setDefault('rekkeyid', '', $mform, $customdata, $config);
+        self::set_default('rekkeyid', '', $mform, $customdata, $config);
 
         $mform->addElement('text', 'reksecretkey',  get_string ('reksecretkey', 'search_elastic'));
         $mform->setType('reksecretkey', PARAM_TEXT);
         $mform->addHelpButton('reksecretkey', 'reksecretkey', 'search_elastic');
-        self::setDefault('reksecretkey', '', $mform, $customdata, $config);
+        self::set_default('reksecretkey', '', $mform, $customdata, $config);
 
         $mform->addElement('text', 'rekregion',  get_string ('rekregion', 'search_elastic'));
         $mform->setType('rekregion', PARAM_TEXT);
         $mform->addHelpButton('rekregion', 'rekregion', 'search_elastic');
-        self::setDefault('rekregion', 'us-west-2', $mform, $customdata, $config);
+        self::set_default('rekregion', 'us-west-2', $mform, $customdata, $config);
 
         $mform->addElement('text', 'maxlabels',  get_string ('maxlabels', 'search_elastic'));
         $mform->setType('maxlabels', PARAM_INT);
         $mform->addHelpButton('maxlabels', 'maxlabels', 'search_elastic');
-        self::setDefault('maxlabels', 10, $mform, $customdata, $config);
+        self::set_default('maxlabels', 10, $mform, $customdata, $config);
 
         $mform->addElement('text', 'minconfidence',  get_string ('minconfidence', 'search_elastic'));
         $mform->setType('minconfidence', PARAM_INT);
         $mform->addHelpButton('minconfidence', 'minconfidence', 'search_elastic');
-        self::setDefault('minconfidence', 90, $mform, $customdata, $config);
+        self::set_default('minconfidence', 90, $mform, $customdata, $config);
     }
 
 }

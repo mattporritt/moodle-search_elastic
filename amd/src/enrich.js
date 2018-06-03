@@ -34,7 +34,8 @@ define(['jquery', 'core/fragment'], function($, Fragment) {
     /**
      * @private
      */
-    function updateSelects(event, callupdateform=true) {
+    function updateSelects(event, callupdateform) {
+        callupdateform = (typeof callupdateform !== 'undefined') ? callupdateform : true;
         var ischecked = $("[name=fileindexing]").is(':checked');
 
         if (ischecked === true) {
@@ -43,7 +44,7 @@ define(['jquery', 'core/fragment'], function($, Fragment) {
         } else {
             $('[name=imageindexselect]').prop('disabled', true).val("0");
             $('[name=fileindexselect]').prop('disabled', true).val("0");
-            if (callupdateform===true){
+            if (callupdateform === true){
                 updateForm();
             }
 
@@ -63,16 +64,14 @@ define(['jquery', 'core/fragment'], function($, Fragment) {
                     $('[name=fileindexselect]').change(updateForm);
                     $('[name=fileindexing]').change(updateSelects);
                     updateSelects(false, false);
-                    }
-                );
+                });
     }
 
     /**
      *
      */
     Enrich.init = function(context) {
-     // Save the context ID in a closure variable.
-        contextid = context;
+        contextid = context;  // Save the context ID in a closure variable.
         $('[name=imageindexselect]').change(updateForm);
         $('[name=fileindexselect]').change(updateForm);
         $('[name=fileindexing]').change(updateSelects);

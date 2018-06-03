@@ -36,6 +36,15 @@ defined('MOODLE_INTERNAL') || die;
 abstract class base_enrich {
 
     /**
+     * The constructor for the class, will be overwritten in most cases.
+     *
+     * @param mixed $config Search plugin configuration.
+     */
+    public function __construct($config) {
+        $this->config = $config;
+    }
+
+    /**
      * Returns the step name.
      *
      * @return string human readable step name.
@@ -48,7 +57,7 @@ abstract class base_enrich {
      *
      * @var array
      */
-    protected $acceptedmime = array();
+    protected static $acceptedmime = array();
 
     /**
      * Returns all accepted file types.
@@ -56,7 +65,7 @@ abstract class base_enrich {
      * @return array
      */
     public static function get_accepted_file_types() {
-        return $this->acceptedmime;
+        return self::acceptedmime;
     }
 
     /**
@@ -92,21 +101,21 @@ abstract class base_enrich {
      * @param mixed $customdata
      * @param mixed $config
      */
-    abstract static function form_definition_extra($form, $mform, $customdata, $config);
+    abstract public static function form_definition_extra($form, $mform, $customdata, $config);
 
     /**
      * Form element default set helper method.
      *
      * @param mixed $element Element name to set default for.
      * @param mixed $default Default value to set for element.
-     * @param \moodleform $form Moodle form object.
+     * @param \moodleform $mform Moodle form object.
      * @param mixed $customdata Customdata passed to the form.
      * @param mixed $config Search plugin configuration.
      */
-    static protected function setDefault($element, $default, &$mform, $customdata, $config) {
+    static protected function set_default($element, $default, &$mform, $customdata, $config) {
         if (isset($customdata[$element])) {
             $mform->setDefault($element, $customdata[$element]);
-        } elseif (isset($config->{$element})) {
+        } else if (isset($config->{$element})) {
             $mform->setDefault($element, $config->{$element});
         } else {
             $mform->setDefault($element, $default);

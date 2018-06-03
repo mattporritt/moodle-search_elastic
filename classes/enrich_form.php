@@ -49,14 +49,13 @@ class enrich_form extends \moodleform {
      *
      * @param mixed $element Element name to set default for.
      * @param mixed $default Default value to set for element.
-     * @param \moodleform $form Moodle form object.
-     * @param mixed $customdata Customdata passed to the form.
+     * @param \moodleform $mform Moodle form object.
      * @param mixed $config Search plugin configuration.
      */
-    private function setDefault($element, $default, &$mform, $config) {
+    private function set_default($element, $default, &$mform, $config) {
         if (isset($this->customdata[$element])) {
             $mform->setDefault($element, $this->customdata[$element]);
-        } elseif (isset($config->{$element})) {
+        } else if (isset($config->{$element})) {
             $mform->setDefault($element, $config->{$element});
         } else {
             $mform->setDefault($element, $default);
@@ -70,7 +69,7 @@ class enrich_form extends \moodleform {
      * @param string $type
      * @return array $classnames Array of enrich classes names.
      */
-    private function get_enrich_classes($type){
+    private function get_enrich_classes($type) {
         $classnames = array();
         $typedir = __DIR__ . '/enrich/' . $type;
         $handle = opendir($typedir);
@@ -93,9 +92,9 @@ class enrich_form extends \moodleform {
      * @param array $classnames Array of classnames.
      * @return array $options Array with classes as key and human readbale names as values.
      */
-    private function get_enrich_options($classnames){
+    private function get_enrich_options($classnames) {
         $options = array();
-        foreach($classnames as $classname) {
+        foreach ($classnames as $classname) {
             if ($classname != '\search_elastic\enrich\text\plain_text') { // Filter out plain text process as it always applies.
                 $options[$classname] = $classname::get_step_name();
             }
@@ -115,7 +114,7 @@ class enrich_form extends \moodleform {
 
         if (isset($this->customdata['fileindexing'])) {
             $indexfiles = $this->customdata['fileindexing'];
-        } elseif (isset($config->fileindexing)) {
+        } else if (isset($config->fileindexing)) {
             $indexfiles = $config->fileindexing;
         } else {
             $indexfiles = 0;
@@ -134,7 +133,7 @@ class enrich_form extends \moodleform {
                 'Enable', array(), array(0, 1));
         $mform->setType('fileindexing', PARAM_INT);
         $mform->addHelpButton('fileindexing', 'fileindexing', 'search_elastic');
-        $this->setDefault('fileindexing', 0, $mform, $config);
+        $this->set_default('fileindexing', 0, $mform, $config);
 
         // Text extraction settings.
         // Heading.
@@ -153,7 +152,7 @@ class enrich_form extends \moodleform {
         if (isset($this->customdata['fileindexselect'])) {
             $select->setSelected($this->customdata['fileindexselect']);
             $fileprocessor = $this->customdata['fileindexselect'];
-        } elseif (isset($config->fileindexselect)) {
+        } else if (isset($config->fileindexselect)) {
             $select->setSelected($config->fileindexselect);
             $fileprocessor = $config->fileindexselect;
         } else {
@@ -177,13 +176,14 @@ class enrich_form extends \moodleform {
         $classnames = $this->get_enrich_classes('image');
         $imageprocessors = array_merge($imageprocessors, $this->get_enrich_options($classnames));
 
-        $select = $mform->addElement('select', 'imageindexselect', get_string('imageindexselect', 'search_elastic'), $imageprocessors);
+        $select = $mform->addElement('select', 'imageindexselect',
+            get_string('imageindexselect', 'search_elastic'), $imageprocessors);
         $mform->addHelpButton('imageindexselect', 'imageindexselect', 'search_elastic');
 
         if (isset($this->customdata['imageindexselect'])) {
             $select->setSelected($this->customdata['imageindexselect']);
             $imageprocessor = $this->customdata['imageindexselect'];
-        } elseif (isset($config->imageindexselect)) {
+        } else if (isset($config->imageindexselect)) {
             $select->setSelected($config->imageindexselect);
             $imageprocessor = $config->imageindexselect;
         } else {

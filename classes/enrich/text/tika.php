@@ -45,7 +45,7 @@ class tika extends base_enrich {
      *
      * @var array
      */
-    protected $acceptedmime = array(
+    protected static $acceptedmime = array(
             'application/pdf',
             'text/html',
             'application/msword',
@@ -72,18 +72,66 @@ class tika extends base_enrich {
             'application/epub+zip'
     );
 
+    /**
+     * The constructor for the class, will be overwritten in most cases.
+     *
+     * @param mixed $config Search plugin configuration.
+     */
+    public function __construct($config) {
+        $this->config = $config;
+        $this->tikaport = $this->config->tikaport;
+        $this->tikahostname = rtrim($this->config->tikahostname, "/");
+    }
+
+    /**
+     * Returns the step name.
+     *
+     * @return string human readable step name.
+     */
     static public function get_step_name() {
         return get_string('tika', 'search_elastic');
+    }
+
+    /**
+     * Use tika to extract text from file.
+     *
+     * @param file $file
+     * @param esrequest\client $client client
+     * @return string|boolean
+     */
+    public function extract_text($file, $client) {
+        // TODO: add timeout and retries for tika.
+        $extractedtext = '';
+        $port = $this->tikaport;
+        $hostname = $this->tikahostname;
+        $url = $hostname . ':'. $port . '/tika/form';
+        $filesize = $file->get_filesize();
+
+        if ($filesize <= $this->config->tikasendsize) {
+            $response = $client->postfile($url, $file);
+
+            if ($response->getStatusCode() == 200) {
+                $extractedtext = (string) $response->getBody();
+            }
+        }
+
+        return $extractedtext;
+
     }
 
     /**
      * Analyse file and return results.
      *
      * @param \stored_file $file The image file to analyze.
-     * @return string $imagetext Text of file description labels.
+     * @return string $filetext Text of file description labels.
      */
     public function analyze_file($file) {
-        return '';
+        $filetext = '';
+
+        $client = new \search_elastic\esrequest();
+        $filetext = $this->extract_text($file, $client);
+
+        return $filetext;
     }
 
     /**
@@ -92,22 +140,23 @@ class tika extends base_enrich {
      * @param \moodleform $form
      * @param \MoodleQuickForm $mform
      * @param mixed $customdata
+     * @param mixed $config
      */
     static public function form_definition_extra($form, $mform, $customdata, $config) {
         $mform->addElement('text', 'tikahostname',  get_string ('tikahostname', 'search_elastic'));
         $mform->setType('tikahostname', PARAM_URL);
         $mform->addHelpButton('tikahostname', 'tikahostname', 'search_elastic');
-        self::setDefault('tikahostname', 'http://127.0.0.1', $mform, $customdata, $config);
+        self::set_default('tikahostname', 'http://127.0.0.1', $mform, $customdata, $config);
 
         $mform->addElement('text', 'tikaport',  get_string ('tikaport', 'search_elastic'));
         $mform->setType('tikaport', PARAM_INT);
         $mform->addHelpButton('tikaport', 'tikaport', 'search_elastic');
-        self::setDefault('tikaport', 9998, $mform, $customdata, $config);
+        self::set_default('tikaport', 9998, $mform, $customdata, $config);
 
         $mform->addElement('text', 'tikasendsize',  get_string ('tikasendsize', 'search_elastic'));
         $mform->setType('tikasendsize', PARAM_ALPHANUMEXT);
         $mform->addHelpButton('tikasendsize', 'tikasendsize', 'search_elastic');
-        self::setDefault('tikasendsize', 512000000, $mform, $customdata, $config);
+        self::set_default('tikasendsize', 512000000, $mform, $customdata, $config);
     }
 
 }
