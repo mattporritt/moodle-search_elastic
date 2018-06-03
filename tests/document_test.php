@@ -126,6 +126,61 @@ class search_elastic_document_testcase extends advanced_testcase {
     }
 
     /**
+     * Test texport file for engine with no text extraction.
+     */
+    public function test_export_file_for_engine() {
+        global $CFG;
+
+        // Create file to analyze.
+        $fs = get_file_storage();
+        $filerecord = array(
+            'contextid' => 1,
+            'component' => 'mod_test',
+            'filearea' => 'search',
+            'itemid' => 0,
+            'filepath' => '/',
+            'filename' => 'testfile.txt');
+        $content = 'All the news that\'s fit to print';
+        $file = $fs->create_file_from_string($filerecord, $content);
+
+        // Construct the search object.
+        $rec = new \stdClass();
+        $rec->content = "elastic";
+        $area = new core_mocksearch\search\mock_search_area();
+        $record = $this->generator->create_record($rec);
+        $info = unserialize($record->info);
+
+        // Mock out thw AWS Rekognition client and response.
+        // Add missing data to stub record object.
+        $builder = $this->getMockBuilder('\search_elastic\document');
+        $builder->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'));
+        $stub = $builder->getMock();
+
+        $stub->set('title', $info->title);
+        $stub->set('content', $info->content);
+        $stub->set('description1', $info->description1);
+        $stub->set('description1', $info->description2);
+        $stub->set('contextid', $info->contextid);
+        $stub->set('courseid', $info->courseid);
+        $stub->set('userid', $info->userid);
+        $stub->set('owneruserid', $info->owneruserid);
+        $stub->set('modified', $record->timemodified);
+
+        $data = $stub->export_file_for_engine($file);
+
+        error_log(print_r($data,true));
+
+        $this->assertEquals('', $data['id']);
+        $this->assertEquals('', $data['parentid']);
+        $this->assertEquals('', $data['type']);
+        $this->assertEquals('', $data['title']);
+        $this->assertEquals('', $data['modified']);
+        $this->assertEquals('', $data['filetext']);
+        $this->assertEquals('', $data['filecontenthash']);
+
+    }
+
+    /**
      * Test text file extraction
      */
     public function test_export_text_file_for_engine() {
