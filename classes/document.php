@@ -272,22 +272,4 @@ class document extends \core_search\document {
     public static function get_required_fields_definition() {
         return static::$requiredfields;
     }
-
-    /**
-     * Returns all accepted text file types.
-     *
-     * @return array
-     */
-    public static function get_accepted_text_types() {
-        return self::$acceptedtext;
-    }
-
-    /**
-     * Returns all accepted text file types.
-     *
-     * @return array
-     */
-    public static function get_accepted_image_types() {
-        return self::$acceptedimages;
-    }
 }

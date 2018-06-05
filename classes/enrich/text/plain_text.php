@@ -45,7 +45,7 @@ class plain_text extends base_enrich {
      *
      * @var array
      */
-    protected $acceptedmime = array(
+    protected static $acceptedmime = array(
         'text/plain',
         'text/csv',
         'text/css',
