@@ -23,6 +23,8 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+global $CFG;
+require($CFG->dirroot . '/search/engine/elastic/classes/enrich/text/plain_text.php');
 
 /**
  * Elastic search engine enrichment text plain unit tests.
