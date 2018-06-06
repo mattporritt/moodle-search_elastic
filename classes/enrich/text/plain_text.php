@@ -24,8 +24,6 @@
 
 namespace search_elastic\enrich\text;
 
-defined('MOODLE_INTERNAL') || die;
-
 use search_elastic\enrich\base\base_enrich;
 
 defined('MOODLE_INTERNAL') || die;

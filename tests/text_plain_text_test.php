@@ -24,8 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG;
-
 /**
  * Elastic search engine enrichment text plain unit tests.
  *
