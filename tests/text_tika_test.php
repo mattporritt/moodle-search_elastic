@@ -42,8 +42,8 @@ use \GuzzleHttp\Psr7\Response;
 class search_elastic_text_tika_testcase extends advanced_testcase {
 
      /**
-     * Test binary text file extraction request
-     */
+      * Test binary text file extraction request
+      */
     public function test_export_text_tika() {
         $this->resetAfterTest();
         global $CFG;

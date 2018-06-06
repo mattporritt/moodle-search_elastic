@@ -57,15 +57,15 @@ abstract class base_enrich {
      *
      * @var array
      */
-    protected static $acceptedmime = array();
+    protected $acceptedmime = array();
 
     /**
      * Returns all accepted file types.
      *
      * @return array
      */
-    public static function get_accepted_file_types() {
-        return self::acceptedmime;
+    public function get_accepted_file_types() {
+        return $this->acceptedmime;
     }
 
     /**
@@ -77,6 +77,7 @@ abstract class base_enrich {
     public function can_analyze($file) {
         $mimetype = $file->get_mimetype();
         $cananalyze = false;
+        $acceptedmimes = $this->get_accepted_file_types();
 
         if (in_array($mimetype, $this->get_accepted_file_types())) {
             $cananalyze = true;

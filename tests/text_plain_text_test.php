@@ -42,8 +42,8 @@ use \GuzzleHttp\Psr7\Response;
  */
 class search_elastic_text_plain_text_testcase extends advanced_testcase {
 
-     /**
-     * Test binary text file extraction request
+    /**
+     * Test binary text file extraction request.
      */
     public function test_export_text_plain_text() {
         $this->resetAfterTest();

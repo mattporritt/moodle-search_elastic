@@ -45,7 +45,7 @@ class rekognition extends base_enrich {
      *
      * @var array
      */
-    protected static $acceptedmime = array(
+    protected $acceptedmime = array(
         'image/jpeg',
         'image/png'
     );
@@ -72,24 +72,6 @@ class rekognition extends base_enrich {
      */
     static public function get_step_name() {
         return get_string('aws', 'search_elastic');
-    }
-
-    /**
-     * Checks if supplied file is can be analyzed by this enrichment class.
-     *
-     * @param \stored_file $file File to check.
-     * @return boolean
-     */
-    public function can_analyze($file) {
-        // TODO: properly override this for rekognition to check dimensions etc.
-        $mimetype = $file->get_mimetype();
-        $cananalyze = false;
-
-        if (in_array($mimetype, $this->get_accepted_file_types())) {
-            $cananalyze = true;
-        }
-
-        return $cananalyze;
     }
 
     /**
