@@ -49,7 +49,9 @@ abstract class base_enrich {
      *
      * @return string human readable step name.
      */
-    abstract static public function get_step_name();
+    static public function get_enrich_name(){
+        return '';
+    }
 
     /**
      * Array of file mimetypes that enrichment class supports
@@ -102,7 +104,9 @@ abstract class base_enrich {
      * @param mixed $customdata
      * @param mixed $config
      */
-    abstract public static function form_definition_extra($form, $mform, $customdata, $config);
+    public static function form_definition_extra($form, $mform, $customdata, $config){
+
+    }
 
     /**
      * Form element default set helper method.

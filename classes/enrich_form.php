@@ -96,7 +96,7 @@ class enrich_form extends \moodleform {
         $options = array();
         foreach ($classnames as $classname) {
             if ($classname != '\search_elastic\enrich\text\plain_text') { // Filter out plain text process as it always applies.
-                $options[$classname] = $classname::get_step_name();
+                $options[$classname] = $classname::get_enrich_name();
             }
         }
 

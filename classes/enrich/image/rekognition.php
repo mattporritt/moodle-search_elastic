@@ -70,7 +70,7 @@ class rekognition extends base_enrich {
      *
      * @return string human readable step name.
      */
-    static public function get_step_name() {
+    static public function get_enrich_name() {
         return get_string('aws', 'search_elastic');
     }
 

@@ -86,7 +86,7 @@ class tika extends base_enrich {
      *
      * @return string human readable step name.
      */
-    static public function get_step_name() {
+    static public function get_enrich_name() {
         return get_string('tika', 'search_elastic');
     }
 
