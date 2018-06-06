@@ -26,13 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 
-
-use \GuzzleHttp\Handler\MockHandler;
-use \GuzzleHttp\HandlerStack;
-use \GuzzleHttp\Middleware;
-use \GuzzleHttp\Psr7\Response;
-
-
 /**
  * Elastic search engine enrichment text plain unit tests.
  *
@@ -48,10 +41,6 @@ class search_elastic_text_plain_text_testcase extends advanced_testcase {
     public function test_export_text_plain_text() {
         $this->resetAfterTest();
         global $CFG;
-        set_config('tikahostname', 'http://127.0.0.1', 'search_elastic');
-        set_config('tikaport', 9998, 'search_elastic');
-        set_config('tikasendsize', 512000000, 'search_elastic');
-
         $config = get_config('search_elastic');
 
         // Create file to analyze.
@@ -62,27 +51,13 @@ class search_elastic_text_plain_text_testcase extends advanced_testcase {
                 'filearea' => 'search',
                 'itemid' => 0,
                 'filepath' => '/',
-                'filename' => 'testfile.pdf');
+                'filename' => 'testfile.txt');
         $content = 'All the news that\'s fit to print';
         $file = $fs->create_file_from_string($filerecord, $content);
 
-        // Create es request client with mocked stack.
-        $container = [];
-        $history = Middleware::history($container);
+        $plaintext = new \search_elastic\enrich\text\plain_text($config);
 
-        // Create a mock and queue two responses.
-        $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'], $content)
-        ]);
-
-        $stack = HandlerStack::create($mock);
-        // Add the history middleware to the handler stack.
-        $stack->push($history);
-
-        $esclient = new \search_elastic\esrequest($stack);
-        $tika = new \search_elastic\enrich\text\plain_text($config);
-
-        $result = $tika->extract_text($file, $esclient);
+        $result = $plaintext->analyze_file($file);
         $this->assertEquals($content, $result);
     }
 
