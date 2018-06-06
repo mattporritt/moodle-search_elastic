@@ -49,7 +49,7 @@ abstract class base_enrich {
      *
      * @return string human readable step name.
      */
-    static public function get_enrich_name(){
+    static public function get_enrich_name() {
         return '';
     }
 
@@ -104,7 +104,7 @@ abstract class base_enrich {
      * @param mixed $customdata
      * @param mixed $config
      */
-    public static function form_definition_extra($form, $mform, $customdata, $config){
+    public static function form_definition_extra($form, $mform, $customdata, $config) {
 
     }
 

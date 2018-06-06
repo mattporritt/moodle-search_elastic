@@ -40,8 +40,9 @@ class search_elastic_enrich_form_testcase extends advanced_testcase {
      */
     public function test_get_enrich_classes() {
         $expected = array(
+            '\search_elastic\enrich\text\tika',
                 '\search_elastic\enrich\text\plain_text',
-                '\search_elastic\enrich\text\tika'
+
         );
 
         $builder = $this->getMockBuilder('\search_elastic\enrich_form');
@@ -53,7 +54,9 @@ class search_elastic_enrich_form_testcase extends advanced_testcase {
         $method->setAccessible(true); // Allow accessing of private method.
         $proxy = $method->invoke($stub, 'text'); // Get result of invoked method.
 
-        $this->assertEquals($expected, array_values($proxy));
+        $result = array_diff($expected, $proxy);
+
+        $this->assertEmpty($result);
     }
 
     /**
