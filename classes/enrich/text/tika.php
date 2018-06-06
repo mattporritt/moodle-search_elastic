@@ -45,7 +45,7 @@ class tika extends base_enrich {
      *
      * @var array
      */
-    protected static $acceptedmime = array(
+    protected $acceptedmime = array(
             'application/pdf',
             'text/html',
             'application/msword',

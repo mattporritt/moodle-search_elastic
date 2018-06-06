@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
+require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/aws_rekognition.php');
 
 /**
  * Elastic search engine enrichment image rekognition unit tests.
@@ -39,8 +40,14 @@ class search_elastic_image_recognition_testcase extends advanced_testcase {
      * Test image with AWS rekgonition
      */
     public function test_export_image_file_for_engine() {
+        $this->resetAfterTest();
         global $CFG;
-        set_config('imageindex', 1, 'search_elastic');
+        $config = new \stdClass();
+        $config->rekregion = 'us-west-2';
+        $config->rekkeyid = '12345';
+        $config->reksecretkey = 'dfadfdf';
+        $config->maxlabels = '1';
+        $config->minconfidence = '90';
 
         // Create file to analyze.
         $fs = get_file_storage();
@@ -54,36 +61,18 @@ class search_elastic_image_recognition_testcase extends advanced_testcase {
         $fileurl = $CFG->dirroot . '/search/engine/elastic/tests/pix/black.png';
         $file = $fs->create_file_from_pathname($filerecord, $fileurl);
 
-        // Construct the search object.
-        $rec = new \stdClass();
-        $rec->content = "elastic";
-        $area = new core_mocksearch\search\mock_search_area();
-        $record = $this->generator->create_record($rec);
-        $info = unserialize($record->info);
-
         // Mock out thw AWS Rekognition client and response.
         // Add missing data to stub record object.
-
-        $builder = $this->getMockBuilder('\search_elastic\document');
+        $builder = $this->getMockBuilder('\search_elastic\enrich\image\rekognition');
         $builder->setMethods(array('get_rekognition_client'));
-        $builder->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'));
+        $builder->setConstructorArgs(array($config));
         $stub = $builder->getMock();
-
-        $stub->set('title', $info->title);
-        $stub->set('content', $info->content);
-        $stub->set('description1', $info->description1);
-        $stub->set('description1', $info->description2);
-        $stub->set('contextid', $info->contextid);
-        $stub->set('courseid', $info->courseid);
-        $stub->set('userid', $info->userid);
-        $stub->set('owneruserid', $info->owneruserid);
-        $stub->set('modified', $record->timemodified);
 
         $rekognition = new MockRekognition;
         $stub->method('get_rekognition_client')->willReturn($rekognition);
 
-        $filearray = $stub->export_file_for_engine($file);
-        $this->assertEquals('black', $filearray['filetext']);
+        $filetext = $stub->analyze_file($file);
+        $this->assertEquals('black', $filetext);
     }
 
 }

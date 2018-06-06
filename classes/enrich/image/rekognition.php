@@ -101,8 +101,6 @@ class rekognition extends base_enrich {
         $imageinfo = $file->get_imageinfo();
         $imagetext = '';
         $cananalyze = false;
-        $acceptedtypes = $this->get_accepted_image_types();
-        $imagemime = $imageinfo['mimetype'];
         $filesize = $file->get_filesize();
 
         // Check if we can analyze this type of file.

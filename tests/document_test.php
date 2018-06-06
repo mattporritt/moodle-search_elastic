@@ -36,20 +36,6 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/aws_rekognit
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class search_elastic_document_testcase extends advanced_testcase {
-    /**
-     * @var \core_search::manager
-     */
-    protected $search = null;
-
-    /**
-     * @var Instace of core_search_generator.
-     */
-    protected $generator = null;
-
-    /**
-     * @var Instace of testable_engine.
-     */
-    protected $engine = null;
 
     public function setUp() {
         $this->resetAfterTest();
@@ -149,8 +135,7 @@ class search_elastic_document_testcase extends advanced_testcase {
         $record = $this->generator->create_record($rec);
         $info = unserialize($record->info);
 
-        // Mock out thw AWS Rekognition client and response.
-        // Add missing data to stub record object.
+        // Mock out and add missing data to stub record object.
         $builder = $this->getMockBuilder('\search_elastic\document');
         $builder->setMethods(array('_'));
         $builder->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'));
@@ -201,8 +186,7 @@ class search_elastic_document_testcase extends advanced_testcase {
         $record = $this->generator->create_record($rec);
         $info = unserialize($record->info);
 
-        // Mock out thw AWS Rekognition client and response.
-        // Add missing data to stub record object.
+        // Mock out and add missing data to stub record object.
         $builder = $this->getMockBuilder('\search_elastic\document');
         $builder->setMethods(array('_'));
         $builder->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'));
