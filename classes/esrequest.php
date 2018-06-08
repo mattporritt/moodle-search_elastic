@@ -170,7 +170,7 @@ class esrequest {
             $response = $e->getResponse();
         } catch (\GuzzleHttp\Exception\GuzzleException $e) {
             // This case does not provide a response object with a consistent interface so we need to make one.
-            $response = new \search_azure\guzzle_exception();
+            $response = new \search_elastic\guzzle_exception();
         }
 
         return $response;
