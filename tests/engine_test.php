@@ -30,6 +30,10 @@ require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_engine.php');
 
+use \GuzzleHttp\Handler\MockHandler;
+use \GuzzleHttp\HandlerStack;
+use \GuzzleHttp\Psr7\Response;
+
 /**
  * Elasticsearch engine.
  *
@@ -118,23 +122,49 @@ class search_elastic_engine_testcase extends advanced_testcase {
     }
 
     /**
-     * Basic ready state test,
-     * mostly for sanity checking
+     * Test check if Elasticsearch server is ready.
      */
-    public function test_connection() {
-        $this->assertTrue($this->engine->is_server_ready());
+    public function test_is_server_ready() {
+        // Create a mock stack and queue a response.
+        $container = [];
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'])
+        ]);
+
+        $stack = HandlerStack::create($mock);
+
+        // Reflection magic as we are directly testing a private method.
+        $method = new ReflectionMethod('\search_elastic\engine', 'is_server_ready');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new \search_elastic\engine, $stack);
+
+        // Check the results.
+        $this->assertEquals(true, $proxy);
     }
 
-    public function test_is_server_ready_returns_error_message_if_unreachable() {
-        $this->resetAfterTest();
+    /**
+     * Test check if Elasticsearch server is ready.
+     */
+    public function test_is_server_ready_false() {
+        // Create a mock stack and queue a response.
+        $container = [];
+        $mock = new MockHandler([
+            new Response(404, ['Content-Type' => 'application/json'])
+        ]);
 
-        set_config('hostname', 'http://thisisaninvalidaddres.atlieastihopeso:9200', 'search_elastic');
-        set_config('port', '9200', 'search_elastic');
-        set_config('index', 'moodletest', 'search_elastic');
+        $stack = HandlerStack::create($mock);
 
-        $engine = new \search_elastic\engine();
-        $engine->is_server_ready();
+        // Reflection magic as we are directly testing a private method.
+        $method = new ReflectionMethod('\search_elastic\engine', 'is_server_ready');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new \search_elastic\engine, $stack);
+
+        $expected = 'Elasticsearch endpoint unreachable';
+
+        // Check the results.
+        $this->assertEquals($expected, $proxy);
     }
+
 
     /**
      * Test deleting docs by type id.

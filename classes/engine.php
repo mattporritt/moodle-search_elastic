@@ -202,21 +202,19 @@ class engine extends \core_search\engine {
      *
      * @return true|string Returns true if all good or an error string.
      */
-    public function is_server_ready() {
+    public function is_server_ready($stack=false) {
         $url = $this->get_url();
         $returnval = true;
-        $client = new \search_elastic\esrequest();
-
-        try {
-            $response = $client->get($url);
-            $responsebody = $response->getBody(true);
-        } catch (\GuzzleHttp\Exception\ConnectException $exception) {
-            $responsebody = false;
-        }
+        $client = new \search_elastic\esrequest($stack);
 
         if (!$url) {
             $returnval = get_string('noconfig', 'search_elastic');
-        } else if (!(bool)json_decode($responsebody)) {
+        } else {
+            $response = $client->get($url);
+            $responsecode = $response->getStatusCode();
+        }
+
+        if ($responsecode != 200) {
             $returnval = get_string('noserver', 'search_elastic');
         }
 
