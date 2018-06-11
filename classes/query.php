@@ -72,6 +72,13 @@ class query  {
      */
     protected $highlightfields = array('title', 'content', 'description1', 'description2');
 
+    /** @var float Boost value for matching course in location-ordered searches */
+    const COURSE_BOOST = 2;
+
+    /** @var float Boost value for matching context (in addition to course boost) */
+    const CONTEXT_BOOST = 1.5;
+
+
     /**
      * construct basic query structure
      */
@@ -324,7 +331,19 @@ class query  {
 
         // Get search order filters and work it in with boosting.
         if (!empty($filters->order) && $filters->order === 'location') {
-            // Make a boosted area for course OR add the multiplier to the course area.
+            // Boost course in all cases when we are prioritising location.
+            $coursecontext = $filters->context->get_course_context();
+            $courseid = $coursecontext->instanceid;
+            error_log($courseid);
+
+            // TODO: this
+            if ($filters->context->contextlevel !== CONTEXT_COURSE) {
+                // If it's a block or activity, also add a boost for the specific context id.
+                error_log($filters->context->id);
+
+            }
+
+
         }
 
         // TODO: add sort orders for oldest and newest. This should just use regular Elasticsearch ordering.
