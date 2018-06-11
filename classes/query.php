@@ -240,6 +240,13 @@ class query  {
         return $boostarray;
     }
 
+    private function consruct_location_boosting($area, $query, $boost) {
+
+        $boostarray = array(array('match' => array('areaid' => array('query' => $area, 'boost' => $value))));
+
+        return $boostarray;
+    }
+
     /**
      * Returns an array of the configured boosted areas and boost values.
      * @return array $boostedareas An array of the boosted areas and boost values.
@@ -336,10 +343,17 @@ class query  {
             $courseid = $coursecontext->instanceid;
             error_log($courseid);
 
-            // TODO: this
+            $courseboost = $this->consruct_location_boosting($area, $query, $boost);
+            array_push ($query['query']['bool']['should'], $courseboost);
+
+
             if ($filters->context->contextlevel !== CONTEXT_COURSE) {
                 // If it's a block or activity, also add a boost for the specific context id.
+                $contextid = $filters->context->id;
                 error_log($filters->context->id);
+
+                $contextboost = $this->consruct_location_boosting($area, $query, $boost);
+                array_push ($query['query']['bool']['should'], $contextboost);
 
             }
 
