@@ -322,6 +322,13 @@ class query  {
         // Add highlighting.
         $query = $this->set_highlighting($query);
 
+        // Get search order filters and work it in with boosting.
+        if (!empty($filters->order) && $filters->order === 'location') {
+            // Make a boosted area for course OR add the multiplier to the course area.
+        }
+
+        // TODO: add sort orders for oldest and newest. This should just use regular Elasticsearch ordering.
+
         // Add boosting.
         if ($boostedareas) {
             $boosting = $this->consruct_boosting($boostedareas);
