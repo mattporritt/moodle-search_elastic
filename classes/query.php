@@ -240,9 +240,17 @@ class query  {
         return $boostarray;
     }
 
+    /**
+     * Construct boosting query portion for location prioritised search.
+     *
+     * @param string $area The area to boost.
+     * @param string|int $query The area id.
+     * @param int $boost The boosting ammount.
+     * @return array $boostarray Query fragment.
+     */
     private function consruct_location_boosting($area, $query, $boost) {
 
-        $boostarray = array(array('match' => array('areaid' => array('query' => $area, 'boost' => $value))));
+        $boostarray = array(array('match' => array($area => array('query' => $query, 'boost' => $boost))));
 
         return $boostarray;
     }
@@ -341,23 +349,16 @@ class query  {
             // Boost course in all cases when we are prioritising location.
             $coursecontext = $filters->context->get_course_context();
             $courseid = $coursecontext->instanceid;
-            error_log($courseid);
 
-            $courseboost = $this->consruct_location_boosting($area, $query, $boost);
+            $courseboost = $this->consruct_location_boosting('courseid', $courseid, self::COURSE_BOOST);
             array_push ($query['query']['bool']['should'], $courseboost);
-
 
             if ($filters->context->contextlevel !== CONTEXT_COURSE) {
                 // If it's a block or activity, also add a boost for the specific context id.
                 $contextid = $filters->context->id;
-                error_log($filters->context->id);
-
-                $contextboost = $this->consruct_location_boosting($area, $query, $boost);
+                $contextboost = $this->consruct_location_boosting('contextid', $contextid, self::CONTEXT_BOOST);
                 array_push ($query['query']['bool']['should'], $contextboost);
-
             }
-
-
         }
 
         // TODO: add sort orders for oldest and newest. This should just use regular Elasticsearch ordering.
@@ -367,7 +368,6 @@ class query  {
             $boosting = $this->consruct_boosting($boostedareas);
             array_push ($query['query']['bool']['should'], $boosting);
         }
-
         return $query;
     }
 }

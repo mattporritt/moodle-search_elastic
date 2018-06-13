@@ -68,7 +68,7 @@ class search_elastic_query_testcase extends advanced_testcase {
     }
 
     /**
-     * Test query boostin construction.
+     * Test query boosting construction.
      */
     public function test_construct_boosting() {
         $boostedareas = array('boost_mod_assign-activity' => 2);
@@ -125,5 +125,19 @@ class search_elastic_query_testcase extends advanced_testcase {
                         '"content":{},"description1":{},"description2":{}}}}';
 
         $this->assertEquals($jsonresult, $jsonexpected);
+    }
+
+    /**
+     * Test query location boosting construction.
+     */
+    public function test_consruct_location_boosting() {
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('\search_elastic\query', 'consruct_location_boosting');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new \search_elastic\query, 'courseid', '4' , 2); // Get result of invoked method.
+
+        $expected = array('match' => array('courseid' => array('query' => 4, 'boost' => 2)));
+
+        $this->assertEquals($proxy[0], $expected);
     }
 }

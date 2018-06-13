@@ -558,4 +558,107 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $this->engine->highlight_result($result);
     }
 
+    /**
+     * Test context order prioritisation course level.
+     */
+    public function test_location_boosting() {
+        $course = self::getDataGenerator()->create_course();
+        $courseid = $course->id;
+        $coursecontext = \context_course::instance($courseid);
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = $courseid;
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is a quiz on fish and frogs";
+        $rec->courseid = 2;
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'fish and frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->order = 'location';
+        $querydata->context = $coursecontext;
+
+        // Execute the search.
+        $results = $this->search->search($querydata);
+
+        // Check the results.
+        $this->assertEquals(
+            $results[0]->get('content'),
+            'this is an assignment on @@HI_S@@frogs@@HI_E@@ @@HI_S@@and@@HI_E@@ toads'
+            );
+
+    }
+
+    /**
+     * Test context order prioritisation activity level.
+     */
+    public function test_location_boosting_activity() {
+        // Generate course.
+        $course = self::getDataGenerator()->create_course();
+        $courseid = $course->id;
+
+        // Generate forum.
+        $now = time();
+        $forum = self::getDataGenerator()->create_module('forum', ['course' => $courseid]);
+        $forumid = $forum->id;
+        $cm = get_coursemodule_from_instance('forum', $forumid, $courseid);
+        $forumcontext = \context_module::instance($cm->id);
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = $courseid;
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is a quiz on fish and frogs";
+        $rec->courseid = 2;
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'fish and frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->order = 'location';
+        $querydata->context = $forumcontext;
+
+        // Execute the search.
+        $results = $this->search->search($querydata);
+
+        // Check the results.
+        $this->assertEquals(
+            $results[0]->get('content'),
+            'this is an assignment on @@HI_S@@frogs@@HI_E@@ @@HI_S@@and@@HI_E@@ toads'
+            );
+
+    }
+
 }

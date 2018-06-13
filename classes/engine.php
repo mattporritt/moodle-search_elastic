@@ -200,6 +200,7 @@ class engine extends \core_search\engine {
      * Is the Elasticsearch server endpoint configured in Moodle
      * and available.
      *
+     * @param object $stack The Guzzle client stack to use.
      * @return true|string Returns true if all good or an error string.
      */
     public function is_server_ready($stack=false) {
@@ -769,8 +770,6 @@ class engine extends \core_search\engine {
 
         $client->post($url, '');
     }
-
-    // Solr contextual search patch: git show fc440796e9845bb70eac498efafeb7fa766cbfc5
 
     /**
      * Elastic supports sort by location within course contexts or below.
