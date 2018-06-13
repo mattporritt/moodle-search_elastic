@@ -779,8 +779,8 @@ class engine extends \core_search\engine {
      */
     public function get_supported_orders(\context $context) {
         $orders = parent::get_supported_orders($context);
-        $orders['newest'] = get_string('order_newest', 'search_elastic');
-        $orders['oldest'] = get_string('order_oldest', 'search_elastic');
+        $orders['desc'] = get_string('order_newest', 'search_elastic');
+        $orders['asc'] = get_string('order_oldest', 'search_elastic');
 
         // If not within a course, no other kind of sorting supported.
         $coursecontext = $context->get_course_context(false);
@@ -789,7 +789,6 @@ class engine extends \core_search\engine {
             $orders['location'] = get_string('order_location', 'search',
                 $context->get_context_name());
         }
-
         return $orders;
     }
 }
