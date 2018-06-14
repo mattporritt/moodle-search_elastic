@@ -372,7 +372,6 @@ class query  {
             $query['sort'] = array('modified' => array('order' => $filters->order));
         }
 
-        error_log(json_encode($query));
         return $query;
     }
 }
