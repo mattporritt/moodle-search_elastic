@@ -158,7 +158,8 @@ class search_elastic_query_testcase extends advanced_testcase {
                 .'"fields":["id","title","content","groupid","description1","description2","filetext"]}}],'
                 .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
                 .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
-                .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},"sort":{"modified":{"order":"asc"}}}';
+                .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
+                .'"sort":{"modified":{"order":"asc"}}}';
         $result = json_encode($query->get_query($querydata, true));
         $this->assertEquals($result, $expected);
     }
@@ -180,7 +181,8 @@ class search_elastic_query_testcase extends advanced_testcase {
                 .'"fields":["id","title","content","groupid","description1","description2","filetext"]}}],'
                 .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
                 .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
-                .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},"sort":{"modified":{"order":"desc"}}}';
+                .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
+                .'"sort":{"modified":{"order":"desc"}}}';
         $result = json_encode($query->get_query($querydata, true));
         $this->assertEquals($result, $expected);
     }

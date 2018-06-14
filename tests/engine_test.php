@@ -696,7 +696,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $querydata->timeend = 0;
 
         $results = $this->search->search($querydata); // Execute the search.
-        $this->assertEquals($results[0]->get('modified'),654321); // Check the results.
+        $this->assertEquals($results[0]->get('modified'), 654321); // Check the results.
         $this->assertEquals(count($results), 1);
 
     }
@@ -736,7 +736,7 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $querydata->timeend = 123457;
 
         $results = $this->search->search($querydata); // Execute the search.
-        $this->assertEquals($results[0]->get('modified'),123456); // Check the results.
+        $this->assertEquals($results[0]->get('modified'), 123456); // Check the results.
         $this->assertEquals(count($results), 1);
 
     }
