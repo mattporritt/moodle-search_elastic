@@ -140,4 +140,104 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $this->assertEquals($proxy[0], $expected);
     }
+
+    /**
+     * Test date based sorting asc.
+     */
+    public function test_get_query_date_sort_asc() {
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = '*';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->order = 'asc';
+
+        $query = new \search_elastic\query();
+
+        $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
+                .'"fields":["id","title","content","groupid","description1","description2","filetext"]}}],'
+                .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
+                .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
+                .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
+                .'"sort":{"modified":{"order":"asc"}}}';
+        $result = json_encode($query->get_query($querydata, true));
+        $this->assertEquals($result, $expected);
+    }
+
+    /**
+     * Test date based sorting desc.
+     */
+    public function test_get_query_date_sort_desc() {
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = '*';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->order = 'desc';
+
+        $query = new \search_elastic\query();
+
+        $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
+                .'"fields":["id","title","content","groupid","description1","description2","filetext"]}}],'
+                .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
+                .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
+                .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
+                .'"sort":{"modified":{"order":"desc"}}}';
+        $result = json_encode($query->get_query($querydata, true));
+        $this->assertEquals($result, $expected);
+    }
+
+    /**
+     * Test query timerange construction timestart only.
+     */
+    public function test_construct_time_range_timestart() {
+        $filters = new stdClass();
+        $filters->timestart = 123456;
+        $filters->timeend = 0;
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('\search_elastic\query', 'construct_time_range');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new \search_elastic\query, $filters); // Get result of invoked method.
+
+        $expected = array('range' => array('modified' => array('gte' => $filters->timestart)));
+
+        $this->assertEquals($proxy, $expected);
+    }
+
+    /**
+     * Test query timerange construction timeend only.
+     */
+    public function test_construct_time_range_timeend() {
+        $filters = new stdClass();
+        $filters->timestart = 0;
+        $filters->timeend = 123456;
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('\search_elastic\query', 'construct_time_range');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new \search_elastic\query, $filters); // Get result of invoked method.
+
+        $expected = array('range' => array('modified' => array('lte' => $filters->timeend)));
+
+        $this->assertEquals($proxy, $expected);
+    }
+
+    /**
+     * Test query timerange construction.
+     */
+    public function test_construct_time_range_timestart_timeend() {
+        $filters = new stdClass();
+        $filters->timestart = 123456;
+        $filters->timeend = 567890;
+
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('\search_elastic\query', 'construct_time_range');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new \search_elastic\query, $filters); // Get result of invoked method.
+
+        $expected = array('range' => array('modified' => array('lte' => $filters->timeend, 'gte' => $filters->timestart)));
+
+        $this->assertEquals($proxy, $expected);
+    }
 }

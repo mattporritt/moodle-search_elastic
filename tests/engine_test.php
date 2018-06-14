@@ -661,4 +661,208 @@ class search_elastic_engine_testcase extends advanced_testcase {
 
     }
 
+    /**
+     * Test timerange search.
+     */
+    public function test_timestart_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = 1;
+        $rec->timemodified = 123456;
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is an assignment on frogs and toads";
+        $rec2->courseid = 1;
+        $rec2->timemodified = 654321;
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = '*';
+        $querydata->timestart = 123457;
+        $querydata->timeend = 0;
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('modified'), 654321); // Check the results.
+        $this->assertEquals(count($results), 1);
+
+    }
+
+    /**
+     * Test timerange search.
+     */
+    public function test_timeend_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = 1;
+        $rec->timemodified = 123456;
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is an assignment on frogs and toads";
+        $rec2->courseid = 1;
+        $rec2->timemodified = 654321;
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = '*';
+        $querydata->timestart = 0;
+        $querydata->timeend = 123457;
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('modified'), 123456); // Check the results.
+        $this->assertEquals(count($results), 1);
+
+    }
+
+    /**
+     * Test timerange search.
+     */
+    public function test_timestart_timeend_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = 1;
+        $rec->timemodified = 123456;
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is an assignment on frogs and toads";
+        $rec2->courseid = 1;
+        $rec2->timemodified = 654321;
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = '*';
+        $querydata->timestart = 123457;
+        $querydata->timeend = 123458;
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals(count($results), 0);
+
+    }
+
+    /**
+     * Test results sort ascending.
+     */
+    public function test_result_timesort_asc() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = 1;
+        $rec->timemodified = 123456;
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is an quiz on frogs and toads";
+        $rec2->courseid = 1;
+        $rec2->timemodified = 654321;
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = '*';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->order = 'asc';
+
+        $results = $this->search->search($querydata); // Execute the search.
+
+        $this->assertEquals($results[0]->get('content'), 'this is an assignment on frogs and toads'); // Check the results.
+        $this->assertEquals($results[1]->get('content'), 'this is an quiz on frogs and toads');
+        $this->assertEquals(count($results), 2);
+
+    }
+
+    /**
+     * Test results sort descending.
+     */
+    public function test_result_timesort_desc() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = 1;
+        $rec->timemodified = 123456;
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is an quiz on frogs and toads";
+        $rec2->courseid = 1;
+        $rec2->timemodified = 654321;
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = '*';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->order = 'desc';
+
+        $results = $this->search->search($querydata); // Execute the search.
+
+        $this->assertEquals($results[1]->get('content'), 'this is an assignment on frogs and toads'); // Check the results.
+        $this->assertEquals($results[0]->get('content'), 'this is an quiz on frogs and toads');
+        $this->assertEquals(count($results), 2);
+
+    }
 }

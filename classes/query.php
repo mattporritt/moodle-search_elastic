@@ -361,13 +361,17 @@ class query  {
             }
         }
 
-        // TODO: add sort orders for oldest and newest. This should just use regular Elasticsearch ordering.
-
         // Add boosting.
         if ($boostedareas) {
             $boosting = $this->consruct_boosting($boostedareas);
             array_push ($query['query']['bool']['should'], $boosting);
         }
+
+        // Add date based sorting.
+        if (!empty($filters->order) && ($filters->order === 'asc' || $filters->order === 'desc')) {
+            $query['sort'] = array('modified' => array('order' => $filters->order));
+        }
+
         return $query;
     }
 }
