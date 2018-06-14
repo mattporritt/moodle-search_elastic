@@ -145,6 +145,7 @@ class search_elastic_query_testcase extends advanced_testcase {
      * Test date based sorting asc.
      */
     public function test_get_query_date_sort_asc() {
+        global $CFG;
         // This is a mock of the search form submission.
         $querydata = new stdClass();
         $querydata->q = '*';
@@ -153,13 +154,24 @@ class search_elastic_query_testcase extends advanced_testcase {
         $querydata->order = 'asc';
 
         $query = new \search_elastic\query();
+        $version = $CFG->version;
 
-        $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
-                .'"fields":["id","title","content","groupid","description1","description2","filetext"]}}],'
-                .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
-                .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
-                .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
-                .'"sort":{"modified":{"order":"asc"}}}';
+        if ($version < 2017111303){
+            $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
+                    .'"fields":["id","title","content","description1","description2","filetext"]}}],'
+                    .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
+                    .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
+                    .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
+                    .'"sort":{"modified":{"order":"asc"}}}';
+        } else {
+            $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
+                    .'"fields":["id","title","content","groupid","description1","description2","filetext"]}}],'
+                    .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
+                    .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
+                    .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
+                    .'"sort":{"modified":{"order":"asc"}}}';
+        }
+
         $result = json_encode($query->get_query($querydata, true));
         $this->assertEquals($result, $expected);
     }
@@ -168,6 +180,7 @@ class search_elastic_query_testcase extends advanced_testcase {
      * Test date based sorting desc.
      */
     public function test_get_query_date_sort_desc() {
+        global $CFG;
         // This is a mock of the search form submission.
         $querydata = new stdClass();
         $querydata->q = '*';
@@ -176,13 +189,24 @@ class search_elastic_query_testcase extends advanced_testcase {
         $querydata->order = 'desc';
 
         $query = new \search_elastic\query();
+        $version = $CFG->version;
 
+        if ($version < 2017111303){
         $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
-                .'"fields":["id","title","content","groupid","description1","description2","filetext"]}}],'
+                .'"fields":["id","title","content","description1","description2","filetext"]}}],'
                 .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
                 .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
                 .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
                 .'"sort":{"modified":{"order":"desc"}}}';
+        } else {
+            $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
+                    .'"fields":["id","title","content","groupid","description1","description2","filetext"]}}],'
+                    .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
+                    .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
+                    .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
+                    .'"sort":{"modified":{"order":"desc"}}}';
+        }
+
         $result = json_encode($query->get_query($querydata, true));
         $this->assertEquals($result, $expected);
     }
