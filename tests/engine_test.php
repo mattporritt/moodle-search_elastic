@@ -30,6 +30,10 @@ require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_engine.php');
 
+use \GuzzleHttp\Handler\MockHandler;
+use \GuzzleHttp\HandlerStack;
+use \GuzzleHttp\Psr7\Response;
+
 /**
  * Elasticsearch engine.
  *
@@ -118,23 +122,49 @@ class search_elastic_engine_testcase extends advanced_testcase {
     }
 
     /**
-     * Basic ready state test,
-     * mostly for sanity checking
+     * Test check if Elasticsearch server is ready.
      */
-    public function test_connection() {
-        $this->assertTrue($this->engine->is_server_ready());
+    public function test_is_server_ready() {
+        // Create a mock stack and queue a response.
+        $container = [];
+        $mock = new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'])
+        ]);
+
+        $stack = HandlerStack::create($mock);
+
+        // Reflection magic as we are directly testing a private method.
+        $method = new ReflectionMethod('\search_elastic\engine', 'is_server_ready');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new \search_elastic\engine, $stack);
+
+        // Check the results.
+        $this->assertEquals(true, $proxy);
     }
 
-    public function test_is_server_ready_returns_error_message_if_unreachable() {
-        $this->resetAfterTest();
+    /**
+     * Test check if Elasticsearch server is ready.
+     */
+    public function test_is_server_ready_false() {
+        // Create a mock stack and queue a response.
+        $container = [];
+        $mock = new MockHandler([
+            new Response(404, ['Content-Type' => 'application/json'])
+        ]);
 
-        set_config('hostname', 'http://thisisaninvalidaddres.atlieastihopeso:9200', 'search_elastic');
-        set_config('port', '9200', 'search_elastic');
-        set_config('index', 'moodletest', 'search_elastic');
+        $stack = HandlerStack::create($mock);
 
-        $engine = new \search_elastic\engine();
-        $engine->is_server_ready();
+        // Reflection magic as we are directly testing a private method.
+        $method = new ReflectionMethod('\search_elastic\engine', 'is_server_ready');
+        $method->setAccessible(true); // Allow accessing of private method.
+        $proxy = $method->invoke(new \search_elastic\engine, $stack);
+
+        $expected = 'Elasticsearch endpoint unreachable';
+
+        // Check the results.
+        $this->assertEquals($expected, $proxy);
     }
+
 
     /**
      * Test deleting docs by type id.
@@ -526,6 +556,109 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $result->_source->content = 'search test @@HI_S@@book@@HI_E@@ description description';
 
         $this->engine->highlight_result($result);
+    }
+
+    /**
+     * Test context order prioritisation course level.
+     */
+    public function test_location_boosting() {
+        $course = self::getDataGenerator()->create_course();
+        $courseid = $course->id;
+        $coursecontext = \context_course::instance($courseid);
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = $courseid;
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is a quiz on fish and frogs";
+        $rec->courseid = 2;
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'fish and frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->order = 'location';
+        $querydata->context = $coursecontext;
+
+        // Execute the search.
+        $results = $this->search->search($querydata);
+
+        // Check the results.
+        $this->assertEquals(
+            $results[0]->get('content'),
+            'this is an assignment on @@HI_S@@frogs@@HI_E@@ @@HI_S@@and@@HI_E@@ toads'
+            );
+
+    }
+
+    /**
+     * Test context order prioritisation activity level.
+     */
+    public function test_location_boosting_activity() {
+        // Generate course.
+        $course = self::getDataGenerator()->create_course();
+        $courseid = $course->id;
+
+        // Generate forum.
+        $now = time();
+        $forum = self::getDataGenerator()->create_module('forum', ['course' => $courseid]);
+        $forumid = $forum->id;
+        $cm = get_coursemodule_from_instance('forum', $forumid, $courseid);
+        $forumcontext = \context_module::instance($cm->id);
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->courseid = $courseid;
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is a quiz on fish and frogs";
+        $rec->courseid = 2;
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'fish and frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->order = 'location';
+        $querydata->context = $forumcontext;
+
+        // Execute the search.
+        $results = $this->search->search($querydata);
+
+        // Check the results.
+        $this->assertEquals(
+            $results[0]->get('content'),
+            'this is an assignment on @@HI_S@@frogs@@HI_E@@ @@HI_S@@and@@HI_E@@ toads'
+            );
+
     }
 
 }

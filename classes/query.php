@@ -72,6 +72,13 @@ class query  {
      */
     protected $highlightfields = array('title', 'content', 'description1', 'description2');
 
+    /** @var float Boost value for matching course in location-ordered searches */
+    const COURSE_BOOST = 2;
+
+    /** @var float Boost value for matching context (in addition to course boost) */
+    const CONTEXT_BOOST = 1.5;
+
+
     /**
      * construct basic query structure
      */
@@ -234,6 +241,21 @@ class query  {
     }
 
     /**
+     * Construct boosting query portion for location prioritised search.
+     *
+     * @param string $area The area to boost.
+     * @param string|int $query The area id.
+     * @param int $boost The boosting ammount.
+     * @return array $boostarray Query fragment.
+     */
+    private function consruct_location_boosting($area, $query, $boost) {
+
+        $boostarray = array(array('match' => array($area => array('query' => $query, 'boost' => $boost))));
+
+        return $boostarray;
+    }
+
+    /**
      * Returns an array of the configured boosted areas and boost values.
      * @return array $boostedareas An array of the boosted areas and boost values.
      */
@@ -322,12 +344,30 @@ class query  {
         // Add highlighting.
         $query = $this->set_highlighting($query);
 
+        // Get search order filters and work it in with boosting.
+        if (!empty($filters->order) && $filters->order === 'location') {
+            // Boost course in all cases when we are prioritising location.
+            $coursecontext = $filters->context->get_course_context();
+            $courseid = $coursecontext->instanceid;
+
+            $courseboost = $this->consruct_location_boosting('courseid', $courseid, self::COURSE_BOOST);
+            array_push ($query['query']['bool']['should'], $courseboost);
+
+            if ($filters->context->contextlevel !== CONTEXT_COURSE) {
+                // If it's a block or activity, also add a boost for the specific context id.
+                $contextid = $filters->context->id;
+                $contextboost = $this->consruct_location_boosting('contextid', $contextid, self::CONTEXT_BOOST);
+                array_push ($query['query']['bool']['should'], $contextboost);
+            }
+        }
+
+        // TODO: add sort orders for oldest and newest. This should just use regular Elasticsearch ordering.
+
         // Add boosting.
         if ($boostedareas) {
             $boosting = $this->consruct_boosting($boostedareas);
             array_push ($query['query']['bool']['should'], $boosting);
         }
-
         return $query;
     }
 }

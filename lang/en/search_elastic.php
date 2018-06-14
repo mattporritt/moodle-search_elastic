@@ -26,30 +26,43 @@ $string['pluginname'] = 'Elastic';
 $string['pluginname_help'] = 'Search backend for the Elasticsearch search engine';
 
 $string['addfail'] = 'Failed to add document to index';
+$string['aws'] = 'AWS';
 $string['adminsettings'] = 'Plugin settings';
 $string['basicsettings'] = 'Basic settings';
 $string['boostdescription'] = 'These settings control the boosting settings for the search areas. Areas with higher values will be boosted more and will appear higher in the search results. A Boost value of 20 will make the area weighted 2x as high as an area with value 10.';
 $string['boostsettings'] = 'Boosting settings';
 $string['boostvalue'] = '';
 $string['boostvalue_help'] = 'Set the value you want this search area to be boosted by in the search results. Higher boost values give more priority.';
+$string['enrichdesc'] = 'Global Search can enrich the indexed data used in search by extracting text and other data from files.
+The data extracted from files in Moodle is controlled by the following groups of settings.';
+$string['enrichsettings'] = 'Data enrichment settings';
+$string['fileindexselect'] = 'File processor';
+$string['fileindexselect_help'] = 'Select the file processor or service that will extract text from files. The form will update with the settings for the chosen service.';
 $string['fileindexing'] = 'Enable file indexing';
-$string['fileindexing_help'] = 'Enables file indexing for this plugin. With this option checked you will need to enter details of the Tika service in the "File indexing settings" below.<br/>
-You will need to reindex all site contents after enabling this option for all files to be added.';
-$string['fileindexsettings'] = 'File indexing settings';
+$string['fileindexing_help'] = 'Enables file indexing for this plugin.';
+$string['fileindexsettingsdesc'] = 'Before files can be processed and their content and information extracted file indexing for Global Search needs to be enabled.';
+$string['fileindexsettings'] = 'File indexing';
 $string['fileindexsettings_help'] = 'Enter the details for the Tika service. These are required if file indexing is enabled above.';
 $string['hostname'] = 'Hostname';
 $string['hostname_help'] = 'The FQDN of the Elasticsearch engine endpoint';
 $string['index'] = 'Index';
 $string['index_help'] = 'Namespace index to store search data in backend';
-$string['imageindex'] = 'Enable image indexing';
-$string['imageindex_help'] = 'When enabled Moodle will use AWS Rekognition to index images. If enabled File indexing must also be enabled and configured above.';
+$string['imageindexselect'] = 'Image processor';
+$string['imageindexselect_help'] = 'Select the image processor or service that will extract information out of your images. The form will update with the settings for the chosen service.';
+$string['imagerecognitionsettings'] = 'Image recognition';
+$string['imagerecognitionsettingsdesc'] = 'Image recognition extracts details about the content of an image and adds these to the search index.
+
+These settings control what process or service is used to extract data out of an image and how the image data is added to the search engine.';
 $string['indexfail'] = 'Failed to create index';
 $string['maxlabels'] = 'Maxiumum Labels';
 $string['maxlabels_help'] = 'The maximum number of result labels returned by Rekognition.';
 $string['minconfidence'] = 'Minimum confidence';
 $string['minconfidence_help'] = 'Reckognition will only return labels with a confidence above this';
 $string['noconfig'] = 'Elasticsearch configuration missing';
+$string['none'] = 'None';
 $string['noserver'] = 'Elasticsearch endpoint unreachable';
+$string['order_newest'] = 'Newest first';
+$string['order_oldest'] = 'Oldest first';
 $string['pluginsettings'] = 'Plugin Settings';
 $string['port'] = 'Port';
 $string['port_help'] = 'The Port of the Elasticsearch engine endpoint';
@@ -81,6 +94,9 @@ $string['signingsettings'] = 'Request signing settings';
 $string['signingsettings_help'] = 'If your Elasticsearch setup uses Request Signing enable and configure it below.
 
 This generally only applies if you are using Amazon Web Service (AWS) to provide your Elasticsearch Endpoint';
+$string['textextractionsettings'] = 'Text extraction';
+$string['textextractionsettingsdesc'] = 'Text extraction takes the actual text contained in a file and adds it as searchable content to the search index.';
+$string['tika'] = 'Apache Tika';
 $string['tikahostname'] = 'Tika Hostname';
 $string['tikahostname_help'] = 'The FQDN of the Apache Tika endpoint';
 $string['tikaport'] = 'Tika Port';

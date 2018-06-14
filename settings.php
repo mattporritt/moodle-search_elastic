@@ -35,8 +35,13 @@ if ($hassiteconfig) {
             get_string('boostsettings', 'search_elastic'),
             new moodle_url('/search/engine/elastic/boost.php'));
 
+    $enrichsettings = new admin_externalpage('search_elastic_enrichsettings',
+            get_string('enrichsettings', 'search_elastic'),
+            new moodle_url('/search/engine/elastic/enrich.php'));
+
     $ADMIN->add('search_elastic', $pluginsettings);
     $ADMIN->add('search_elastic', $boostsettings);
+    $ADMIN->add('search_elastic', $enrichsettings);
 
     $settings = null;
 }

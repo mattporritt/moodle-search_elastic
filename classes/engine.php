@@ -70,21 +70,7 @@ class engine extends \core_search\engine {
             'hostname' => 'http://127.0.0.1',
             'port' => 9200,
             'index' => 'mooodle',
-            'sendsize' => 9000000,
-            'fileindexing' => 0,
-            'tikahostname' => 'http://127.0.0.1',
-            'tikaport' => 9998,
-            'tikasendsize' => 512000000,
-            'imageindex' => 0,
-            'rekkeyid' => '',
-            'reksecretkey' => '',
-            'rekregion' => 'us-west-2',
-            'maxlabels' => 10,
-            'minconfidence' => 90,
-            'signing' => 0,
-            'signingkeyid' => '',
-            'signingsecretkey' => '',
-            'region' => 'us-west-2'
+            'sendsize' => 9000000
     );
 
     /**
@@ -214,23 +200,22 @@ class engine extends \core_search\engine {
      * Is the Elasticsearch server endpoint configured in Moodle
      * and available.
      *
+     * @param object $stack The Guzzle client stack to use.
      * @return true|string Returns true if all good or an error string.
      */
-    public function is_server_ready() {
+    public function is_server_ready($stack=false) {
         $url = $this->get_url();
         $returnval = true;
-        $client = new \search_elastic\esrequest();
-
-        try {
-            $response = $client->get($url);
-            $responsebody = $response->getBody(true);
-        } catch (\GuzzleHttp\Exception\ConnectException $exception) {
-            $responsebody = false;
-        }
+        $client = new \search_elastic\esrequest($stack);
 
         if (!$url) {
             $returnval = get_string('noconfig', 'search_elastic');
-        } else if (!(bool)json_decode($responsebody)) {
+        } else {
+            $response = $client->get($url);
+            $responsecode = $response->getStatusCode();
+        }
+
+        if ($responsecode != 200) {
             $returnval = get_string('noserver', 'search_elastic');
         }
 
@@ -784,5 +769,27 @@ class engine extends \core_search\engine {
         $client = new \search_elastic\esrequest();
 
         $client->post($url, '');
+    }
+
+    /**
+     * Elastic supports sort by location within course contexts or below.
+     *
+     * @param \context $context Context that the user requested search from
+     * @return array Array from order name => display text
+     */
+    public function get_supported_orders(\context $context) {
+        $orders = parent::get_supported_orders($context);
+        $orders['newest'] = get_string('order_newest', 'search_elastic');
+        $orders['oldest'] = get_string('order_oldest', 'search_elastic');
+
+        // If not within a course, no other kind of sorting supported.
+        $coursecontext = $context->get_course_context(false);
+        if ($coursecontext) {
+            // Within a course or activity/block, support sort by location.
+            $orders['location'] = get_string('order_location', 'search',
+                $context->get_context_name());
+        }
+
+        return $orders;
     }
 }

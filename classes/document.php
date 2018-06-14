@@ -26,7 +26,6 @@ namespace search_elastic;
 
 defined('MOODLE_INTERNAL') || die();
 
-require($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
 require_once($CFG->dirroot . '/course/lib.php');
 
 /**
@@ -85,33 +84,6 @@ class document extends \core_search\document {
     );
 
     /**
-     * Array of file mimetypes that contain plain text that can be fed directly
-     * into Elsstic search without text extraction processing.
-     *
-     * @var array
-     */
-    protected static $acceptedtext = array(
-            'text/html',
-            'text/plain',
-            'text/csv',
-            'text/css',
-            'text/javascript',
-            'text/ecmascript'
-    );
-
-    /**
-     * Array of file mimetypes that are compatible with AWS Rekognition.
-     * Image types not in this list wont be processed. Currently Rekognition
-     * only supports JPEG and PNG formats.
-     *
-     * @var array
-     */
-    protected static $acceptedimages = array(
-            'image/jpeg',
-            'image/png'
-    );
-
-    /**
      * Constructor for document class.
      * Makes relevant config available and bootstraps
      * Rekognition client.
@@ -124,129 +96,7 @@ class document extends \core_search\document {
     public function __construct($itemid, $componentname, $areaname) {
         parent::__construct($itemid, $componentname, $areaname);
         $this->config = get_config('search_elastic');
-        $this->imageindex = (bool)$this->config->imageindex;
-        $this->rekregion = $this->config->rekregion;
-        $this->rekkey = $this->config->rekkeyid;
-        $this->reksecret = $this->config->reksecretkey;
-        $this->maxlabels = $this->config->maxlabels;
-        $this->minconfidence = $this->config->minconfidence;
-        $this->tikaport = $this->config->tikaport;
-        $this->tikahostname = rtrim($this->config->tikahostname, "/");
-    }
-
-    /**
-     * Use tika to extract text from file.
-     *
-     * @param file $file
-     * @param esrequest\client $client client
-     * @return string|boolean
-     */
-    public function extract_text($file, $client) {
-        // TODO: add timeout and retries for tika.
-        $extractedtext = '';
-        $port = $this->tikaport;
-        $hostname = $this->tikahostname;
-        $url = $hostname . ':'. $port . '/tika/form';
-        $filesize = $file->get_filesize();
-
-        if ($filesize <= $this->config->tikasendsize) {
-            $response = $client->postfile($url, $file);
-
-            if ($response->getStatusCode() == 200) {
-                $extractedtext = (string) $response->getBody();
-            }
-        }
-
-        return $extractedtext;
-
-    }
-
-    /**
-     * Create AWS Rekognition client.
-     *
-     * @return client $rekclient Rekognition client.
-     */
-    public function get_rekognition_client() {
-        $rekclient = new \Aws\Rekognition\RekognitionClient([
-                'version' => 'latest',
-                'region'  => $this->rekregion,
-                'credentials' => [
-                        'key'    => $this->rekkey,
-                        'secret' => $this->reksecret
-                ]
-        ]);
-        return $rekclient;
-    }
-
-    /**
-     * Analyse image using Rekognition.
-     *
-     * @param \stored_file $file The image file to analyze.
-     * @return string $imagetext Text of file description labels.
-     */
-    private function analyse_image($file) {
-        $imageinfo = $file->get_imageinfo();
-        $imagetext = '';
-        $cananalyze = false;
-        $acceptedtypes = $this->get_accepted_image_types();
-        $imagemime = $imageinfo['mimetype'];
-        $acceptedimage = in_array($imagemime, $acceptedtypes);
-        $filesize = $file->get_filesize();
-
-        // If we are not indexing images return early.
-        if (!$this->imageindex) {
-            return $imagetext;
-        }
-
-        // Check if we can analyze this type of file.
-        if ($acceptedimage &&
-                $imageinfo['height'] >= 80 &&
-                $imageinfo['width'] >= 80 &&
-                $filesize <= 5000000
-                ) {
-                    $cananalyze = true;
-        }
-
-        if ($cananalyze) {
-            // Send image to AWS Rekognition for analysis.
-            $client = $this->get_rekognition_client();
-            $result = $client->detectLabels(array(
-                    'Image' => array(
-                            'Bytes' => $file->get_content(),
-                    ),
-                    'Attributes' => array('ALL'),
-                    'MaxLabels' => (int)$this->maxlabels,
-                    'MinConfidence' => (float)$this->minconfidence
-            ));
-
-            // Process the results from AWS Rekognition service
-            // and extra result labels.
-            $labelarray = array ();
-            foreach ($result['Labels'] as $label) {
-                $labelarray[] = $label['Name'];
-            }
-            $imagetext = implode(', ', $labelarray);
-        }
-
-        return $imagetext;
-    }
-
-    /**
-     * Checks if supplied file is plain text that can be directly fed
-     * to Elasticsearch without further processing.
-     *
-     * @param \stored_file $file File to check.
-     * @return boolean
-     */
-    private function is_text($file) {
-        $mimetype = $file->get_mimetype();
-        $istext = false;
-
-        if (in_array($mimetype, $this->get_accepted_text_types())) {
-            $istext = true;
-        }
-
-        return $istext;
+        $this->fileindexing = (isset($this->config->fileindexing) ? (bool)$this->config->fileindexing : false);
     }
 
     /**
@@ -307,6 +157,32 @@ class document extends \core_search\document {
     }
 
     /**
+     * Get the enabled enrichment processors
+     *
+     * @return array $processors
+     */
+    private function get_enrichment_processors() {
+        $processors = array();
+
+        if ($this->fileindexing == true) { // Only look for processors if file indexing is enabled.
+
+            $processors[] = '\search_elastic\enrich\text\plain_text';  // Plain text processing is always enabled.
+
+            // Text extraction processing.
+            if (isset($this->config->fileindexselect) && $this->config->fileindexselect != '') {
+                $processors[] = $this->config->fileindexselect;
+            }
+
+            // Image recognition processing.
+            if (isset($this->config->imageindexselect) && $this->config->imageindexselect != '') {
+                $processors[] = $this->config->imageindexselect;
+            }
+        }
+
+        return $processors;
+    }
+
+    /**
      * Export the data for the given file in relation to this document.
      *
      * @param \stored_file $file The stored file we are talking about.
@@ -314,19 +190,14 @@ class document extends \core_search\document {
      */
     public function export_file_for_engine($file) {
         $data = $this->export_for_engine();
-        $imageinfo = $file->get_imageinfo();
         $filetext = '';
 
-        if ($imageinfo) {
-            // If file is image send for analysis.
-            $filetext = $this->analyse_image($file);
-        } else if ($this->is_text($file)) {
-            // If file is text don't bother converting.
-            $filetext = $file->get_content();
-        } else {
-            // Pass the file off to Tika to extract content.
-            $client = new \search_elastic\esrequest();
-            $filetext = $this->extract_text($file, $client);
+        $processors = $this->get_enrichment_processors();  // Make a list of enabled enrichment processors.
+        foreach ($processors as $processor) {  // Loop thorugh processors to see if they support this files mimetype.
+            $proc = new $processor($this->config);
+            if ($proc->can_analyze($file)) {  // Sequentially process the file apppending results to $filetext.
+                $filetext .= $proc->analyze_file($file);
+            }
         }
 
         // Construct the document.
@@ -400,23 +271,5 @@ class document extends \core_search\document {
      */
     public static function get_required_fields_definition() {
         return static::$requiredfields;
-    }
-
-    /**
-     * Returns all accepted text file types.
-     *
-     * @return array
-     */
-    public static function get_accepted_text_types() {
-        return self::$acceptedtext;
-    }
-
-    /**
-     * Returns all accepted text file types.
-     *
-     * @return array
-     */
-    public static function get_accepted_image_types() {
-        return self::$acceptedimages;
     }
 }
