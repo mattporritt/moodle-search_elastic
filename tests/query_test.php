@@ -156,7 +156,7 @@ class search_elastic_query_testcase extends advanced_testcase {
         $query = new \search_elastic\query();
         $version = $CFG->version;
 
-        if ($version < 2017111303){
+        if ($version < 2017111303) {
             $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
                     .'"fields":["id","title","content","description1","description2","filetext"]}}],'
                     .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
@@ -191,8 +191,8 @@ class search_elastic_query_testcase extends advanced_testcase {
         $query = new \search_elastic\query();
         $version = $CFG->version;
 
-        if ($version < 2017111303){
-        $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
+        if ($version < 2017111303) {
+            $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
                 .'"fields":["id","title","content","description1","description2","filetext"]}}],'
                 .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
                 .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
