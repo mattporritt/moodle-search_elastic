@@ -865,4 +865,84 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $this->assertEquals(count($results), 2);
 
     }
+
+    /**
+     * Test results are returned for filtered search.
+     * Filter users.
+     */
+    public function test_user_filter_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->userid = 1;
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is an assignment on frogs and toads";
+        $rec2->userid = 2;
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'assignment on frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->userids = [1, ];
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals($results[0]->get('userid'), 1); // Check the results.
+        $this->assertEquals(count($results), 1);
+
+    }
+
+    /**
+     * Test results are returned for filtered search.
+     * Filter users.
+     */
+    public function test_users_filter_search() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $rec->userid = 1;
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        $rec2 = new \stdClass();
+        $rec2->content = "this is an assignment on frogs and toads";
+        $rec2->userid = 2;
+        $area = $this->area;
+        $record2 = $this->generator->create_record($rec2);
+        $doc2 = $area->get_document($record2);
+        $this->engine->add_document($doc2);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'assignment on frogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->userids = [1, 2];
+
+        $results = $this->search->search($querydata); // Execute the search.
+        $this->assertEquals(count($results), 2);
+
+    }
+
 }
