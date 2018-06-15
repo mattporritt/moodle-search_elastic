@@ -340,6 +340,10 @@ class query  {
             $userids = $this->construct_array($filters, 'userids', 'userid');
             array_push ($query['query']['bool']['filter']['bool']['must'], $userids);
         }
+        if (isset($filters->groupids) && $filters->groupids != null && !empty($filters->groupids)) {
+            $groupids = $this->construct_array($filters, 'groupids', 'groupid');
+            array_push ($query['query']['bool']['filter']['bool']['must'], $groupids);
+        }
         if ($filters->timestart != 0  || $filters->timeend != 0) {
             $timerange = $this->construct_time_range($filters);
             array_push ($query['query']['bool']['filter']['bool']['must'], $timerange);

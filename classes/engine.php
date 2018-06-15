@@ -772,6 +772,26 @@ class engine extends \core_search\engine {
     }
 
     /**
+     * Elastic includes group support in the execute_query function.
+     *
+     * @return bool True
+     */
+    public function supports_group_filtering() {
+        return true;
+    }
+
+    /**
+     * Requests the search engine to upgrade the schema. TJust return true for Elasticsearch.
+     *
+     * @param int $oldversion Old schema version
+     * @param int $newversion New schema version
+     * @return bool|string True if schema is updated successfully, a string if it needs updating manually
+     */
+    protected function update_schema($oldversion, $newversion) {
+        return true;
+    }
+
+    /**
      * Elastic supports sort by location within course contexts or below.
      *
      * @param \context $context Context that the user requested search from
