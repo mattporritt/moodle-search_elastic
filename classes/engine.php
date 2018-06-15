@@ -791,4 +791,13 @@ class engine extends \core_search\engine {
         }
         return $orders;
     }
+
+    /**
+     * Elastic supports search by user id.
+     *
+     * @return bool True
+     */
+    public function supports_users() {
+        return true;
+    }
 }

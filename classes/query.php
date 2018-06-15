@@ -336,6 +336,10 @@ class query  {
             $courseids = $this->construct_array($filters, 'courseids', 'courseid');
             array_push ($query['query']['bool']['filter']['bool']['must'], $courseids);
         }
+        if (isset($filters->userids) && $filters->userids != null && !empty($filters->userids)) {
+            $userids = $this->construct_array($filters, 'userids', 'userid');
+            array_push ($query['query']['bool']['filter']['bool']['must'], $userids);
+        }
         if ($filters->timestart != 0  || $filters->timeend != 0) {
             $timerange = $this->construct_time_range($filters);
             array_push ($query['query']['bool']['filter']['bool']['must'], $timerange);
