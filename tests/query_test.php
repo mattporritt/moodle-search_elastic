@@ -154,26 +154,9 @@ class search_elastic_query_testcase extends advanced_testcase {
         $querydata->order = 'asc';
 
         $query = new \search_elastic\query();
-        $version = $CFG->version;
 
-        if ($version < 2017111299) {
-            $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
-                    .'"fields":["id","title","content","description1","description2","filetext"]}}],'
-                    .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
-                    .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
-                    .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
-                    .'"sort":{"modified":{"order":"asc"}}}';
-        } else {
-            $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
-                    .'"fields":["id","title","content","groupid","description1","description2","filetext"]}}],'
-                    .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
-                    .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
-                    .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
-                    .'"sort":{"modified":{"order":"asc"}}}';
-        }
-
-        $result = json_encode($query->get_query($querydata, true));
-        $this->assertEquals($result, $expected);
+        $result = $query->get_query($querydata, true);
+        $this->assertEquals($result['sort']['modified']['order'], 'asc');
     }
 
     /**
@@ -189,26 +172,9 @@ class search_elastic_query_testcase extends advanced_testcase {
         $querydata->order = 'desc';
 
         $query = new \search_elastic\query();
-        $version = $CFG->version;
 
-        if ($version < 2017111299) {
-            $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
-                .'"fields":["id","title","content","description1","description2","filetext"]}}],'
-                .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
-                .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
-                .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
-                .'"sort":{"modified":{"order":"desc"}}}';
-        } else {
-            $expected = '{"query":{"bool":{"must":[{"query_string":{"query":"*",'
-                    .'"fields":["id","title","content","groupid","description1","description2","filetext"]}}],'
-                    .'"should":[],"filter":{"bool":{"must":[]}}}},"size":100,"_source":{"excludes":["filetext"]},'
-                    .'"highlight":{"pre_tags":["@@HI_S@@"],"post_tags":["@@HI_E@@"],"fragment_size":510,'
-                    .'"encoder":"html","fields":{"title":{},"content":{},"description1":{},"description2":{}}},'
-                    .'"sort":{"modified":{"order":"desc"}}}';
-        }
-
-        $result = json_encode($query->get_query($querydata, true));
-        $this->assertEquals($result, $expected);
+        $result = $query->get_query($querydata, true);
+        $this->assertEquals($result['sort']['modified']['order'], 'desc');
     }
 
     /**
