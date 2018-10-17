@@ -302,10 +302,10 @@ class query  {
      * Construct the Elasticsearch query
      *
      * @param array $filters
-     * @param array|int $usercontexts
+     * @param mixed $accessinfo Information about the contexts the user can access
      * @return \search_elastic\query
      */
-    public function get_query($filters, $usercontexts) {
+    public function get_query($filters, $accessinfo) {
         $query = $this->query;
         $boostedareas = $this->get_boosted_areas();
 
@@ -318,6 +318,7 @@ class query  {
         array_push($query['query']['bool']['must'], $q);
 
         // Add contexts.
+        $usercontexts = $this->extract_usercontexts($accessinfo);
         if (gettype($usercontexts) == 'array') {
             $contexts = $this->construct_contexts($usercontexts);
             array_push ($query['query']['bool']['filter']['bool']['must'], $contexts);
@@ -381,5 +382,31 @@ class query  {
         }
 
         return $query;
+    }
+
+    /**
+     * Extract usercontexts data from access info.
+     *
+     * @param mixed $accessinfo Information about the contexts the user can access.
+     *                          Depending on the Moodle version accessinfo could be
+     *                          as true, array or object.
+     *
+     * @return mixed
+     */
+    private function extract_usercontexts($accessinfo) {
+        $usercontexts = null;
+
+        if (is_array($accessinfo)) {
+            $usercontexts = $accessinfo;
+        }
+
+        if (is_object($accessinfo)) {
+            // If everything is set to false, then user should have limited access.
+            if (empty($accessinfo->everything) && isset($accessinfo->usercontexts)) {
+                $usercontexts = $accessinfo->usercontexts;
+            }
+        }
+
+        return $usercontexts;
     }
 }

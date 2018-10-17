@@ -230,4 +230,46 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $this->assertEquals($proxy, $expected);
     }
+
+    /**
+     * Test we can extract usercontexts from access info data.
+     */
+    public function test_extract_usercontexts() {
+        $method = new ReflectionMethod('\search_elastic\query', 'extract_usercontexts');
+        $method->setAccessible(true); // Allow accessing of private method.
+
+        $actual = $method->invoke(new \search_elastic\query, false);
+        $this->assertEquals(null, $actual);
+
+        $actual = $method->invoke(new \search_elastic\query, null);
+        $this->assertEquals(null, $actual);
+
+        $actual = $method->invoke(new \search_elastic\query, 'Test');
+        $this->assertEquals(null, $actual);
+
+        $actual = $method->invoke(new \search_elastic\query, ['Test']);
+        $this->assertEquals(['Test'], $actual);
+
+        $accessinfo = new stdClass();
+        $accessinfo->usercontexts = ['Test'];
+        $actual = $method->invoke(new \search_elastic\query, $accessinfo);
+        $this->assertEquals(['Test'], $actual);
+
+        $accessinfo = new stdClass();
+        $accessinfo->usercontexts = ['Test'];
+        $accessinfo->everything = true;
+        $actual = $method->invoke(new \search_elastic\query, $accessinfo);
+        $this->assertEquals(null, $actual);
+
+        $accessinfo = new stdClass();
+        $accessinfo->everything = false;
+        $actual = $method->invoke(new \search_elastic\query, $accessinfo);
+        $this->assertEquals(null, $actual);
+
+        $accessinfo = new stdClass();
+        $accessinfo->usercontexts = ['Test'];
+        $accessinfo->everything = false;
+        $actual = $method->invoke(new \search_elastic\query, $accessinfo);
+        $this->assertEquals(['Test'], $actual);
+    }
 }

@@ -612,11 +612,11 @@ class engine extends \core_search\engine {
      * Returns an array of matching result documents.
      *
      * @param array $filters
-     * @param array $usercontexts
+     * @param mixed $accessinfo Information about the contexts the user can access
      * @param int $limit
      * @return array $docs
      */
-    public function execute_query($filters, $usercontexts, $limit = 0) {
+    public function execute_query($filters, $accessinfo, $limit = 0) {
         $docs = array();
         $doccount = 0;
         $url = $this->get_url() . '/'.  $this->config->index . '/_search';
@@ -629,7 +629,7 @@ class engine extends \core_search\engine {
         }
 
         $query = new \search_elastic\query();
-        $esquery = $query->get_query($filters, $usercontexts);
+        $esquery = $query->get_query($filters, $accessinfo);
 
         // Send a request to the server.
         $results = json_decode($client->post($url, json_encode($esquery))->getBody());
