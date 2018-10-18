@@ -45,3 +45,15 @@ function search_elastic_output_fragment_new_enrich_form($args) {
 
     return $o;
 }
+
+/**
+ * A hacky way to fix https://tracker.moodle.org/browse/MDL-62537.
+ * This code needs to be removed once the tracker properly fixed.
+ */
+function search_elastic_extend_navigation_user() {
+    global $ME;
+
+    if ($ME == '/admin/settings.php?section=searchelastic') {
+        redirect(new moodle_url('/search/engine/elastic/index.php'));
+    }
+}
