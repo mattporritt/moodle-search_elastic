@@ -301,8 +301,11 @@ class query  {
     /**
      * Construct the Elasticsearch query
      *
-     * @param array $filters
-     * @param mixed $accessinfo Information about the contexts the user can access
+     * @param object $filters
+     * @param mixed $accessinfo Information about the contexts the user can access.
+     *                          Depending on the Moodle version accessinfo could be
+     *                          as true, array or object.
+     *
      * @return \search_elastic\query
      */
     public function get_query($filters, $accessinfo) {

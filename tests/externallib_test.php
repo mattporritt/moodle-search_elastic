@@ -148,9 +148,9 @@ class search_elastic_engine_external_testcase extends advanced_testcase {
         $results = external_api::clean_returnvalue(search_elastic_external::search_returns(), $results);
 
         // Check the results.
-        $this->assertEquals($results[0]['content'], 'this is a <span class="highlight">video</span>');
-        $this->assertEquals($results[0]['componentname'], 'core_mocksearch');
-        $this->assertEquals($results[0]['areaname'], 'mock_search_area');
+        $this->assertEquals('this is a <span class="highlight">video</span>', $results[0]['content']);
+        $this->assertEquals('core_mocksearch', $results[0]['componentname']);
+        $this->assertEquals('mock_search_area', $results[0]['areaname']);
     }
 
     /**
@@ -164,7 +164,7 @@ class search_elastic_engine_external_testcase extends advanced_testcase {
         // We need to execute the return values cleaning process to simulate the web service server.
         $results = external_api::clean_returnvalue(search_elastic_external::search_areas_returns(), $results);
 
-        $this->assertEquals($results[0]['areaid'], 'core_mocksearch-mock_search_area');
+        $this->assertEquals('core_mocksearch-mock_search_area', $results[0]['areaid']);
 
     }
 

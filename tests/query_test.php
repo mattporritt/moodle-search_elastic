@@ -47,8 +47,8 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $bosstedareas = $query->get_boosted_areas();
 
-        $this->assertEquals($bosstedareas['mod_assign-activity'], 2); // Check the results.
-        $this->assertEquals(count($bosstedareas), 1);
+        $this->assertEquals(2, $bosstedareas['mod_assign-activity']); // Check the results.
+        $this->assertEquals(1, count($bosstedareas));
 
     }
 
@@ -62,8 +62,8 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $bosstedareas = $query->get_boosted_areas();
 
-        $this->assertEquals(empty($bosstedareas), true); // Check the results.
-        $this->assertEquals(count($bosstedareas), 0);
+        $this->assertEquals(true, empty($bosstedareas)); // Check the results.
+        $this->assertEquals(0, count($bosstedareas));
 
     }
 
@@ -80,7 +80,7 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $expected = array('match' => array('areaid' => array('query' => 'boost_mod_assign-activity', 'boost' => 2)));
 
-        $this->assertEquals($proxy[0], $expected);
+        $this->assertEquals($expected, $proxy[0]);
     }
 
     /**
@@ -96,7 +96,7 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $expected = array();
 
-        $this->assertEquals($proxy, $expected);
+        $this->assertEquals($expected, $proxy);
     }
 
     /**
@@ -124,7 +124,7 @@ class search_elastic_query_testcase extends advanced_testcase {
                         '"post_tags":["@@HI_E@@"],"fragment_size":510,"encoder":"html","fields":{"title":{},'.
                         '"content":{},"description1":{},"description2":{}}}}';
 
-        $this->assertEquals($jsonresult, $jsonexpected);
+        $this->assertEquals($jsonexpected, $jsonresult);
     }
 
     /**
@@ -138,14 +138,13 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $expected = array('match' => array('courseid' => array('query' => 4, 'boost' => 2)));
 
-        $this->assertEquals($proxy[0], $expected);
+        $this->assertEquals($expected, $proxy[0]);
     }
 
     /**
      * Test date based sorting asc.
      */
     public function test_get_query_date_sort_asc() {
-        global $CFG;
         // This is a mock of the search form submission.
         $querydata = new stdClass();
         $querydata->q = '*';
@@ -156,14 +155,13 @@ class search_elastic_query_testcase extends advanced_testcase {
         $query = new \search_elastic\query();
 
         $result = $query->get_query($querydata, true);
-        $this->assertEquals($result['sort']['modified']['order'], 'asc');
+        $this->assertEquals('asc', $result['sort']['modified']['order']);
     }
 
     /**
      * Test date based sorting desc.
      */
     public function test_get_query_date_sort_desc() {
-        global $CFG;
         // This is a mock of the search form submission.
         $querydata = new stdClass();
         $querydata->q = '*';
@@ -174,7 +172,7 @@ class search_elastic_query_testcase extends advanced_testcase {
         $query = new \search_elastic\query();
 
         $result = $query->get_query($querydata, true);
-        $this->assertEquals($result['sort']['modified']['order'], 'desc');
+        $this->assertEquals('desc', $result['sort']['modified']['order']);
     }
 
     /**
@@ -192,7 +190,7 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $expected = array('range' => array('modified' => array('gte' => $filters->timestart)));
 
-        $this->assertEquals($proxy, $expected);
+        $this->assertEquals($expected, $proxy);
     }
 
     /**
@@ -210,7 +208,7 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $expected = array('range' => array('modified' => array('lte' => $filters->timeend)));
 
-        $this->assertEquals($proxy, $expected);
+        $this->assertEquals($expected, $proxy);
     }
 
     /**
@@ -228,7 +226,7 @@ class search_elastic_query_testcase extends advanced_testcase {
 
         $expected = array('range' => array('modified' => array('lte' => $filters->timeend, 'gte' => $filters->timestart)));
 
-        $this->assertEquals($proxy, $expected);
+        $this->assertEquals($expected, $proxy);
     }
 
     /**
@@ -239,6 +237,9 @@ class search_elastic_query_testcase extends advanced_testcase {
         $method->setAccessible(true); // Allow accessing of private method.
 
         $actual = $method->invoke(new \search_elastic\query, false);
+        $this->assertEquals(null, $actual);
+
+        $actual = $method->invoke(new \search_elastic\query, true);
         $this->assertEquals(null, $actual);
 
         $actual = $method->invoke(new \search_elastic\query, null);
@@ -271,5 +272,105 @@ class search_elastic_query_testcase extends advanced_testcase {
         $accessinfo->everything = false;
         $actual = $method->invoke(new \search_elastic\query, $accessinfo);
         $this->assertEquals(['Test'], $actual);
+    }
+
+    /**
+     * Test that query gets populated by filters depending on the data in accessinfo.
+     */
+    public function test_get_query_add_filters_based_on_accessinfo() {
+        $query = new \search_elastic\query();
+
+        $querydata = new stdClass();
+        $querydata->q = '*';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+        $querydata->order = 'asc';
+
+        // Assesinfo as bool.
+        $accessinfo = true;
+        $result = $query->get_query($querydata, $accessinfo);
+        $this->assertFalse(isset($result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']));
+
+        // Assesinfo as bool.
+        $accessinfo = false;
+        $result = $query->get_query($querydata, $accessinfo);
+        $this->assertFalse(isset($result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']));
+
+        // Assesinfo as array.
+        $accessinfo = [];
+        $accessinfo['test-area'] = [];
+        $expected = [];
+        $result = $query->get_query($querydata, $accessinfo);
+        $this->assertEquals($expected, $result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']);
+
+        // Assesinfo as array.
+        $accessinfo = [];
+        $accessinfo['test-area'] = [1, 2, 3];
+        $expected = [1, 2, 3];
+        $result = $query->get_query($querydata, $accessinfo);
+        $this->assertEquals($expected, $result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']);
+
+        // Assesinfo as array.
+        $accessinfo = [];
+        $accessinfo['test-area'] = [1, 2, 3];
+        $accessinfo['test-area-2'] = [1, 2, 4];
+        $expected = [1, 2, 3, 4];
+        $result = $query->get_query($querydata, $accessinfo);
+        $this->assertEquals($expected, $result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']);
+
+        // Assesinfo as object.
+        $accessinfo = new stdClass();
+        $accessinfo->everything = true;
+        $accessinfo->usercontexts = [
+            'test-area' => [1, 2, 3],
+        ];
+        $result = $query->get_query($querydata, $accessinfo);
+        $this->assertFalse(isset($result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']));
+
+        // Assesinfo as object.
+        $accessinfo = new stdClass();
+        $accessinfo->everything = false;
+        $result = $query->get_query($querydata, $accessinfo);
+        $this->assertFalse(isset($result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']));
+
+        // Assesinfo as object.
+        $accessinfo = new stdClass();
+        $accessinfo->usercontexts = [
+            'test-area' => [],
+        ];
+        $expected = [];
+        $result = $query->get_query($querydata, $accessinfo);
+        $this->assertEquals($expected, $result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']);
+
+        // Assesinfo as object.
+        $accessinfo = new stdClass();
+        $accessinfo->usercontexts = [
+            'test-area' => [1, 2, 3],
+        ];
+        $expected = [1, 2, 3];
+        $result = $query->get_query($querydata, $accessinfo);
+        $this->assertEquals($expected, $result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']);
+
+        // Assesinfo as object.
+        $accessinfo = new stdClass();
+        $accessinfo->everything = false;
+        $accessinfo->usercontexts = [
+            'test-area' => [1, 2, 3],
+        ];
+        $expected = [1, 2, 3];
+        $result = $query->get_query($querydata, $accessinfo);
+        $this->assertEquals($expected, $result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']);
+
+        // Assesinfo as object.
+        $accessinfo = new stdClass();
+        $accessinfo->everything = false;
+        $accessinfo->usercontexts = [
+            'test-area' => [1, 2, 3],
+            'test-area-2' => [1, 2, 4],
+
+        ];
+        $expected = [1, 2, 3, 4];
+        $result = $query->get_query($querydata, $accessinfo);
+        $this->assertEquals($expected, $result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']);
     }
 }

@@ -74,11 +74,11 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $request = $container[0]['request'];
 
         // Check the results.
-        $this->assertEquals($request->getUri()->getScheme(), 'http');
-        $this->assertEquals($request->getUri()->getHost(),  'localhost');
-        $this->assertEquals($request->getUri()->getPort(),  '8080');
-        $this->assertEquals($request->getUri()->getPath(), '/foo');
-        $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
+        $this->assertEquals('http', $request->getUri()->getScheme());
+        $this->assertEquals('localhost', $request->getUri()->getHost());
+        $this->assertEquals('8080', $request->getUri()->getPort());
+        $this->assertEquals('/foo', $request->getUri()->getPath());
+        $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
 
     }
 
@@ -111,11 +111,11 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $authheader = $request->getHeader('Authorization');
 
         // Check the results.
-        $this->assertEquals($request->getUri()->getScheme(), 'http');
-        $this->assertEquals($request->getUri()->getHost(),  'localhost');
-        $this->assertEquals($request->getUri()->getPort(),  '8080');
-        $this->assertEquals($request->getUri()->getPath(), '/foo');
-        $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
+        $this->assertEquals('http', $request->getUri()->getScheme());
+        $this->assertEquals('localhost', $request->getUri()->getHost());
+        $this->assertEquals('8080', $request->getUri()->getPort());
+        $this->assertEquals('/foo', $request->getUri()->getPath());
+        $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
         $this->assertTrue($request->hasHeader('X-Amz-Date'));
         $this->assertTrue($request->hasHeader('Authorization'));
         $this->assertRegexp('/key_id.{10}region/', $authheader[0]);
@@ -145,13 +145,13 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $contentheader = $request->getHeader('content-type');
 
         // Check the results.
-        $this->assertEquals($request->getUri()->getScheme(), 'http');
-        $this->assertEquals($request->getUri()->getHost(),  'localhost');
-        $this->assertEquals($request->getUri()->getPort(),  '8080');
-        $this->assertEquals($request->getUri()->getPath(), '/foo');
-        $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
+        $this->assertEquals('http', $request->getUri()->getScheme());
+        $this->assertEquals('localhost', $request->getUri()->getHost());
+        $this->assertEquals('8080', $request->getUri()->getPort());
+        $this->assertEquals('/foo', $request->getUri()->getPath());
+        $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($contentheader, array('application/json'));
+        $this->assertEquals(array('application/json'), $contentheader);
 
     }
 
@@ -186,16 +186,16 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $contentheader = $request->getHeader('content-type');
 
         // Check the results.
-        $this->assertEquals($request->getUri()->getScheme(), 'http');
-        $this->assertEquals($request->getUri()->getHost(),  'localhost');
-        $this->assertEquals($request->getUri()->getPort(),  '8080');
-        $this->assertEquals($request->getUri()->getPath(), '/foo');
-        $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
+        $this->assertEquals('http', $request->getUri()->getScheme());
+        $this->assertEquals('localhost', $request->getUri()->getHost());
+        $this->assertEquals('8080', $request->getUri()->getPort());
+        $this->assertEquals('/foo', $request->getUri()->getPath());
+        $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
         $this->assertTrue($request->hasHeader('X-Amz-Date'));
         $this->assertTrue($request->hasHeader('Authorization'));
         $this->assertRegexp('/key_id.{10}region/', $authheader[0]);
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($contentheader, array('application/json'));
+        $this->assertEquals(array('application/json'), $contentheader);
     }
 
     /**
@@ -222,13 +222,13 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $contentheader = $request->getHeader('content-type');
 
         // Check the results.
-        $this->assertEquals($request->getUri()->getScheme(), 'http');
-        $this->assertEquals($request->getUri()->getHost(),  'localhost');
-        $this->assertEquals($request->getUri()->getPort(),  '8080');
-        $this->assertEquals($request->getUri()->getPath(), '/foo');
-        $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
+        $this->assertEquals('http', $request->getUri()->getScheme());
+        $this->assertEquals('localhost', $request->getUri()->getHost());
+        $this->assertEquals('8080', $request->getUri()->getPort());
+        $this->assertEquals('/foo', $request->getUri()->getPath());
+        $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($contentheader, array('application/json'));
+        $this->assertEquals(array('application/json'), $contentheader);
 
     }
 
@@ -263,16 +263,16 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $contentheader = $request->getHeader('content-type');
 
         // Check the results.
-        $this->assertEquals($request->getUri()->getScheme(), 'http');
-        $this->assertEquals($request->getUri()->getHost(),  'localhost');
-        $this->assertEquals($request->getUri()->getPort(),  '8080');
-        $this->assertEquals($request->getUri()->getPath(), '/foo');
-        $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
+        $this->assertEquals('http', $request->getUri()->getScheme());
+        $this->assertEquals('localhost', $request->getUri()->getHost());
+        $this->assertEquals('8080', $request->getUri()->getPort());
+        $this->assertEquals('/foo', $request->getUri()->getPath());
+        $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
         $this->assertTrue($request->hasHeader('X-Amz-Date'));
         $this->assertTrue($request->hasHeader('Authorization'));
         $this->assertRegexp('/key_id.{10}region/', $authheader[0]);
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals($contentheader, array('application/json'));
+        $this->assertEquals(array('application/json'), $contentheader);
     }
 
     /**
@@ -297,11 +297,11 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $request = $container[0]['request'];
 
         // Check the results.
-        $this->assertEquals($request->getUri()->getScheme(), 'http');
-        $this->assertEquals($request->getUri()->getHost(),  'localhost');
-        $this->assertEquals($request->getUri()->getPort(),  '8080');
-        $this->assertEquals($request->getUri()->getPath(), '/foo');
-        $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
+        $this->assertEquals('http', $request->getUri()->getScheme());
+        $this->assertEquals('localhost', $request->getUri()->getHost());
+        $this->assertEquals('8080', $request->getUri()->getPort());
+        $this->assertEquals('/foo', $request->getUri()->getPath());
+        $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
 
     }
 
@@ -334,11 +334,11 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $authheader = $request->getHeader('Authorization');
 
         // Check the results.
-        $this->assertEquals($request->getUri()->getScheme(), 'http');
-        $this->assertEquals($request->getUri()->getHost(),  'localhost');
-        $this->assertEquals($request->getUri()->getPort(),  '8080');
-        $this->assertEquals($request->getUri()->getPath(), '/foo');
-        $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
+        $this->assertEquals('http', $request->getUri()->getScheme());
+        $this->assertEquals('localhost', $request->getUri()->getHost());
+        $this->assertEquals('8080', $request->getUri()->getPort());
+        $this->assertEquals('/foo', $request->getUri()->getPath());
+        $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
         $this->assertTrue($request->hasHeader('X-Amz-Date'));
         $this->assertTrue($request->hasHeader('Authorization'));
         $this->assertRegexp('/key_id.{10}region/', $authheader[0]);
@@ -364,7 +364,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
                                  'https'  => 'tcp://localhost:3128',
                                  'no' => ['localhost', '127.0.0.1']]];
 
-        $this->assertEquals($proxy, $expected, $canonicalize = true);
+        $this->assertEquals($expected, $proxy, $canonicalize = true);
     }
 
     /**
@@ -389,7 +389,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
                                  'https'  => 'tcp://user1:password@localhost:3128',
                                  'no' => ['localhost', '127.0.0.1']]];
 
-        $this->assertEquals($proxy, $expected, $canonicalize = true);
+        $this->assertEquals($expected, $proxy, $canonicalize = true);
     }
 
     /**
@@ -413,7 +413,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
         $expected = ['proxy' => ['http'  => 'tcp://user1:password@localhost:3128',
                                  'https'  => 'tcp://user1:password@localhost:3128']];
 
-        $this->assertEquals($proxy, $expected, $canonicalize = true);
+        $this->assertEquals($expected, $proxy, $canonicalize = true);
     }
 
     /**
@@ -437,7 +437,7 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
                                  'https'  => 'socks5://localhost:3128',
                                  'no' => ['localhost', '127.0.0.1']]];
 
-        $this->assertEquals($proxy, $expected, $canonicalize = true);
+        $this->assertEquals($expected, $proxy, $canonicalize = true);
     }
 
     /**
@@ -473,12 +473,12 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
                      'no' => ['localhost', '127.0.0.1']];
 
         // Check the results.
-        $this->assertEquals($request->getUri()->getScheme(), 'http');
-        $this->assertEquals($request->getUri()->getHost(),  'localhost');
-        $this->assertEquals($request->getUri()->getPort(),  '8080');
-        $this->assertEquals($request->getUri()->getPath(), '/foo');
-        $this->assertEquals($request->getUri()->getQuery(), 'bar=blerg');
-        $this->assertEquals($proxy, $expected, $canonicalize = true);
+        $this->assertEquals('http', $request->getUri()->getScheme());
+        $this->assertEquals('localhost', $request->getUri()->getHost());
+        $this->assertEquals('8080', $request->getUri()->getPort());
+        $this->assertEquals('/foo', $request->getUri()->getPath());
+        $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
+        $this->assertEquals($expected, $proxy, $canonicalize = true);
 
     }
 }
