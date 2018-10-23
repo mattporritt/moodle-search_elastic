@@ -88,8 +88,8 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
     public function test_signed_get() {
         $this->resetAfterTest(true);
         set_config('signing', 1, 'search_elastic');
-        set_config('keyid', 'key_id', 'search_elastic');
-        set_config('secretkey', 'secret_key', 'search_elastic');
+        set_config('signingkeyid', 'key_id', 'search_elastic');
+        set_config('signingsecretkey', 'secret_key', 'search_elastic');
         set_config('region', 'region', 'search_elastic');
 
         $container = [];
@@ -161,8 +161,8 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
     public function test_signed_put() {
         $this->resetAfterTest(true);
         set_config('signing', 1, 'search_elastic');
-        set_config('keyid', 'key_id', 'search_elastic');
-        set_config('secretkey', 'secret_key', 'search_elastic');
+        set_config('signingkeyid', 'key_id', 'search_elastic');
+        set_config('signingsecretkey', 'secret_key', 'search_elastic');
         set_config('region', 'region', 'search_elastic');
 
         $container = [];
@@ -238,8 +238,8 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
     public function test_signed_post() {
         $this->resetAfterTest(true);
         set_config('signing', 1, 'search_elastic');
-        set_config('keyid', 'key_id', 'search_elastic');
-        set_config('secretkey', 'secret_key', 'search_elastic');
+        set_config('signingkeyid', 'key_id', 'search_elastic');
+        set_config('signingsecretkey', 'secret_key', 'search_elastic');
         set_config('region', 'region', 'search_elastic');
 
         $container = [];
@@ -311,8 +311,8 @@ class search_elastic_esrequest_testcase extends advanced_testcase {
     public function test_signed_delete() {
         $this->resetAfterTest(true);
         set_config('signing', 1, 'search_elastic');
-        set_config('keyid', 'key_id', 'search_elastic');
-        set_config('secretkey', 'secret_key', 'search_elastic');
+        set_config('signingkeyid', 'key_id', 'search_elastic');
+        set_config('signingsecretkey', 'secret_key', 'search_elastic');
         set_config('region', 'region', 'search_elastic');
 
         $container = [];

@@ -130,16 +130,16 @@ class esrequest {
      */
     private function signrequest($request) {
         // Check we are all configured for request signing.
-        if (empty($this->config->keyid) ||
-                empty($this->config->secretkey) ||
+        if (empty($this->config->signingkeyid) ||
+                empty($this->config->signingsecretkey) ||
                 empty($this->config->region)) {
             throw new \moodle_exception('noconfig', 'search_elastic', '');
         }
 
         // Pull credentials from the default provider chain.
         $credentials = new \Aws\Credentials\Credentials(
-                $this->config->keyid,
-                $this->config->secretkey
+                $this->config->signingkeyid,
+                $this->config->signingsecretkey
                 );
         // Create a signer with the service's signing name and region.
         $signer = new \Aws\Signature\SignatureV4('es', $this->config->region);
