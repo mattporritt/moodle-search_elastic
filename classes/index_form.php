@@ -87,6 +87,21 @@ class index_form extends \moodleform {
             $mform->setDefault('sendsize', 9000000);
         }
 
+        // Search Settings
+        $mform->addElement('header', 'searchsettings', get_string('searchsettings', 'search_elastic'));
+        $mform->addElement(
+            'advcheckbox',
+            'implicitwildcard',
+            get_string ('implicitwildcard', 'search_elastic'),
+            'Enable', array(), array(0, 1));
+        $mform->setType('implicitwildcard', PARAM_INT);
+        $mform->addHelpButton('implicitwildcard', 'implicitwildcard', 'search_elastic');
+        if (isset($config->signing)) {
+            $mform->setDefault('implicitwildcard', $config->signing);
+        } else {
+            $mform->setDefault('implicitwildcard', 0);
+        }
+
         // Request Signing settings.
         $mform->addElement('header', 'signingsettings', get_string('signingsettings', 'search_elastic'));
 

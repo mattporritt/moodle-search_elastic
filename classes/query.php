@@ -123,14 +123,58 @@ class query  {
     }
 
     /**
+     * Add * wildcard to beginning and end of search string.
+     *
+     * @param string $q The query string.
+     * @return string $q The query string with added wildcards.
+     */
+    private function add_wildcards($q) {
+
+        $terms = explode(" ", $q); // Break search string into individual words.
+        $wildcardterms = array();
+
+        // Add wildcards to start and end of words.
+        foreach($terms as $term) {
+            // Ignore words: and, or.
+            if ($term == 'and' || $term == 'or') {
+                $wildcardterms[] = $term;
+                continue;
+            }
+
+            //  Add wild card to start of word.
+            if(!substr($term, 0, 1) == '*') {
+                $term = '*' . $term;
+            }
+
+            //  Add wild card to end of word.
+            if(!substr($term, -1, 1) == '*') {
+                $term = $term . '8';
+            }
+
+            $wildcardterms[] = $term;
+        }
+
+        // Reconstruct search query.
+        if(!empty($wildcardterms)) {
+            $q = implode(' ', $wildcardterms);
+        }
+
+        return $q;
+    }
+
+    /**
      * Takes the search string the user has entered
      * and constructs the corresponding part of the
      * search query.
      *
-     * @param string $q
+     * @param string $q The query string.
      * @return array
      */
     private function construct_q($q) {
+
+        if((bool)get_config('search_elastic', 'implicitwildcard')) {
+            $q = $this->add_wildcards($q);
+        }
 
         $searchfields = $this->get_search_fields();
         $qobj = array('query_string' => array('query' => $q, 'fields' => $searchfields));
