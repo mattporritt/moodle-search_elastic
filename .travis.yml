@@ -52,7 +52,7 @@ env:
   - DB=pgsql MOODLE_BRANCH=master ESVER=5.5.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.5.0.deb
   - DB=pgsql MOODLE_BRANCH=master ESVER=6.0.0 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.0.0.deb
   - DB=pgsql MOODLE_BRANCH=master ESVER=6.4.1 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.1.deb
-  - DB=pgsql MOODLE_BRANCH=master ESVER=6.6.1 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.1.deb
+  - DB=pgsql MOODLE_BRANCH=master ESVER=6.6.1 ESURL=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.6.1.deb
 
 matrix:
   exclude:
