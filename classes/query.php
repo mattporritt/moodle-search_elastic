@@ -134,28 +134,29 @@ class query  {
         $wildcardterms = array();
 
         // Add wildcards to start and end of words.
-        foreach($terms as $term) {
+        foreach ($terms as $term) {
+
             // Ignore words: and, or.
             if ($term == 'and' || $term == 'or') {
                 $wildcardterms[] = $term;
                 continue;
             }
 
-            //  Add wild card to start of word.
-            if(!substr($term, 0, 1) == '*') {
+            // Add wild card to start of word.
+            if (substr($term, 0, 1) != '*') {
                 $term = '*' . $term;
             }
 
-            //  Add wild card to end of word.
-            if(!substr($term, -1, 1) == '*') {
-                $term = $term . '8';
+            // Add wild card to end of word.
+            if (substr($term, -1, 1) != '*') {
+                $term = $term . '*';
             }
 
             $wildcardterms[] = $term;
         }
 
         // Reconstruct search query.
-        if(!empty($wildcardterms)) {
+        if (!empty($wildcardterms)) {
             $q = implode(' ', $wildcardterms);
         }
 
@@ -172,7 +173,7 @@ class query  {
      */
     private function construct_q($q) {
 
-        if((bool)get_config('search_elastic', 'implicitwildcard')) {
+        if (get_config('search_elastic', 'implicitwildcard')) {
             $q = $this->add_wildcards($q);
         }
 

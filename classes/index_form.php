@@ -87,7 +87,7 @@ class index_form extends \moodleform {
             $mform->setDefault('sendsize', 9000000);
         }
 
-        // Search Settings
+        // Search Settings.
         $mform->addElement('header', 'searchsettings', get_string('searchsettings', 'search_elastic'));
         $mform->addElement(
             'advcheckbox',

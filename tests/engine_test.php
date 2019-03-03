@@ -48,12 +48,12 @@ class search_elastic_engine_testcase extends advanced_testcase {
     protected $search = null;
 
     /**
-     * @var Instace of core_search_generator.
+     * @var Instance of core_search_generator.
      */
     protected $generator = null;
 
     /**
-     * @var Instace of testable_engine.
+     * @var Instance of testable_engine.
      */
     protected $engine = null;
 
@@ -942,6 +942,71 @@ class search_elastic_engine_testcase extends advanced_testcase {
 
         $results = $this->search->search($querydata); // Execute the search.
         $this->assertEquals(count($results), 2);
+
+    }
+
+    /**
+     * Test the implicit wildcard search functionality.
+     * Should not return results.
+     */
+    public function test_search_no_implicit_wildcard() {
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'frog';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        // Execute the search.
+        $results = $this->search->search($querydata);
+
+        // Check the results.
+        $this->assertEquals(count($results), 0);
+
+    }
+
+    /**
+     * Test the implicit wildcard search functionality.
+     */
+    public function test_search_implicit_wildcard() {
+        set_config('implicitwildcard', 1, 'search_elastic');
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'frog';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        // Execute the search.
+        $results = $this->search->search($querydata);
+
+        // Check the results.
+        $this->assertEquals(count($results), 1);
+        $this->assertEquals($results[0]->get('content'), 'this is an assignment on @@HI_S@@frogs@@HI_E@@ and toads');
 
     }
 

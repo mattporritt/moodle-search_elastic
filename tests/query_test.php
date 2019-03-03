@@ -373,4 +373,43 @@ class search_elastic_query_testcase extends advanced_testcase {
         $result = $query->get_query($querydata, $accessinfo);
         $this->assertEquals($expected, $result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']);
     }
+
+
+    /**
+     * Test query add wildcards construction.
+     */
+    public function test_construct_wildcard() {
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('\search_elastic\query', 'add_wildcards');
+        $method->setAccessible(true); // Allow accessing of private method.
+
+        $q = 'test';
+        $proxy = $method->invoke(new \search_elastic\query, $q); // Get result of invoked method.
+        $this->assertEquals('*test*', $proxy);
+
+        $q = 'test*';
+        $proxy = $method->invoke(new \search_elastic\query, $q);
+        $this->assertEquals('*test*', $proxy);
+
+        $q = '*test';
+        $proxy = $method->invoke(new \search_elastic\query, $q);
+        $this->assertEquals('*test*', $proxy);
+
+        $q = '*test*';
+        $proxy = $method->invoke(new \search_elastic\query, $q);
+        $this->assertEquals('*test*', $proxy);
+
+        $q = 'lazy brown dog';
+        $proxy = $method->invoke(new \search_elastic\query, $q);
+        $this->assertEquals('*lazy* *brown* *dog*', $proxy);
+
+        $q = 'this and that';
+        $proxy = $method->invoke(new \search_elastic\query, $q);
+        $this->assertEquals('*this* and *that*', $proxy);
+
+        $q = 'this or that';
+        $proxy = $method->invoke(new \search_elastic\query, $q);
+        $this->assertEquals('*this* or *that*', $proxy);
+    }
+
 }
