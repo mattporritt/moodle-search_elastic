@@ -387,11 +387,15 @@ class search_elastic_query_testcase extends advanced_testcase {
         $proxy = $method->invoke(new \search_elastic\query, $q); // Get result of invoked method.
         $this->assertEquals('*test*', $proxy);
 
-        $q = 'test*';
+        $q = 'test ';
+        $proxy = $method->invoke(new \search_elastic\query, $q); // Get result of invoked method.
+        $this->assertEquals('*test*', $proxy);
+
+        $q = 'test* ';
         $proxy = $method->invoke(new \search_elastic\query, $q);
         $this->assertEquals('*test*', $proxy);
 
-        $q = '*test';
+        $q = ' *test';
         $proxy = $method->invoke(new \search_elastic\query, $q);
         $this->assertEquals('*test*', $proxy);
 
@@ -403,13 +407,25 @@ class search_elastic_query_testcase extends advanced_testcase {
         $proxy = $method->invoke(new \search_elastic\query, $q);
         $this->assertEquals('*lazy* *brown* *dog*', $proxy);
 
+        $q = 'lazy  brown    dog';
+        $proxy = $method->invoke(new \search_elastic\query, $q);
+        $this->assertEquals('*lazy* *brown* *dog*', $proxy);
+
         $q = 'this and that';
         $proxy = $method->invoke(new \search_elastic\query, $q);
         $this->assertEquals('*this* and *that*', $proxy);
 
+        $q = 'this AND that';
+        $proxy = $method->invoke(new \search_elastic\query, $q);
+        $this->assertEquals('*this* AND *that*', $proxy);
+
         $q = 'this or that';
         $proxy = $method->invoke(new \search_elastic\query, $q);
         $this->assertEquals('*this* or *that*', $proxy);
+
+        $q = 'this Or that';
+        $proxy = $method->invoke(new \search_elastic\query, $q);
+        $this->assertEquals('*this* Or *that*', $proxy);
     }
 
 }

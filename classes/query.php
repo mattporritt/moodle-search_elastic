@@ -136,8 +136,14 @@ class query  {
         // Add wildcards to start and end of words.
         foreach ($terms as $term) {
 
+            if (empty($term)) {
+                continue;
+            }
+
+            $term = str_replace(' ', '', $term);
+
             // Ignore words: and, or.
-            if ($term == 'and' || $term == 'or') {
+            if (strtolower($term) == 'and' || strtolower($term) == 'or') {
                 $wildcardterms[] = $term;
                 continue;
             }
