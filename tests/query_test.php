@@ -395,7 +395,15 @@ class search_elastic_query_testcase extends advanced_testcase {
         $proxy = $method->invoke(new \search_elastic\query, $q);
         $this->assertEquals('*test*', $proxy);
 
+        $q = 'test**';
+        $proxy = $method->invoke(new \search_elastic\query, $q);
+        $this->assertEquals('*test*', $proxy);
+
         $q = ' *test';
+        $proxy = $method->invoke(new \search_elastic\query, $q);
+        $this->assertEquals('*test*', $proxy);
+
+        $q = '***test';
         $proxy = $method->invoke(new \search_elastic\query, $q);
         $this->assertEquals('*test*', $proxy);
 

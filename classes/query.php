@@ -149,14 +149,10 @@ class query  {
             }
 
             // Add wild card to start of word.
-            if (substr($term, 0, 1) != '*') {
-                $term = '*' . $term;
-            }
+            $term = '*' . trim($term, '*');
 
             // Add wild card to end of word.
-            if (substr($term, -1, 1) != '*') {
-                $term = $term . '*';
-            }
+            $term = rtrim($term, '*') . '*';
 
             $wildcardterms[] = $term;
         }
