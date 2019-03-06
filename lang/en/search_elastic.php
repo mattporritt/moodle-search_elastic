@@ -53,6 +53,12 @@ $string['imagerecognitionsettings'] = 'Image recognition';
 $string['imagerecognitionsettingsdesc'] = 'Image recognition extracts details about the content of an image and adds these to the search index.
 
 These settings control what process or service is used to extract data out of an image and how the image data is added to the search engine.';
+$string['wildcardstart'] = 'Wildcard at the start';
+$string['wildcardstart_help'] = 'When enabled Moodle will add implicit wildcards at the start of search terms. This can improve behaviour of searches.
+For example: searching for "scrip" will become "*scrip" prior to be sent to the search engine. This means the search will now match "script" and "description".';
+$string['wildcardend'] = 'Wildcard at the end';
+$string['wildcardend_help'] = 'When enabled Moodle will add implicit wildcards at the end of search terms. This can improve behaviour of searches.
+For example: searching for "math" will become "math*" prior to be sent to the search engine. This means the search will now match "math", "maths" and "mathematics".';
 $string['indexfail'] = 'Failed to create index';
 $string['maxlabels'] = 'Maxiumum Labels';
 $string['maxlabels_help'] = 'The maximum number of result labels returned by Rekognition.';
@@ -84,6 +90,7 @@ $string['searchinfo_help'] = 'The field to be searched may be specified by prefi
 Boolean operators (\'AND\', \'OR\') may be used to combine or exclude keywords.
 
 Wildcard characters (\'*\' or \'?\' ) may be used to represent characters in the search query.';
+$string['searchsettings'] = 'Search settings';
 $string['sendsize'] = 'Request size';
 $string['sendsize_help'] = 'Some Elasticsearch providers such as AWS have a limit on how big the HTTP payload can be. Therefore we limit it to a size in bytes.';
 $string['signing'] = 'Enable request signing';

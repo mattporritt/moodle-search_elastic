@@ -16,18 +16,17 @@ The following features are provided by this plugin:
 This plugin currently supports Moodle:
 
 * 3.1
-* 3.3
 * 3.4
 * 3.5
 
 ## Elasticsearch Version Support
 Currently this plugin is tested to work against the following versions of Elasticsearch:
 
-* 2.3.4
 * 2.4.4
-* 5.1.2
 * 5.5.0
 * 6.0.0
+* 6.4.1
+* 6.6.1
 
 ## Verified Platforms
 This plugin has been tested to work on the following cloud platforms:

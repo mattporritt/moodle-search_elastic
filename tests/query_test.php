@@ -373,4 +373,93 @@ class search_elastic_query_testcase extends advanced_testcase {
         $result = $query->get_query($querydata, $accessinfo);
         $this->assertEquals($expected, $result['query']['bool']['filter']['bool']['must'][0]['terms']['contextid']);
     }
+
+    /**
+     * A data provider for test_construct_wildcard.
+     * @return array
+     */
+    public function construct_wildcard_data_provider() {
+        return [
+            ['test', null, null, 'test'],
+
+            ['test', false, false, 'test'],
+            ['test', true, false, '*test'],
+            ['test', false, true, 'test*'],
+            ['test', true, true, '*test*'],
+
+            [' test ', false, false, 'test'],
+            [' test ', true, false, '*test'],
+            [' test ', false, true, 'test*'],
+            [' test ', true, true, '*test*'],
+
+            ['test* ', false, false, 'test*'],
+            ['test* ', true, false, '*test*'],
+            ['test* ', false, true, 'test*'],
+            ['test* ', true, true, '*test*'],
+
+            ['test* *', false, false, 'test* *'],
+            ['test* *', true, false, '*test* *'],
+            ['test* *', false, true, 'test* *'],
+            ['test* *', true, true, '*test* *'],
+
+            ['test**', false, false, 'test**'],
+            ['test**', true, false, '*test**'],
+            ['test**', false, true, 'test*'],
+            ['test**', true, true, '*test*'],
+
+            ['*test*', false, false, '*test*'],
+            ['*test*', true, false, '*test*'],
+            ['*test*', false, true, '*test*'],
+            ['*test*', true, true, '*test*'],
+
+            ['lazy brown dog', false, false, 'lazy brown dog'],
+            ['lazy brown dog', true, false, '*lazy *brown *dog'],
+            ['lazy brown dog', false, true, 'lazy* brown* dog*'],
+            ['lazy brown dog', true, true, '*lazy* *brown* *dog*'],
+
+            ['lazy   brown  dog', false, false, 'lazy brown dog'],
+            ['lazy   brown  dog', true, false, '*lazy *brown *dog'],
+            ['lazy   brown  dog', false, true, 'lazy* brown* dog*'],
+            ['lazy   brown  dog', true, true, '*lazy* *brown* *dog*'],
+
+            ['this and that', false, false, 'this and that'],
+            ['this and that', true, false, '*this and *that'],
+            ['this and that', false, true, 'this* and that*'],
+            ['this and that', true, true, '*this* and *that*'],
+
+            ['this AND that', false, false, 'this AND that'],
+            ['this AND that', true, false, '*this AND *that'],
+            ['this AND that', false, true, 'this* AND that*'],
+            ['this AND that', true, true, '*this* AND *that*'],
+
+            ['this or that', false, false, 'this or that'],
+            ['this or that', true, false, '*this or *that'],
+            ['this or that', false, true, 'this* or that*'],
+            ['this or that', true, true, '*this* or *that*'],
+
+            ['this Or that', false, false, 'this Or that'],
+            ['this Or that', true, false, '*this Or *that'],
+            ['this Or that', false, true, 'this* Or that*'],
+            ['this Or that', true, true, '*this* Or *that*'],
+        ];
+    }
+
+    /**
+     * Test query add wildcards construction.
+     * @dataProvider construct_wildcard_data_provider
+     *
+     * @param string $q The query string.
+     * @param bool $start Add a wildcard at the start?
+     * @param bool $end Add a wildcard at the end?
+     * @param string $expected Expected result.
+     */
+    public function test_construct_wildcard($q, $start, $end, $expected) {
+        // We're testing a private method, so we need to setup reflector magic.
+        $method = new ReflectionMethod('\search_elastic\query', 'add_wildcards');
+        $method->setAccessible(true); // Allow accessing of private method.
+
+        $proxy = $method->invoke(new \search_elastic\query, $q, $start, $end);
+        $this->assertEquals($expected, $proxy);
+    }
+
 }
