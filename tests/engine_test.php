@@ -978,10 +978,10 @@ class search_elastic_engine_testcase extends advanced_testcase {
     }
 
     /**
-     * Test the implicit wildcard search functionality.
+     * Test the wildcard search functionality when wildcardstart is enabled.
      */
-    public function test_search_implicit_wildcard() {
-        set_config('implicitwildcard', 1, 'search_elastic');
+    public function test_search_wildcardstart_enabled() {
+        set_config('wildcardstart', 1, 'search_elastic');
 
         // Construct the search object and add it to the engine.
         $rec = new \stdClass();
@@ -997,7 +997,41 @@ class search_elastic_engine_testcase extends advanced_testcase {
 
         // This is a mock of the search form submission.
         $querydata = new stdClass();
-        $querydata->q = 'frog';
+        $querydata->q = 'ogs';
+        $querydata->timestart = 0;
+        $querydata->timeend = 0;
+
+        // Execute the search.
+        $results = $this->search->search($querydata);
+
+        // Check the results.
+        $this->assertEquals(count($results), 1);
+        $this->assertEquals($results[0]->get('content'), 'this is an assignment on @@HI_S@@frogs@@HI_E@@ and toads');
+
+    }
+
+
+    /**
+     * Test the wildcard search functionality when wildcardend is enabled.
+     */
+    public function test_search_wildcardend_enabled() {
+        set_config('wildcardend', 1, 'search_elastic');
+
+        // Construct the search object and add it to the engine.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        // This is a mock of the search form submission.
+        $querydata = new stdClass();
+        $querydata->q = 'fro';
         $querydata->timestart = 0;
         $querydata->timeend = 0;
 
