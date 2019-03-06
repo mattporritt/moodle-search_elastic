@@ -53,9 +53,12 @@ $string['imagerecognitionsettings'] = 'Image recognition';
 $string['imagerecognitionsettingsdesc'] = 'Image recognition extracts details about the content of an image and adds these to the search index.
 
 These settings control what process or service is used to extract data out of an image and how the image data is added to the search engine.';
-$string['implicitwildcard'] = 'Enable implicit wildcards';
-$string['implicitwildcard_help'] = 'When enabled Moodle will add implicit wildcards to search terms. This can improve behaviour of searches.
-For example: searching for "math" will become "*math*" prior to be sent to the search engine. This means the search will now match "math", "maths" and "mathematics".';
+$string['wildcardstart'] = 'Wildcard at the start';
+$string['wildcardstart_help'] = 'When enabled Moodle will add implicit wildcards at the start of search terms. This can improve behaviour of searches.
+For example: searching for "scrip" will become "*scrip" prior to be sent to the search engine. This means the search will now match "script" and "description".';
+$string['wildcardend'] = 'Wildcard at the end';
+$string['wildcardend_help'] = 'When enabled Moodle will add implicit wildcards at the end of search terms. This can improve behaviour of searches.
+For example: searching for "math" will become "math*" prior to be sent to the search engine. This means the search will now match "math", "maths" and "mathematics".';
 $string['indexfail'] = 'Failed to create index';
 $string['maxlabels'] = 'Maxiumum Labels';
 $string['maxlabels_help'] = 'The maximum number of result labels returned by Rekognition.';

@@ -123,12 +123,15 @@ class query  {
     }
 
     /**
-     * Add * wildcard to beginning and end of search string.
+     * Add * wildcard to beginning and/or end of search string if required.
      *
      * @param string $q The query string.
+     * @param bool $start Add a wildcard at the start?
+     * @param bool $end Add a wildcard at the end?
+
      * @return string $q The query string with added wildcards.
      */
-    private function add_wildcards($q) {
+    private function add_wildcards($q, $start = false, $end = false) {
 
         $terms = explode(" ", $q); // Break search string into individual words.
         $wildcardterms = array();
@@ -148,11 +151,15 @@ class query  {
                 continue;
             }
 
-            // Add wild card to start of word.
-            $term = '*' . trim($term, '*');
+            if ($start) {
+                // Add wild card to start of word.
+                $term = '*' . ltrim($term, '*');
+            }
 
-            // Add wild card to end of word.
-            $term = rtrim($term, '*') . '*';
+            if ($end) {
+                // Add wild card to end of word.
+                $term = rtrim($term, '*') . '*';
+            }
 
             $wildcardterms[] = $term;
         }
@@ -174,10 +181,11 @@ class query  {
      * @return array
      */
     private function construct_q($q) {
-
-        if (get_config('search_elastic', 'implicitwildcard')) {
-            $q = $this->add_wildcards($q);
-        }
+        $q = $this->add_wildcards(
+            $q,
+            get_config('search_elastic', 'wildcardstart'),
+            get_config('search_elastic', 'wildcardend')
+        );
 
         $searchfields = $this->get_search_fields();
         $qobj = array('query_string' => array('query' => $q, 'fields' => $searchfields));
