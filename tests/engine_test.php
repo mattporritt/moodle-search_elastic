@@ -1010,7 +1010,6 @@ class search_elastic_engine_testcase extends advanced_testcase {
 
     }
 
-
     /**
      * Test the wildcard search functionality when wildcardend is enabled.
      */
@@ -1042,6 +1041,50 @@ class search_elastic_engine_testcase extends advanced_testcase {
         $this->assertEquals(count($results), 1);
         $this->assertEquals($results[0]->get('content'), 'this is an assignment on @@HI_S@@frogs@@HI_E@@ and toads');
 
+    }
+
+    /**
+     * Test validate index method with good index.
+     */
+    public function test_validate_index () {
+
+        $result = $this->engine->validate_index();
+
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Test validate index method with broken index.
+     */
+    public function test_broken_index() {
+        $config = get_config('search_elastic');
+        // Delete existing index, as we want to try to make a broken one.
+        $url = rtrim($config->hostname, "/");
+        $port = $config->port;
+        $url .= ':'. $port;
+        $indexeurl = $url . '/'. $config->index;
+        $client = new \search_elastic\esrequest();
+        $response = json_decode($client->delete($indexeurl)->getBody());
+
+        // Assert index was deleted.
+        $this->assertTrue($response->acknowledged);
+
+        // Add a document this will create a crate a broken index.
+        $rec = new \stdClass();
+        $rec->content = "this is an assignment on frogs and toads";
+        $area = $this->area;
+        $record = $this->generator->create_record($rec);
+        $doc = $area->get_document($record);
+        $this->engine->add_document($doc);
+
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        $result = $this->engine->validate_index();
+
+        // We should now have a broken index.
+        $this->assertFalse($result);
     }
 
 }

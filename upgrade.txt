@@ -1,0 +1,7 @@
+This files describes changes for the search elastic plugin, refer to Readme for functionality and install instructions.
+Information provided here is intended especially for developers.
+
+=== 2019042101 ===
+
+* Fixes issue with corrupt index. Installs with a corrupt index will have index deleted on upgrade and documents will be readded by
+  regular scheduled task.

@@ -18,14 +18,14 @@
  * Version info.
  *
  * @package     search_elastic
- * @copyright   Matt Porritt <mattp@catalyst-au.net>
+ * @copyright   2018 Matt Porritt <mattp@catalyst-au.net>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2019030300;
-$plugin->release   = 2019030300;      // Same as version.
+$plugin->version = 2019042101;
+$plugin->release   = 2019042101;      // Same as version.
 $plugin->requires = 2016052304;
 $plugin->component = 'search_elastic';
 $plugin->maturity  = MATURITY_STABLE;

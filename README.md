@@ -49,8 +49,8 @@ sudo apt-get install default-jre default-jdk
 
 Once Java is installed, the following commands will install and start Elasticsearch.
 <pre><code>
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.1.2.deb
-sudo dpkg -i elasticsearch-5.1.2.deb
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.6.1.deb
+sudo dpkg -i elasticsearch-6.6.1.deb
 sudo update-rc.d elasticsearch defaults
 sudo service elasticsearch start
 </pre></code>

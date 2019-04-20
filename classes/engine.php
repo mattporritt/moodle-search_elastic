@@ -37,7 +37,7 @@ defined('MOODLE_INTERNAL') || die();
  * Elasticsearch engine.
  *
  * @package     search_elastic
- * @copyright   Matt Porritt <mattp@catalyst-au.net>
+ * @copyright   2018 Matt Porritt <mattp@catalyst-au.net>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class engine extends \core_search\engine {
@@ -129,6 +129,33 @@ class engine extends \core_search\engine {
         }
 
         return $returnval;
+    }
+
+    /**
+     * Check if the elasticsearch index is valid.
+     *
+     * @return boolean $valid If the index is valid.
+     */
+    public function validate_index() {
+        $valid = true;
+
+        // Get existing index definition.
+        $url = $this->get_url();
+        $indexeurl = $url . '/'. $this->config->index. '/_mapping';
+        $client = new \search_elastic\esrequest();
+        $response = $client->get($indexeurl);
+        $responsebody = json_decode($response->getBody());
+        $indexfields = $responsebody->{$this->config->index}->mappings->doc->properties;
+
+        // Iterrate through required fields and compare to index.
+        $requiredfields = \search_elastic\document::get_required_fields_definition();
+        foreach ($requiredfields as $name => $field) {
+            if ($indexfields->{$name}->type != $field['type']) {
+                $valid = false;
+            }
+        }
+
+        return $valid;
     }
 
     /**
@@ -229,6 +256,7 @@ class engine extends \core_search\engine {
      * @param bool $fullindex is this a full index of site.
      */
     public function index_starting($fullindex = false) {
+        $fullindex = true;  // Always assume full index.
         if ($fullindex) {
             // Check if index exists and create it if it doesn't.
             $hasindex = $this->check_index();
