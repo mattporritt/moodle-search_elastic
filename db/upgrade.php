@@ -35,16 +35,19 @@ function xmldb_search_elastic_upgrade($oldversion) {
         // Check for corrupt index definition and fix if required.
         // Fix involves deleting all indexed documents.
         $elastic = new \search_elastic\engine();
-        $validindex = $elastic->validate_index();
 
-        if (!$validindex) {
-            // Index insn't valid, lets delete it.
-            // Delete operation will recreate index with correct mapping.
-            $elastic->delete();
+        if ($elastic->is_server_ready() === true) {
+            $validindex = $elastic->validate_index();
 
-            // Let Moodle know index has been deleted so contents are automatically reindexed.
-            $searchmanager = \core_search\manager::instance();
-            $searchmanager->delete_index();
+            if (!$validindex) {
+                // Index insn't valid, lets delete it.
+                // Delete operation will recreate index with correct mapping.
+                $elastic->delete();
+
+                // Let Moodle know index has been deleted so contents are automatically reindexed.
+                $searchmanager = \core_search\manager::instance();
+                $searchmanager->delete_index();
+            }
         }
 
         upgrade_plugin_savepoint(true, 2019042101, 'search', 'elastic');
