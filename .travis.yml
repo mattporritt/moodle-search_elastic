@@ -3,7 +3,7 @@ language: php
 addons:
   apt:
     packages:
-      - oracle-java9-set-default
+      - openjdk-9-jre
   postgresql: "9.4"
 
 notifications:
