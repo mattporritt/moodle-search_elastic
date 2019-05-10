@@ -115,7 +115,8 @@ class query  {
                 'userid',
                 'owneruserid',
                 'modified',
-                'type'
+                'type',
+                'groupid'
         );
         $searchfields = array_diff($allfields, $excludedfields);
 
