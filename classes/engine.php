@@ -182,7 +182,10 @@ class engine extends \core_search\engine {
      */
     public function get_mapping($version=false) {
         $requiredfields = \search_elastic\document::get_required_fields_definition();
-        $mapping = array('mappings' => array('doc' => array('properties' => $requiredfields)));
+        $optionalfields = \search_elastic\document::get_optional_fields_definition();
+        $fields = array_merge($requiredfields, $optionalfields);
+
+        $mapping = array('mappings' => array('doc' => array('properties' => $fields)));
 
         // We need to change some of the mappings if Elasticsearch version is less than 5.
         if (!$version) {

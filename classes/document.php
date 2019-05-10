@@ -84,6 +84,35 @@ class document extends \core_search\document {
     );
 
     /**
+    * All optional fields docs can contain.
+    *
+    * Search engine plugins are responsible of setting their appropriate field types and map these
+    * naming to whatever format they need.
+    *
+    * This format suits Elasticsearh mapping
+    *
+    * @var array
+    */
+    protected static $optionalfields = array(
+            'userid' => array(
+                    'type' => 'integer'
+            ),
+            'groupid' => array(
+                    'type' => 'integer'
+            ),
+            'description1' => array(
+                    'type' => 'text'
+            ),
+            'description2' => array(
+                    'type' => 'text'
+            ),
+            'filetext' => array(
+                    'type' => 'text'
+            ),
+    );
+
+
+    /**
      * Constructor for document class.
      * Makes relevant config available and bootstraps
      * Rekognition client.
@@ -265,11 +294,20 @@ class document extends \core_search\document {
     }
 
     /**
-     * Returns all required fields definitions.
+     * Returns all required field definitions.
      *
      * @return array
      */
     public static function get_required_fields_definition() {
         return static::$requiredfields;
+    }
+
+    /**
+     * Returns all optional field definitions.
+     *
+     * @return array
+     */
+    public static function get_optional_fields_definition() {
+        return static::$optionalfields;
     }
 }
