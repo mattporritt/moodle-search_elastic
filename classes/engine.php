@@ -634,6 +634,43 @@ class engine extends \core_search\engine {
     }
 
     /**
+     * Compile the search result documents.
+     *
+     * @param \stdClass $results The raw search result documents.
+     * @param int $limit The number of results to return.
+     * @return \core_search\document[] $docs The found result documents.
+     */
+    private function compile_results($results, $limit) {
+        $docs = array();
+        $doccount = 0;
+
+        foreach ($results->hits->hits as $result) {
+            $searcharea = $this->get_search_area($result->_source->areaid);
+            if (!$searcharea) {
+                continue;
+            }
+            $access = $searcharea->check_access($result->_source->itemid);
+
+            if ($access == \core_search\manager::ACCESS_DELETED) {
+                $this->delete_by_id($result->_id);
+            } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit) {
+
+                // Add hightlighting to document.
+                $highlightedresult = $this->highlight_result($result);
+
+                $docs[] = $this->to_document($searcharea, (array)$highlightedresult->_source);
+                $doccount++;
+            }
+            if ($access == \core_search\manager::ACCESS_GRANTED) {
+                $this->totalresultdocs++;
+            }
+
+        }
+
+        return $docs;
+    }
+
+    /**
      * Takes the user supplied query as well as data from Moodle global
      * search core to construct the search query and execute the query
      * against the search engine.
@@ -646,7 +683,6 @@ class engine extends \core_search\engine {
      */
     public function execute_query($filters, $accessinfo, $limit = 0) {
         $docs = array();
-        $doccount = 0;
         $url = $this->get_url() . '/'.  $this->config->index . '/_search';
         $client = new \search_elastic\esrequest();
 
@@ -656,38 +692,20 @@ class engine extends \core_search\engine {
             $limit = $returnlimit;
         }
 
+        // Construct query.
         $query = new \search_elastic\query();
         $esquery = $query->get_query($filters, $accessinfo);
+        $jsonquery = json_encode($esquery);
+        debugging($jsonquery, DEBUG_DEVELOPER);
 
-        // Send a request to the server.
-        $results = json_decode($client->post($url, json_encode($esquery))->getBody());
+        // Send a query to the search server.
+        $jsonresults = $client->post($url, $jsonquery)->getBody();
+        debugging($jsonresults, DEBUG_DEVELOPER);
+        $results = json_decode($jsonresults);
 
         // Iterate through results.
-        // TODO: refactor this into its own method.
         if (isset($results->hits)) {
-            foreach ($results->hits->hits as $result) {
-                $searcharea = $this->get_search_area($result->_source->areaid);
-                if (!$searcharea) {
-                    continue;
-                }
-                $access = $searcharea->check_access($result->_source->itemid);
-
-                if ($access == \core_search\manager::ACCESS_DELETED) {
-                    $this->delete_by_id($result->_id);
-                } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit) {
-
-                    // Add hightlighting to document.
-                    $highlightedresult = $this->highlight_result($result);
-
-                    $docs[] = $this->to_document($searcharea, (array)$highlightedresult->_source);
-                    $doccount++;
-                }
-                if ($access == \core_search\manager::ACCESS_GRANTED) {
-                    $this->totalresultdocs++;
-                }
-
-            }
-
+            $docs = $this->compile_results($results, $limit);
         }
         // TODO: handle negative cases and errors.
         return $docs;
