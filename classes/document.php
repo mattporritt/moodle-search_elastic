@@ -84,15 +84,15 @@ class document extends \core_search\document {
     );
 
     /**
-    * All optional fields docs can contain.
-    *
-    * Search engine plugins are responsible of setting their appropriate field types and map these
-    * naming to whatever format they need.
-    *
-    * This format suits Elasticsearh mapping
-    *
-    * @var array
-    */
+     * All optional fields docs can contain.
+     *
+     * Search engine plugins are responsible of setting their appropriate field types and map these
+     * naming to whatever format they need.
+     *
+     * This format suits Elasticsearh mapping
+     *
+     * @var array
+     */
     protected static $optionalfields = array(
             'userid' => array(
                     'type' => 'integer'
