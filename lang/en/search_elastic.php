@@ -26,6 +26,7 @@ $string['pluginname'] = 'Elastic';
 $string['pluginname_help'] = 'Search backend for the Elasticsearch search engine';
 
 $string['addfail'] = 'Failed to add document to index';
+$string['advsettings'] = 'Advanced settings';
 $string['aws'] = 'AWS';
 $string['adminsettings'] = 'Plugin settings';
 $string['basicsettings'] = 'Basic settings';
@@ -53,13 +54,9 @@ $string['imagerecognitionsettings'] = 'Image recognition';
 $string['imagerecognitionsettingsdesc'] = 'Image recognition extracts details about the content of an image and adds these to the search index.
 
 These settings control what process or service is used to extract data out of an image and how the image data is added to the search engine.';
-$string['wildcardstart'] = 'Wildcard at the start';
-$string['wildcardstart_help'] = 'When enabled Moodle will add implicit wildcards at the start of search terms. This can improve behaviour of searches.
-For example: searching for "scrip" will become "*scrip" prior to be sent to the search engine. This means the search will now match "script" and "description".';
-$string['wildcardend'] = 'Wildcard at the end';
-$string['wildcardend_help'] = 'When enabled Moodle will add implicit wildcards at the end of search terms. This can improve behaviour of searches.
-For example: searching for "math" will become "math*" prior to be sent to the search engine. This means the search will now match "math", "maths" and "mathematics".';
 $string['indexfail'] = 'Failed to create index';
+$string['logging'] = 'Query logging';
+$string['logging_help'] = 'If enabled all search queries and the raw results from Elasticsearch will be added to the error log';
 $string['maxlabels'] = 'Maxiumum Labels';
 $string['maxlabels_help'] = 'The maximum number of result labels returned by Rekognition.';
 $string['minconfidence'] = 'Minimum confidence';
@@ -74,6 +71,7 @@ $string['port'] = 'Port';
 $string['port_help'] = 'The Port of the Elasticsearch engine endpoint';
 $string['privacy:metadata'] = 'This plugin sends data externally to a linked Elasticsearch search engine. It does not store data locally.';
 $string['privacy:metadata:data'] = 'Personal data passed through from the search subsystem.';
+$string['queryerror'] = 'Error executing query in Elasticsearch backend.';
 $string['region'] = 'Region';
 $string['region_help'] = 'The AWS region the Elasticsearch instance is in, e.g. ap-southeast-2';
 $string['rekregion'] = 'Region';
@@ -112,3 +110,10 @@ $string['tikaport'] = 'Tika Port';
 $string['tikaport_help'] = 'The Port of the Apache Tika endpoint';
 $string['tikasendsize'] = 'Maximum file size';
 $string['tikasendsize_help'] = 'Sending large files to Tika can cause out of memory issues. Therefore we limit it to a size in bytes.';
+$string['wildcardstart'] = 'Wildcard at the start';
+$string['wildcardstart_help'] = 'When enabled Moodle will add implicit wildcards at the start of search terms. This can improve behaviour of searches.
+For example: searching for "scrip" will become "*scrip" prior to be sent to the search engine. This means the search will now match "script" and "description".';
+$string['wildcardend'] = 'Wildcard at the end';
+$string['wildcardend_help'] = 'When enabled Moodle will add implicit wildcards at the end of search terms. This can improve behaviour of searches.
+For example: searching for "math" will become "math*" prior to be sent to the search engine. This means the search will now match "math", "maths" and "mathematics".';
+

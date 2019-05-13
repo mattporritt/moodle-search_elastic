@@ -74,7 +74,7 @@ class index_form extends \moodleform {
         if (isset($config->index)) {
             $mform->setDefault('index', $config->index);
         } else {
-            $mform->setDefault('index', 'mooodle');
+            $mform->setDefault('index', 'moodle');
         }
 
         $mform->addElement('text', 'sendsize',  get_string ('sendsize', 'search_elastic'));
@@ -150,6 +150,18 @@ class index_form extends \moodleform {
             $mform->setDefault('region', $config->region);
         } else {
             $mform->setDefault('region', 'us-west-2');
+        }
+
+        // Advanced Settings
+        $mform->addElement('header', 'advsettings', get_string('advsettings', 'search_elastic'));
+
+        $mform->addElement('advcheckbox', 'logging',  get_string ('logging', 'search_elastic'), 'Enable', array(), array(0, 1));
+        $mform->setType('logging', PARAM_INT);
+        $mform->addHelpButton('logging', 'logging', 'search_elastic');
+        if (isset($config->logging)) {
+            $mform->setDefault('logging', $config->logging);
+        } else {
+            $mform->setDefault('logging', 0);
         }
 
         $this->add_action_buttons();

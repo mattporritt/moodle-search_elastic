@@ -69,8 +69,9 @@ class engine extends \core_search\engine {
     protected $configdefaults = array(
             'hostname' => 'http://127.0.0.1',
             'port' => 9200,
-            'index' => 'mooodle',
-            'sendsize' => 9000000
+            'index' => 'moodle',
+            'sendsize' => 9000000,
+            'logging' => 0
     );
 
     /**
@@ -87,6 +88,19 @@ class engine extends \core_search\engine {
             set_config($name, $value, 'search_elastic');
         }
 
+    }
+
+    /**
+     * A debug function, dumps to the php log
+     *
+     * @param string $msg Log message
+     */
+    private function log($msg) {
+        if ($this->config->logging) {
+            // @codingStandardsIgnoreStart
+            error_log('search_elastic: ' . $msg);
+            // @codingStandardsIgnoreEnd
+        }
     }
 
     /**
@@ -699,11 +713,20 @@ class engine extends \core_search\engine {
         $query = new \search_elastic\query();
         $esquery = $query->get_query($filters, $accessinfo);
         $jsonquery = json_encode($esquery);
-        debugging($jsonquery, DEBUG_DEVELOPER);
+        $this->log($jsonquery);
 
         // Send a query to the search server.
-        $jsonresults = $client->post($url, $jsonquery)->getBody();
-        debugging($jsonresults, DEBUG_DEVELOPER);
+        $response = $client->post($url, $jsonquery);
+        $jsonresults = $response->getBody();
+        $responsecode = $response->getStatusCode();
+        $this->log($jsonresults);
+
+        if ($responsecode != 200) {
+            // Something has gone wrong with getting the results from the backend.
+            // Do some logging and throw an exception.
+            throw new \moodle_exception('queryerror', 'search_elastic', '', null, $jsonresults);
+        }
+
         $results = json_decode($jsonresults);
 
         // Iterate through results.
