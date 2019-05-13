@@ -152,7 +152,7 @@ class index_form extends \moodleform {
             $mform->setDefault('region', 'us-west-2');
         }
 
-        // Advanced Settings
+        // Advanced Settings.
         $mform->addElement('header', 'advsettings', get_string('advsettings', 'search_elastic'));
 
         $mform->addElement('advcheckbox', 'logging',  get_string ('logging', 'search_elastic'), 'Enable', array(), array(0, 1));
