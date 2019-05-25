@@ -78,13 +78,15 @@ class query  {
     /** @var float Boost value for matching context (in addition to course boost) */
     const CONTEXT_BOOST = 1.5;
 
+    /** @var int Limit max raw results returned from the search backend to this. */
+    const MAX_RESULTS = 1000;
 
     /**
      * construct basic query structure
      */
-    public function __construct() {
+    public function __construct($docoffest=0) {
 
-        $returnlimit = \core_search\manager::MAX_RESULTS;
+        $returnlimit = self::MAX_RESULTS;
 
         // Basic object to build query from.
         $this->query = array('query' => array(
@@ -93,6 +95,7 @@ class query  {
                                     'should' => array(),
                                     'filter' => array('bool' => array('must' => array()))
                             )),
+                             'from' => $docoffest,
                              'size' => $returnlimit,
                              '_source' => array('excludes' => array('filetext'))
         );

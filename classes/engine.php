@@ -611,7 +611,7 @@ class engine extends \core_search\engine {
             $this->payload = false;
             $this->payloadsize = 0;
 
-            // Reset the parent doc ocunt after attempting to add.
+            // Reset the parent doc count after attempting to add.
             if ($isdoc) {
                 $this->count = 0;
             }
@@ -655,7 +655,7 @@ class engine extends \core_search\engine {
      *
      * @param \stdClass $results The raw search result documents.
      * @param int $limit The number of results to return.
-     * @return \core_search\document[] $docs The found result documents.
+     * @return array $docs The found result documents.
      */
     private function compile_results($results, $limit) {
         $docs = array();
@@ -700,6 +700,7 @@ class engine extends \core_search\engine {
      */
     public function execute_query($filters, $accessinfo, $limit = 0) {
         $docs = array();
+        $docoffest = 0;
         $url = $this->get_url() . '/'.  $this->config->index . '/_search';
         $client = new \search_elastic\esrequest();
 
@@ -709,30 +710,42 @@ class engine extends \core_search\engine {
             $limit = $returnlimit;
         }
 
-        // Construct query.
-        $query = new \search_elastic\query();
-        $esquery = $query->get_query($filters, $accessinfo);
-        $jsonquery = json_encode($esquery);
-        $this->log($jsonquery);
+        // We need to make multiple calls to the search backend if:
+        // The number of results in $docs is less than $returnlimit
+        // and the number of docs in the search backend is greater than \search_elastic\query::MAX_RESULTS.
+        // This is to allow for the fact that lots of docs may be filtered Moodle side before being
+        // returned to end user.
+        do {
+            // Construct query.
+            $query = new \search_elastic\query($docoffest);
+            $esquery = $query->get_query($filters, $accessinfo);
+            $jsonquery = json_encode($esquery);
+            $this->log($jsonquery);
 
-        // Send a query to the search server.
-        $response = $client->post($url, $jsonquery);
-        $jsonresults = $response->getBody();
-        $responsecode = $response->getStatusCode();
-        $this->log($jsonresults);
+            // Send a query to the search engine backend.
+            $response = $client->post($url, $jsonquery);
+            $jsonresults = $response->getBody();
+            $responsecode = $response->getStatusCode();
+            $this->log($jsonresults);
 
-        if ($responsecode != 200) {
-            // Something has gone wrong with getting the results from the backend.
-            // Do some logging and throw an exception.
-            throw new \moodle_exception('queryerror', 'search_elastic', '', null, $jsonresults);
-        }
+            if ($responsecode != 200) {
+                // Something has gone wrong with getting the results from the backend.
+                // Do some logging and throw an exception.
+                throw new \moodle_exception('queryerror', 'search_elastic', '', null, $jsonresults);
+            }
 
-        $results = json_decode($jsonresults);
+            $results = json_decode($jsonresults);
+            $totalhits = 0;
 
-        // Iterate through results.
-        if (isset($results->hits)) {
-            $docs = $this->compile_results($results, $limit);
-        }
+            // Iterate through results.
+            if (isset($results->hits)) {
+                $totalhits = $results->hits->total;
+                $docs = array_merge($docs, $this->compile_results($results, $limit));
+                $docoffest = count($docs);
+            }
+
+        } while ((count($docs) < $limit) && ($totalhits > \search_elastic\query::MAX_RESULTS));
+
         // TODO: handle negative cases and errors.
         return $docs;
     }
