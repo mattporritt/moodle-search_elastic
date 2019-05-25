@@ -114,6 +114,8 @@ class rekognition extends base_enrich {
         if ($cananalyze) {
             // Send image to AWS Rekognition for analysis.
             $client = $this->get_rekognition_client();
+
+            // Detect labels from Rekognition.
             $result = $client->detectLabels(array(
                 'Image' => array(
                     'Bytes' => $file->get_content(),
@@ -130,6 +132,20 @@ class rekognition extends base_enrich {
                 $labelarray[] = $label['Name'];
             }
             $imagetext = implode(', ', $labelarray);
+
+            // Detect text from reckognition
+            $result = $client->detectText(array(
+                'Image' => array(
+                    'Bytes' => $file->get_content(),
+                )
+            ));
+
+            // Process results.
+            $textarray = array();
+            foreach ($result['TextDetections'] as $text) {
+                $textarray[] = $text['DetectedText'];
+            }
+            $imagetext .= implode(', ', $textarray);
         }
 
         return $imagetext;
