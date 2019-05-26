@@ -133,7 +133,7 @@ class rekognition extends base_enrich {
             }
             $imagetext = implode(', ', $labelarray);
 
-            // Detect text from reckognition
+            // Detect text from reckognition.
             $result = $client->detectText(array(
                 'Image' => array(
                     'Bytes' => $file->get_content(),
@@ -145,6 +145,7 @@ class rekognition extends base_enrich {
             foreach ($result['TextDetections'] as $text) {
                 $textarray[] = $text['DetectedText'];
             }
+
             $imagetext .= implode(', ', $textarray);
         }
 

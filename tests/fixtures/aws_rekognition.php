@@ -51,4 +51,23 @@ class MockRekognition {
         );
         return $results;
     }
+
+    /**
+     * A mock for detect text method on
+     * AWS Rekognition client.
+     *
+     * @param array $params params normally passed to client.
+     * @return array $results The mock results.
+     */
+    // @codingStandardsIgnoreStart
+    public function detectText($params) {
+        // @codingStandardsIgnoreEnd
+        $results = array (
+            'TextDetections' => array (
+                array ( 'DetectedText' => 'thecolor',
+                )
+            )
+        );
+        return $results;
+    }
 }

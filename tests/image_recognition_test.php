@@ -72,7 +72,7 @@ class search_elastic_image_recognition_testcase extends advanced_testcase {
         $stub->method('get_rekognition_client')->willReturn($rekognition);
 
         $filetext = $stub->analyze_file($file);
-        $this->assertEquals('black', $filetext);
+        $this->assertEquals('blackthecolor', $filetext);
     }
 
 }

@@ -816,26 +816,7 @@ class engine extends \core_search\engine {
      * @return bool
      */
     public function file_indexing_enabled() {
-        $returnval = false;
-        $client = new \search_elastic\esrequest();
-        $url = '';
-        // Check if we have a valid set of config.
-        if (!empty($this->config->tikahostname) &&
-            !empty($this->config->tikaport &&
-            (bool)$this->config->fileindexing)) {
-                $port = $this->config->port;
-                $hostname = rtrim($this->config->hostname, "/");
-                $url = $hostname . ':'. $port;
-        }
-
-        // Check we can reach Tika server.
-        if ($url !== '') {
-            $response = $client->get($url);
-            $responsecode = $response->getStatusCode();
-            if ($responsecode == 200) {
-                $returnval = true;
-            }
-        }
+        $returnval = (bool)$this->config->fileindexing;
 
         return $returnval;
     }

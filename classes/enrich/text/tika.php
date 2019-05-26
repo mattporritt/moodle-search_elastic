@@ -90,6 +90,53 @@ class tika extends base_enrich {
         return get_string('tika', 'search_elastic');
     }
 
+
+    /**
+     * Check if the tika server is ready.
+     *
+     * @return boolean
+     */
+    private function tika_server_ready() {
+        $returnval = false;
+        $client = new \search_elastic\esrequest();
+        $url = '';
+        // Check if we have a valid set of config.
+        if (! empty($this->config->tikahostname) && ! empty($this->config->tikaport)) {
+            $port = $this->config->port;
+            $hostname = rtrim($this->config->hostname, "/");
+            $url = $hostname . ':' . $port;
+        }
+
+        // Check we can reach Tika server.
+        if ($url !== '') {
+            $response = $client->get($url);
+            $responsecode = $response->getStatusCode();
+            if ($responsecode == 200) {
+                $returnval = true;
+            }
+        }
+
+        return $returnval;
+    }
+
+    /**
+     * Checks if supplied file is can be analyzed by this enrichment class.
+     *
+     * @param \stored_file $file File to check.
+     * @return boolean
+     */
+    public function can_analyze($file) {
+        $cananalyze = parent::can_analyze($file);
+
+        // If we can analyze this type of file
+        // check if tika is configured and available.
+        if ($cananalyze) {
+            $cananalyze = $this->tika_server_ready();
+        }
+
+        return $cananalyze;
+    }
+
     /**
      * Use tika to extract text from file.
      *
