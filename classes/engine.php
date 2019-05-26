@@ -67,6 +67,7 @@ class engine extends \core_search\engine {
      * @var array Configuration defaults.
      */
     protected $configdefaults = array(
+            'fileindexing' => 0,
             'hostname' => 'http://127.0.0.1',
             'port' => 9200,
             'index' => 'moodle',
