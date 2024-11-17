@@ -25,10 +25,7 @@
 namespace search_elastic\enrich\image;
 
 use search_elastic\enrich\base\base_enrich;
-
-defined('MOODLE_INTERNAL') || die;
-
-require_once($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
+use search_elastic\aws_helper;
 
 /**
  * Extract imformation from image files using AWS Rekognition.
@@ -90,8 +87,8 @@ class rekognition extends base_enrich {
         ];
 
         // If Moodle has a proxy in use, we need to use it here too.
-        if (\local_aws\local\aws_helper::get_proxy_string() !== '') {
-            $connoptions['http'] = ['proxy' => \local_aws\local\aws_helper::get_proxy_string()];
+        if (aws_helper::get_proxy_string() !== '') {
+            $connoptions['http'] = ['proxy' => aws_helper::get_proxy_string()];
         }
 
         $rekclient = new \Aws\Rekognition\RekognitionClient($connoptions);

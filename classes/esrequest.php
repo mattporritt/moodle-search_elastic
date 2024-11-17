@@ -24,12 +24,6 @@
 
 namespace search_elastic;
 
-use local_aws\local\guzzle_helper;
-
-defined('MOODLE_INTERNAL') || die();
-
-require_once($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
-
 /**
  * Class creates the API calls to Elasticsearch.
  *

@@ -8,7 +8,6 @@ jobs:
     secrets:
       moodle_org_token: ${{ secrets.MOODLE_ORG_TOKEN }}
     with:
-      extra_plugin_runners: 'moodle-plugin-ci add-plugin catalyst/moodle-local_aws'
       disable_grunt: true
       disable_phpcpd: true
       release_branches: MOODLE_402_STABLE

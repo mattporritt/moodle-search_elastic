@@ -40,7 +40,7 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_eng
  * @package     search_elastic
  * @copyright   Matt Porritt <mattp@catalyst-au.net>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers      search_elastic_external
+ * @covers      \search_elastic_external
  */
 class externallib_test extends \advanced_testcase {
     /**

@@ -29,7 +29,4 @@ $plugin->release   = '4.2.5 (Build: 20231222)'; // Build same as version.
 $plugin->requires  = 2023042405;
 $plugin->component = 'search_elastic';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->dependencies = array(
-        'local_aws' => 2023010900,
-);
-$plugin->supported = [402, 403];      // A range of branch numbers of supported moodle versions.
+$plugin->supported = [404, 405];      // A range of branch numbers of supported moodle versions.

@@ -158,8 +158,7 @@ Once you have setup an Elasticsearch service you can now install the Moodle plug
 These setup steps are the same regardless of how you have setup the Elasticsearch service.
 
 1. Get the code and copy/ install it to: `<moodledir>/search/engine/elastic`
-2. This plugin also depends on *local_aws* get the code from `https://github.com/catalyst/moodle-local_aws` and copy/ install it into `<moodledir>/local/aws` (This is required regardless of how your Elasticsearch service is being supplied.)
-3. Run the upgrade: `sudo -u www-data php admin/cli/upgrade` **Note:** the user may be different to www-data on your system.
+2. Run the upgrade: `sudo -u www-data php admin/cli/upgrade` **Note:** the user may be different to www-data on your system.
 
 ## Moodle Plugin Setup
 Once you have setup an Elasticsearch service you can now configure the Moodle plugin.
