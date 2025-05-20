@@ -32,6 +32,8 @@ require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_engine.php');
 
+use core_mocksearch\search\mock_boost_area;
+use core_mocksearch\search\mock_search_area;
 use \GuzzleHttp\Handler\MockHandler;
 use \GuzzleHttp\HandlerStack;
 use \GuzzleHttp\Psr7\Response;
@@ -59,6 +61,21 @@ class engine_test extends \advanced_testcase {
      * @var Instance of testable_engine.
      */
     protected $engine = null;
+
+    /**
+     * @var string the Apache Lucene version of the attached Elasticsearch / OpenSearch service.
+     */
+    protected string $luceneversion;
+
+    /**
+     * @var mock_search_area
+     */
+    protected mock_search_area $area;
+
+    /**
+     * @var mock_boost_area
+     */
+    protected mock_boost_area $areaboost;
 
     public function setUp(): void {
         $this->resetAfterTest();
@@ -1015,6 +1032,8 @@ class engine_test extends \advanced_testcase {
      * Test the wildcard search functionality when wildcardend is enabled.
      */
     public function test_search_wildcardend_enabled() {
+        $searchuser = $this->getDataGenerator()->create_user();
+        $this->setUser($searchuser);
         set_config('wildcardend', 1, 'search_elastic');
 
         // Construct the search object and add it to the engine.
@@ -1086,6 +1105,47 @@ class engine_test extends \advanced_testcase {
 
         // We should now have a broken index.
         $this->assertFalse($result);
+    }
+
+    /** Test docoffset is incremented correctly for multiple pages of search results. */
+    public function test_execute_query_docoffset() {
+        $searchuser = $this->getDataGenerator()->create_user();
+        $this->setUser($searchuser);
+        // Generate 2000 indexed documents.
+        for ($i = 1, $j = 2000; $i <= $j; $i++) {
+            $rec = (object)['content' => 'test message ' . $i];
+            // Deny user access to all but 100 documents, spaced evenly throughout the index.
+            // The engine returns 1000 results at a time, so there should be 50 visible in the first set, and 50 in the second.
+            if ($i % 20 != 0) {
+                $rec->denyuserids = [$searchuser->id];
+            }
+            $area = $this->area;
+            $record = $this->generator->create_record($rec);
+            $doc = $area->get_document($record);
+            $this->engine->add_document($doc, false, $this->luceneversion);
+        }
+        // We need to wait for Elastic search to update its index
+        // this happens in near realtime, not immediately.
+        sleep(1);
+
+        $querydata = (object) [
+            'q' => '*',
+            'timestart' => 0,
+            'timeend' => 0,
+        ];
+
+        // Execute the search.
+        $results = $this->search->search($querydata);
+
+        $this->assertCount(100, $results);
+
+        // Confirm that each result is unique. This proves that we are not re-querying the same documents multiple times.
+        $seenresults = [];
+        foreach ($results as $result) {
+            $content = $result->get('content');
+            $this->assertFalse(in_array($content, $seenresults), "'{$content}' included multiple times in search results.");
+            $seenresults[] = $content;
+        }
     }
 
 }
