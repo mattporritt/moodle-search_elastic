@@ -830,10 +830,10 @@ class engine extends \core_search\engine {
                     $totalhits = $results->hits->total;
                 }
                 $docs = array_merge($docs, $this->compile_results($results, $limit));
-                $docoffest = count($docs);
+                $docoffest += count($results->hits->hits);
             }
 
-        } while ((count($docs) < $limit) && ($totalhits > \search_elastic\query::MAX_RESULTS));
+        } while ((count($docs) < $limit) && ($totalhits > \search_elastic\query::MAX_RESULTS) && ($docoffest < $totalhits));
 
         // TODO: handle negative cases and errors.
         return $docs;

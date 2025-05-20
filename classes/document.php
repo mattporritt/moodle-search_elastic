@@ -111,6 +111,13 @@ class document extends \core_search\document {
             ),
     );
 
+    /**
+     * @var mixed $config Search plugin configuration.
+     */
+    protected $config;
+
+    /** @var bool Is file indexing enabled? */
+    protected $fileindexing;
 
     /**
      * Constructor for document class.
