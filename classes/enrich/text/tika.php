@@ -69,17 +69,17 @@ class tika extends base_enrich {
     );
     /**
      * Summary of config
-     * @var 
+     * @var
      */
     public mixed $config;
     /**
      * Summary of tikaport
-     * @var 
+     * @var
      */
     public $tikaport;
     /**
      * Summary of tikahostname
-     * @var 
+     * @var
      */
     public $tikahostname;
 

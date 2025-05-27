@@ -42,7 +42,7 @@ class document_test extends \advanced_testcase {
 
     /**
      * Summary of generator
-     * @var 
+     * @var
      */
     private $generator;
 

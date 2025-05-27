@@ -60,6 +60,7 @@ class mock_boost_area extends \core_mocksearch\search\mock_search_area {
 
     /**
      * A helper function that will turn a record into 'data array', for use with document building.
+     * @param $record
      */
     public function convert_record_to_doc_array($record) {
         $docdata = (array)unserialize($record->info);

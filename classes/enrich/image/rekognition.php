@@ -43,27 +43,27 @@ class rekognition extends base_enrich {
     public mixed $config;
     /**
      * Summary of rekregion
-     * @var 
+     * @var
      */
     public $rekregion;
     /**
      * Summary of rekkey
-     * @var 
+     * @var
      */
     public $rekkey;
     /**
      * Summary of reksecret
-     * @var 
+     * @var
      */
     public $reksecret;
     /**
      * Summary of maxlabels
-     * @var 
+     * @var
      */
     public $maxlabels;
     /**
      * Summary of minconfidence
-     * @var 
+     * @var
      */
     public $minconfidence;
 
