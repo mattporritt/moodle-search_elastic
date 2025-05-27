@@ -36,11 +36,35 @@ use search_elastic\aws_helper;
  */
 class rekognition extends base_enrich {
 
-    public $config;
+    /**
+     * Summary of config
+     * @var mixed
+     */
+    public mixed $config;
+    /**
+     * Summary of rekregion
+     * @var 
+     */
     public $rekregion;
+    /**
+     * Summary of rekkey
+     * @var 
+     */
     public $rekkey;
+    /**
+     * Summary of reksecret
+     * @var 
+     */
     public $reksecret;
+    /**
+     * Summary of maxlabels
+     * @var 
+     */
     public $maxlabels;
+    /**
+     * Summary of minconfidence
+     * @var 
+     */
     public $minconfidence;
 
     /**

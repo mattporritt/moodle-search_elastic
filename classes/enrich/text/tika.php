@@ -67,8 +67,20 @@ class tika extends base_enrich {
             'application/vnd.oasis.opendocument.presentation',
             'application/epub+zip'
     );
-    public $config;
+    /**
+     * Summary of config
+     * @var 
+     */
+    public mixed $config;
+    /**
+     * Summary of tikaport
+     * @var 
+     */
     public $tikaport;
+    /**
+     * Summary of tikahostname
+     * @var 
+     */
     public $tikahostname;
 
     /**
