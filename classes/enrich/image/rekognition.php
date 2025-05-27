@@ -36,6 +36,13 @@ use search_elastic\aws_helper;
  */
 class rekognition extends base_enrich {
 
+    public $config;
+    public $rekregion;
+    public $rekkey;
+    public $reksecret;
+    public $maxlabels;
+    public $minconfidence;
+
     /**
      * Array of file mimetypes that enrichment class supports
      * processing of / extracting data from.

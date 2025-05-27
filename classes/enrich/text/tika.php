@@ -67,6 +67,9 @@ class tika extends base_enrich {
             'application/vnd.oasis.opendocument.presentation',
             'application/epub+zip'
     );
+    public $config;
+    public $tikaport;
+    public $tikahostname;
 
     /**
      * The constructor for the class, will be overwritten in most cases.

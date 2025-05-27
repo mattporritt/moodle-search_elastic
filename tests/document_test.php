@@ -40,6 +40,8 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/aws_rekognit
  */
 class document_test extends \advanced_testcase {
 
+    private $generator;
+
     public function setUp(): void {
         $this->resetAfterTest();
         new \search_elastic\engine();
