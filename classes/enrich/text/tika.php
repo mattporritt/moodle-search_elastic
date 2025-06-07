@@ -156,10 +156,12 @@ class tika extends base_enrich {
                 if ($jsoncontent = json_decode($response->getBody())) {
                     // Loop through embedded documents.
                     foreach ($jsoncontent as $datacontent) {
-                        $content = $datacontent->{"X-TIKA:content"};
-                        preg_match("/<body.*\/body>/s", $content, $bodytext);
-                        if ($bodytext) {
-                            $extractedtext .= strip_tags($bodytext[0]);
+                        if (property_exists($datacontent, "X-TIKA:content")) {
+                            $content = $datacontent->{"X-TIKA:content"};
+                            preg_match("/<body.*\/body>/s", $content, $bodytext);
+                            if ($bodytext) {
+                                $extractedtext .= strip_tags($bodytext[0]);
+                            }
                         }
                     }
                 } else {
