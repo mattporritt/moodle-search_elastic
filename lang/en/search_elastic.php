@@ -24,6 +24,7 @@
 
 $string['pluginname'] = 'Elastic';
 $string['pluginname_help'] = 'Search backend for the Elasticsearch search engine';
+$string['cachedef_elasticsearch'] = 'Cache server\'s metadata';
 
 $string['addfail'] = 'Failed to add document to index';
 $string['advsettings'] = 'Advanced settings';

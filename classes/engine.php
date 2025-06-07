@@ -61,6 +61,11 @@ class engine extends \core_search\engine {
     protected $count = 0;
 
     /**
+     * @var cache_application|cache_session|cache_store The cache storage.
+     */
+    protected $cache = null;
+
+    /**
      *
      * @var array Configuration defaults.
      */
@@ -86,6 +91,8 @@ class engine extends \core_search\engine {
         foreach ($this->config as $name => $value) {
             set_config($name, $value, 'search_elastic');
         }
+
+        $this->cache = \cache::make('search_elastic', 'elasticserver');
 
     }
 
@@ -181,12 +188,19 @@ class engine extends \core_search\engine {
      * @return object Apache Lucene version details.
      */
     private function get_es_version_details() {
-        $url = $this->get_url();
-        $client = new \search_elastic\esrequest();
-        $response = $client->get($url);
-        $responsebody = json_decode($response->getBody());
+        $data = $this->cache->get('es_version');
 
-        return $responsebody->version;
+        if ($data === false) {
+            $url = $this->get_url();
+            $client = new \search_elastic\esrequest();
+            $response = $client->get($url);
+            $responsebody = json_decode($response->getBody());
+
+            $data = $responsebody->version;
+            $this->cache->set('es_version', $responsebody->version);
+        }
+
+        return $data;
     }
 
     /**
