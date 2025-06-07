@@ -23,6 +23,7 @@
  */
 
 use search_elastic\admin_setting_check;
+use search_elastic\admin_setting_configurl;
 use search_elastic\check\server_ready_check;
 
 defined('MOODLE_INTERNAL') || die();
@@ -40,8 +41,8 @@ if ($hassiteconfig) {
             new server_ready_check()));
     }
 
-    $settings->add(new admin_setting_configtext('search_elastic/hostname', get_string ('hostname', 'search_elastic'),
-        get_string ('hostname_help', 'search_elastic'), '', PARAM_URL));
+    $settings->add(new admin_setting_configurl('search_elastic/hostname', get_string ('hostname', 'search_elastic'),
+        get_string ('hostname_help', 'search_elastic'), ''));
 
     $settings->add(new admin_setting_configtext('search_elastic/port', get_string ('port', 'search_elastic'),
         get_string ('port_help', 'search_elastic'), 9200, PARAM_INT));

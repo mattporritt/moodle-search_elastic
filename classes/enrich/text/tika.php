@@ -195,7 +195,7 @@ class tika extends base_enrich {
      */
     public static function form_definition_extra($form, $mform, $customdata, $config) {
         $mform->addElement('text', 'tikahostname',  get_string ('tikahostname', 'search_elastic'));
-        $mform->setType('tikahostname', PARAM_URL);
+        $mform->setType('tikahostname', PARAM_TEXT);
         $mform->addHelpButton('tikahostname', 'tikahostname', 'search_elastic');
         self::set_default('tikahostname', 'http://127.0.0.1', $mform, $customdata, $config);
 

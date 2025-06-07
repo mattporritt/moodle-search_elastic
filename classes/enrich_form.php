@@ -199,4 +199,22 @@ class enrich_form extends \moodleform {
         $this->add_action_buttons();
     }
 
+    /**
+     * Unlike `PARAM_URL`, HTTP BasicAuth components are allowed.
+     * It must also be an HTTP scheme, and port or path specifications
+     * are not allowed.
+     *
+     * @param $data
+     * @param $files
+     * @return array
+     */
+    function validation($data, $files)
+    {
+        $errors = parent::validation($data, $files);
+        if (!admin_setting_configurl::validateURL($data['tikahostname'])) {
+            $errors['tikahostname'] = 'Error - incorrect URL';
+        }
+        return $errors;
+    }
+
 }
