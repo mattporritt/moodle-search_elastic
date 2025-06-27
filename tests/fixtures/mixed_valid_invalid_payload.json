@@ -1,0 +1,8 @@
+{"index":{"_index":"moodle","_type":"doc","_id":"mod_folder-activity-1"}}
+{"areaid":"mod_folder-activity","id":"mod_folder-activity-1","itemid":1,"title":"Test folder 1","content":"","contextid":"100","courseid":"8","owneruserid":"0","modified":"1753319565","type":1,"parentid":"mod_folder-activity-1"}
+{"invalid metadata"}
+{"areaid":"mod_assign-activity","id":"mod_assign-activity-1","itemid":2,"title":"Test Assign 1","content":"","contextid":"418","courseid":"8","owneruserid":"0","modified":"1753319565","type":1,"parentid":"mod_assign-activity-1"}
+{"index":{"_index":"moodle","_type":"doc","_id":"mod_folder-activity-2"}}
+{"areaid":"mod_folder-activity","id":"mod_folder-activity-2","itemid":3,"title":"Test folder 2","content":"","contextid":"120","courseid":"8","owneruserid":"0","modified":"1753319565","type":1,"parentid":"mod_folder-activity-2"}
+{"index":{"_index":"moodle","_type":"doc","_id":"mod_folder-activity-2"}}
+{"invalid document"}
