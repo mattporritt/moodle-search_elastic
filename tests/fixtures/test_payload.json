@@ -1,0 +1,8 @@
+{"index":{"_index":"moodle","_type":"doc","_id":"mod_folder-activity-6"}}
+{"areaid":"mod_folder-activity","id":"mod_folder-activity-6","itemid":6,"title":"Test folder","content":"","contextid":"418","courseid":"8","owneruserid":"0","modified":"1753319565","type":1,"parentid":"mod_folder-activity-6"}
+{"index":{"_index":"moodle","_type":"doc","_id":"588"}}
+{"areaid":"mod_folder-activity","id":"588","itemid":6,"title":"test1.pdf","contextid":"418","courseid":"8","owneruserid":"0","modified":"1753319565","type":2,"parentid":"mod_folder-activity-6","filetext":"\nSample file text 1","filecontenthash":"5956f9e0aeedcfff463e66dff87ec4941be67744"}
+{"index":{"_index":"moodle","_type":"doc","_id":"590"}}
+{"areaid":"mod_folder-activity","id":"590","itemid":6,"title":"test2.pdf","contextid":"418","courseid":"8","owneruserid":"0","modified":"1753319565","type":2,"parentid":"mod_folder-activity-6","filetext":"\nSample file text 2","filecontenthash":"7c312907e35577877dbc57bfdf2c909cba936838"}
+{"index":{"_index":"moodle","_type":"doc","_id":"591"}}
+{"areaid":"mod_folder-activity","id":"591","itemid":6,"title":"test3.pdf","contextid":"418","courseid":"8","owneruserid":"0","modified":"1753319565","type":2,"parentid":"mod_folder-activity-6","filetext":"\nSample file text3","filecontenthash":"9b11c4d918a8dbe2a1f79a8ca7327ff0640750f0"}

@@ -31,6 +31,8 @@
 function xmldb_search_elastic_upgrade($oldversion) {
     global $DB;
 
+    $dbman = $DB->get_manager();
+
     if ($oldversion < 2019042101) {
         // Check for corrupt index definition and fix if required.
         // Fix involves deleting all indexed documents.
@@ -68,6 +70,44 @@ function xmldb_search_elastic_upgrade($oldversion) {
                        WHERE plugin = 'search_elastic' AND name = 'hostname' AND value = 'http://127.0.0.1'");
 
         upgrade_plugin_savepoint(true, 2023092000, 'search', 'elastic');
+    }
+
+    if ($oldversion < 2025062708) {
+        // Define table search_elastic_errors to be created.
+        $table = new xmldb_table('search_elastic_errors');
+
+        // Adding fields to the search_elastic_errors.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+        $table->add_field('docid', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL);
+        $table->add_field('itemid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+        $table->add_field('contextid', XMLDB_TYPE_INTEGER, '10', null, null);
+        $table->add_field('areaid', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL);
+        $table->add_field('errortype', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL);
+        $table->add_field('errormessage', XMLDB_TYPE_TEXT, null, null, null);
+        $table->add_field('retrycount', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('status', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, 'failed');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+        $table->add_field('contentmodified', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('parentid', XMLDB_TYPE_CHAR, '100', null, null);
+
+        // Adding keys to table search_elastic_errors.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Adding indexes to table search_elastic_errors.
+        $table->add_index('docid', XMLDB_INDEX_NOTUNIQUE, ['docid']);
+        $table->add_index('contextid', XMLDB_INDEX_NOTUNIQUE, ['contextid']);
+        $table->add_index('areaid', XMLDB_INDEX_NOTUNIQUE, ['areaid']);
+        $table->add_index('status', XMLDB_INDEX_NOTUNIQUE, ['status']);
+        $table->add_index('errortype', XMLDB_INDEX_NOTUNIQUE, ['errortype']);
+        $table->add_index('parentid', XMLDB_INDEX_NOTUNIQUE, ['parentid']);
+
+        // Conditionally launch create table for search_elastic_errors.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, 2025062708, 'search', 'elastic');
     }
 
     return true;

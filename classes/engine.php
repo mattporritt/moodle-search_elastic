@@ -31,6 +31,8 @@
 
 namespace search_elastic;
 
+use search_elastic\local\service\error_service;
+
 /**
  * Elasticsearch engine.
  *
@@ -640,21 +642,48 @@ class engine extends \core_search\engine {
             // If there are errors we need to iterate through he response and count how many.
             if ($response->getStatusCode() == 413) {
                 // TODO: add handling to retry sending payload one record at a time.
-                debugging ( get_string ( 'addfail', 'search_elastic' ) . ' Request Entity Too Large', DEBUG_DEVELOPER );
+                $message = get_string ('addfail', 'search_elastic') . ' Request Entity Too Large';
+                error_service::record_batch_error($message, $this->payload);
                 $numdocsignored = $this->count;
-
             } else if ($response->getStatusCode() >= 300) {
-                debugging ( get_string ( 'addfail', 'search_elastic' ) .
-                        ' Error Code: ' . $response->getStatusCode(), DEBUG_DEVELOPER );
+                $message = get_string('addfail', 'search_elastic') . ' Error Code: ' . $response->getStatusCode();
+                error_service::record_batch_error($message, $this->payload);
                 $numdocsignored = $this->count;
 
-            } else if ($responsebody->errors) {
-                foreach ($responsebody->items as $item) {
-                    if ($item->index->status >= 300) {
-                        debugging ( get_string ( 'addfail', 'search_elastic' ) .
-                                ' Error Type: ' . $item->index->error->type .
-                                ' Error Reason: ' . $item->index->error->reason, DEBUG_DEVELOPER );
-                        $numdocsignored ++;
+            } else if (isset($responsebody->errors) && $responsebody->errors) {
+                $payloaddocs = $this->parse_payload_documents();
+
+                if (isset($responsebody->items) && is_array($responsebody->items)) {
+                    foreach ($responsebody->items as $responseindex => $item) {
+                        if (isset($item->index->status) && $item->index->status >= 300) {
+                            $errortype = $item->index->error->type ?? 'unknown';
+                            $errorreason = $item->index->error->reason ?? 'unknown';
+
+                            $message = get_string('addfail', 'search_elastic') .
+                                    ' Error Type: ' . $errortype .
+                                    ' Error Reason: ' . $errorreason;
+
+                            // Get corresponding document data using the same index.
+                            $docdata = null;
+                            if (isset($payloaddocs[$responseindex]) && is_array($payloaddocs[$responseindex])) {
+                                $candidatedoc = $payloaddocs[$responseindex];
+
+                                // Verify document ID matches to ensure we have the right document.
+                                $expectedid = $item->index->_id ?? null;
+                                $parsedid = $candidatedoc['id'] ?? null;
+
+                                if ($expectedid && $parsedid && $expectedid === $parsedid) {
+                                    $docdata = $candidatedoc;
+                                } else {
+                                    // Log mismatch for debugging but continue with error recording.
+                                    debugging('Document ID mismatch at index ' . $responseindex . ': expected ' .
+                                        $expectedid . ', got ' . $parsedid, DEBUG_DEVELOPER);
+                                }
+                            }
+
+                            error_service::record_document_error($message, $docdata);
+                            $numdocsignored++;
+                        }
                     }
                 }
             }
@@ -670,6 +699,85 @@ class engine extends \core_search\engine {
         }
 
         return $numdocsignored;
+    }
+
+    /**
+     * Parse the payload to extract document data with contextid.
+     *
+     * @return array Array of document data indexed by position.
+     */
+    private function parse_payload_documents(): array {
+        $documents = [];
+
+        if (empty($this->payload)) {
+            return $documents;
+        }
+
+        $lines = explode("\n", trim($this->payload));
+
+        // Process pair of lines (metadata and document data).
+        $docindex = 0;
+        for ($i = 0; $i < count($lines); $i += 2) {
+
+            // Always increment docindex for each attempted document pair,
+            // regardless of whether lines exist or parsing succeeds.
+            $documents[$docindex] = null;
+
+            if (isset($lines[$i]) && isset($lines[$i + 1])) {
+                $metadata = json_decode($lines[$i], true);
+                $docdata = json_decode($lines[$i + 1], true);
+                if ($metadata && $docdata) {
+                    $documents[$docindex] = [
+                        'metadata' => $metadata,
+                        'id' => $docdata['id'] ?? 'unknown',
+                        'contextid' => $docdata['contextid'] ?? \context_system::instance(),
+                        'areaid' => $docdata['areaid'] ?? 'unknown',
+                        'itemid' => $docdata['itemid'] ?? 0,
+                        'modified' => $docdata['modified'] ?? null,
+                    ];
+                }
+            }
+
+            $docindex++;
+        }
+
+        return $documents;
+    }
+
+
+    /**
+     * Index a single file document.
+     *
+     * @param array $filedocdata
+     * @return bool
+     */
+    public function index_single_file_document($filedocdata): bool {
+        try {
+            $url = $this->get_url();
+            $luceneversion = $this->get_es_lucene_version();
+
+            $docprefix = '_';
+            if ($luceneversion < 8) {
+                $docprefix = '';
+            }
+
+            $docurl = $url . '/'. $this->config->index . '/' . $docprefix . 'doc/' . $filedocdata['id'];
+            $jsondoc = json_encode($filedocdata);
+
+            $client = new \search_elastic\esrequest();
+            $response = $client->post($docurl, $jsondoc);
+            $responsecode = $response->getStatusCode();
+
+            if ($responsecode !== 201 && $responsecode !== 200) {
+                debugging('Failed to index file document: ' . $response->getBody(), DEBUG_DEVELOPER);
+                return false;
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            debugging('Exception indexing file document: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            return false;
+        }
     }
 
     /**
@@ -698,7 +806,10 @@ class engine extends \core_search\engine {
         $responsecode = $response->getStatusCode();
 
         if ($responsecode !== 201 && $responsecode !== 200) {
-            debugging(get_string('addfail', 'search_elastic') . $response->getBody(), DEBUG_DEVELOPER);
+            $responsebody = json_decode($response->getBody());
+            error_service::record_document_error(get_string('addfail', 'search_elastic') .
+                    ' Error Type: ' . $responsebody->error->type .
+                    ' Error Reason: ' . $responsebody->error->reason, $docdata);
             return false;
         }
 

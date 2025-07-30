@@ -105,7 +105,12 @@ if ($hassiteconfig) {
             get_string('enrichsettings', 'search_elastic'),
             new moodle_url('/search/engine/elastic/enrich.php'));
 
+    $errorreport = new admin_externalpage('search_elastic_errors',
+            get_string('indexingerrors', 'search_elastic'),
+            new moodle_url('/search/engine/elastic/errors.php'));
+
     $ADMIN->add('search_elastic', $settings);
     $ADMIN->add('search_elastic', $enrichsettings);
+    $ADMIN->add('search_elastic', $errorreport);
     $settings = null;
 }

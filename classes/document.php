@@ -24,6 +24,8 @@
 
 namespace search_elastic;
 
+use search_elastic\local\service\error_service;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/course/lib.php');
@@ -232,7 +234,12 @@ class document extends \core_search\document {
         foreach ($processors as $processor) {  // Loop thorugh processors to see if they support this files mimetype.
             $proc = new $processor($this->config);
             if ($proc->can_analyze($file)) {  // Sequentially process the file apppending results to $filetext.
-                $filetext .= $proc->analyze_file($file);
+                try {
+                    $filetext .= $proc->analyze_file($file);
+                } catch (\Throwable $e) {
+                    error_service::record_tika_error($file, $e->getMessage(), $this->data['id']);
+                    $filetext .= '';
+                }
             }
         }
 

@@ -24,7 +24,9 @@
 
 namespace search_elastic\enrich\text;
 
+use Exception;
 use search_elastic\enrich\base\base_enrich;
+use Throwable;
 
 /**
  * Extract text from files using Tika.
@@ -165,23 +167,39 @@ class tika extends base_enrich {
         $url = $hostname . ':'. $port . '/rmeta/form'; // Support embedded documents.
         $filesize = $file->get_filesize();
 
-        if ($filesize <= $this->config->tikasendsize) {
-            $response = $client->postfile($url, $file);
-            if ($response->getStatusCode() == 200) {
-                if ($jsoncontent = json_decode($response->getBody())) {
-                    // Loop through embedded documents.
-                    foreach ($jsoncontent as $datacontent) {
-                        $content = $datacontent->{"X-TIKA:content"};
-                        preg_match("/<body.*\/body>/s", $content, $bodytext);
-                        if ($bodytext) {
-                            $extractedtext .= strip_tags($bodytext[0]);
-                        }
-                    }
-                } else {
-                    $extractedtext = (string) $response->getBody();
-                }
-            }
+        if ($filesize > $this->config->tikasendsize) {
+            $message = 'File too large for Tika extraction. Size: ' . $filesize . ' bytes, limit: ' .
+                $this->config->tikasendsize . ' bytes';
+            throw new Exception($message);
         }
+
+        $handle = $file->get_content_file_handle();
+        if (!$handle) {
+            throw new Exception('File not found: ' . $file->get_filename());
+        }
+
+        try {
+            $response = $client->postfile($url, $file);
+            if ($response->getStatusCode() !== 200) {
+                throw new Exception('Tika returned non-200 status code ' . $response->getStatusCode());
+            }
+
+            if ($jsoncontent = json_decode($response->getBody())) {
+                // Loop through embedded documents.
+                foreach ($jsoncontent as $datacontent) {
+                    $content = $datacontent->{"X-TIKA:content"};
+                    preg_match("/<body.*\/body>/s", $content, $bodytext);
+                    if ($bodytext) {
+                        $extractedtext .= strip_tags($bodytext[0]);
+                    }
+                }
+            } else {
+                $extractedtext = (string) $response->getBody();
+            }
+        } catch (Throwable $e) {
+            throw new Exception('Tika extraction failed: ' . $e->getMessage());
+        }
+
         return $extractedtext;
     }
 
