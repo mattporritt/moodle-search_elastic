@@ -57,7 +57,8 @@ class esrequest {
         $this->signing = (isset($this->config->signing) ? (bool)$this->config->signing : false);
 
         $config = [
-            'connect_timeout' => intval($this->config->connecttimeout)
+            'timeout' => isset($this->config->timeout) ? intval($this->config->timeout) : 0,
+            'connect_timeout' => intval($this->config->connecttimeout),
         ];
 
         // Allow the caller to instantiate the Guzzle client with a custom handler.
