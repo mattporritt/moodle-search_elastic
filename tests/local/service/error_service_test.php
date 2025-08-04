@@ -542,6 +542,43 @@ final class error_service_test extends advanced_testcase {
         $this->assertEquals(0, $othercount);
     }
 
+    /**
+     * Test that extract_file_contents method handles timeout correctly.
+     */
+    public function test_extract_file_contents_handles_timeout(): void {
+        $this->resetAfterTest();
+
+        // Set up Tika configuration.
+        set_config('tikahostname', 'http://127.0.0.1', 'search_elastic');
+        set_config('tikaport', 9998, 'search_elastic');
+        set_config('tikasendsize', 512000000, 'search_elastic');
+        set_config('timeout', 5, 'search_elastic');
+        set_config('connecttimeout', 2, 'search_elastic');
+
+        // Create a test file.
+        $file = $this->create_test_file();
+
+        // Test with reflection since extract_file_contents is private.
+        $reflection = new \ReflectionClass('search_elastic\local\service\error_service');
+        $method = $reflection->getMethod('extract_file_contents');
+        $method->setAccessible(true);
+
+        // Test that request timeout is handled properly and not throw an exception.
+        $result = false;
+        $exceptionthrown = false;
+
+        try {
+            $result = $method->invoke(null, $file);
+            $this->assertdebuggingcalledcount(1);
+        } catch (\Exception $e) {
+            $exceptionthrown = true;
+        }
+
+        // Verify that timeout should be handled gracefully, and not crash the indexing task.
+        $this->assertFalse($exceptionthrown);
+        $this->assertFalse($result);
+    }
+
     public function tearDown(): void {
         parent::tearDown();
         if ($this->generator) {

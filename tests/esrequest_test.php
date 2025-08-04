@@ -429,4 +429,28 @@ class esrequest_test extends \advanced_testcase {
         $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
         $this->assertEquals($expected, $lastrequestoptions['proxy']);
     }
+
+    /**
+     * Test constructor applies configured timeout.
+     */
+    public function test_constructor_configured_timeout(): void {
+        $this->resetAfterTest();
+
+        // Mock config with timeout setting.
+        set_config('timeout', 60, 'search_elastic');
+        set_config('connecttimeout', 5, 'search_elastic');
+
+        $esrequest = new esrequest();
+
+        // Use reflection to access private client.
+        $reflection = new \ReflectionClass($esrequest);
+        $clientproperty = $reflection->getProperty('client');
+        $clientproperty->setAccessible(true);
+        $client = $clientproperty->getValue($esrequest);
+
+        // Assert configured timeout is applied.
+        $clientconfig = $client->getConfig();
+        $this->assertEquals(60, $clientconfig['timeout']);
+        $this->assertEquals(5, $clientconfig['connect_timeout']);
+    }
 }

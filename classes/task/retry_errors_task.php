@@ -100,7 +100,6 @@ class retry_errors_task extends adhoc_task {
                 $successcount++;
             } else {
                 $errorcount++;
-                $error->mark_failed();
                 mtrace("Failed to retry error ID {$errorid}: {$result['message']}");
             }
 
