@@ -361,6 +361,7 @@ class error_service {
         try {
             $itemid = $error->get('itemid');
             $context = context::instance_by_id($error->get('contextid'));
+            $config = get_config('search_elastic');
 
             // Get the record from search area.
             $record = self::get_record_for_context($searcharea, $context, $itemid);
@@ -374,6 +375,19 @@ class error_service {
             if (!$document) {
                 $error->mark_failed();
                 return ['success' => false, 'message' => 'Search area could not create document from record'];
+            }
+
+            // Check document size before attempting to index.
+            $docdata = $document->export_for_engine();
+            $docsize = strlen(json_encode($docdata));
+            $maxsize = (int)$config->sendsize;
+            if ($docsize > $maxsize) {
+                // Can't index this document because it's too large.
+                $error->mark_failed();
+                return [
+                    'success' => false,
+                    'message' => "Document too large ($docsize) bytes exceeds $config->sendsize bytes limit).",
+                ];
             }
 
             // Index the parent document first.
@@ -397,10 +411,20 @@ class error_service {
             }
 
             $fileerrorcount = 0;
+            $filesskipped = 0;
 
             foreach ($files as $file) {
                 $filedocdata = $document->export_file_for_engine($file);
-                $success = $engine->index_single_file_document($filedocdata);
+
+                // Check file document size.
+                $filesize = strlen(json_encode($filedocdata));
+                if ($filesize > $config->sendsize) {
+                    $filesskipped++;
+                    debugging("Skipping file (too large): {$file->get_filename()} ($filesize bytes, exceeds $maxsize bytes limit)");
+                    continue;
+                }
+
+                $success = $engine->index_single_document($filedocdata);
                 if (!$success) {
                     $fileerrorcount++;
                 }
@@ -408,12 +432,22 @@ class error_service {
 
             if ($fileerrorcount == 0) {
                 return ['success' => true, 'message' => 'Content reindexed successfully'];
+            } else if ($filesskipped > 0 && $fileerrorcount == 0) {
+                return [
+                    'success' => true, 'message' => "Content reindexed $filesskipped file(s) skipped - too large",
+                ];
+            } else if ($filesskipped > 0 && $fileerrorcount > 0) {
+                $error->mark_failed();
+                return [
+                    'success' => false,
+                    'message' => "Failed to reindex some files. $filesskipped file(s) skipped (too large).",
+                ];
             }
 
             $error->mark_failed();
             return ['success' => false, 'message' => 'Failed to reindex content'];
         } catch (Exception $e) {
-            return ['success' => false, 'message' => 'Exception during retry: ' . $e->getMessage()];
+            return ['success' => false, 'message' => "Exception during retry: {$e->getMessage()}"];
         }
     }
 
@@ -503,7 +537,7 @@ class error_service {
             $filedocdata = $parentdocument->export_file_for_engine($file);
 
             // Index just this specific file document.
-            $success = $engine->index_single_file_document($filedocdata);
+            $success = $engine->index_single_document($filedocdata);
 
             if ($success) {
                 return ['success' => true, 'message' => 'File content extracted and indexed successfully'];

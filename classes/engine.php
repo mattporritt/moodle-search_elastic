@@ -32,6 +32,7 @@
 namespace search_elastic;
 
 use search_elastic\local\service\error_service;
+use stdClass;
 
 /**
  * Elasticsearch engine.
@@ -620,72 +621,134 @@ class engine extends \core_search\engine {
         // If we don't have enough data to send yet return early.
         if ($this->payloadsize < $this->config->sendsize && !$sendnow) {
             return $numdocsignored;
-        } else if ($this->payloadsize > 0) { // Make sure we have at least some data to send.
-            $url = $this->get_url();
-            $client = new \search_elastic\esrequest();
-            $docurl = $url . '/' . $this->config->index . '/_bulk';
-            $response = $client->post($docurl, $this->payload);
-            $responsebody = json_decode($response->getBody());
+        }
 
-            // Process response.
-            // If no errors were returned from bulk operation then numdocs = numrecords.
-            // If there are errors we need to iterate through he response and count how many.
-            if ($response->getStatusCode() == 413) {
-                // TODO: add handling to retry sending payload one record at a time.
-                $message = get_string('addfail', 'search_elastic') . ' Request Entity Too Large';
-                error_service::record_batch_error($message, $this->payload);
-                $numdocsignored = $this->count;
-            } else if ($response->getStatusCode() >= 300) {
-                $message = get_string('addfail', 'search_elastic') . ' Error Code: ' . $response->getStatusCode();
-                error_service::record_batch_error($message, $this->payload);
-                $numdocsignored = $this->count;
-            } else if (isset($responsebody->errors) && $responsebody->errors) {
-                $payloaddocs = $this->parse_payload_documents();
+        // Make sure we have at least some data to send.
+        if ($this->payloadsize <= 0) {
+            return $numdocsignored;
+        }
 
-                if (isset($responsebody->items) && is_array($responsebody->items)) {
-                    foreach ($responsebody->items as $responseindex => $item) {
-                        if (isset($item->index->status) && $item->index->status >= 300) {
-                            $errortype = $item->index->error->type ?? 'unknown';
-                            $errorreason = $item->index->error->reason ?? 'unknown';
+        // Send the bulk request.
+        $url = $this->get_url();
+        $client = new \search_elastic\esrequest();
+        $docurl = $url . '/' . $this->config->index . '/_bulk';
+        $response = $client->post($docurl, $this->payload);
+        $responsebody = json_decode($response->getBody());
+        $statuscode = $response->getStatusCode();
 
-                            $message = get_string('addfail', 'search_elastic') .
-                                    ' Error Type: ' . $errortype .
-                                    ' Error Reason: ' . $errorreason;
+        // Handle different response scenarios.
+        if ($statuscode == 413) {
+            $numdocsignored = $this->handle_413_retry();
+        } else if ($statuscode >= 300) {
+            $message = get_string('addfail', 'search_elastic') . ' Error Code: ' . $statuscode;
+            error_service::record_batch_error($message, $this->payload);
+            $numdocsignored = $this->count;
+        } else if (isset($responsebody->errors) && $responsebody->errors) {
+            $numdocsignored = $this->log_bulk_response_item_errors($responsebody);
+        }
 
-                            // Get corresponding document data using the same index.
-                            $docdata = null;
-                            if (isset($payloaddocs[$responseindex]) && is_array($payloaddocs[$responseindex])) {
-                                $candidatedoc = $payloaddocs[$responseindex];
+        // Reset the counts.
+        $this->payload = false;
+        $this->payloadsize = 0;
 
-                                // Verify document ID matches to ensure we have the right document.
-                                $expectedid = $item->index->_id ?? null;
-                                $parsedid = $candidatedoc['id'] ?? null;
+        // Reset the parent doc count after attempting to add.
+        if ($isdoc) {
+            $this->count = 0;
+        }
 
-                                if ($expectedid && $parsedid && $expectedid === $parsedid) {
-                                    $docdata = $candidatedoc;
-                                } else {
-                                    // Log mismatch for debugging but continue with error recording.
-                                    debugging('Document ID mismatch at index ' . $responseindex . ': expected ' .
-                                        $expectedid . ', got ' . $parsedid, DEBUG_DEVELOPER);
-                                }
-                            }
+        return $numdocsignored;
+    }
 
-                            error_service::record_document_error($message, $docdata);
-                            $numdocsignored++;
-                        }
-                    }
+    /**
+     * Handle 413 payload too large error by retrying documents individually.
+     *
+     * @return int Number of documents ignored/failed.
+     */
+    private function handle_413_retry(): int {
+        // Retry sending payload one record at a time.
+        $payloaddocs = $this->parse_payload_documents();
+        $retryignored = 0;
+        $maxsize = (int)$this->config->sendsize;
+
+        foreach ($payloaddocs as $doc) {
+            if (is_null($doc)) {
+                $retryignored++;
+                continue;
+            }
+
+            // Check if individual document is too large.
+            $docsize = strlen(json_encode($doc));
+            if ($docsize > $maxsize) {
+                $retryignored++;
+                $message = get_string('addfail', 'search_elastic') .
+                    " Document too large ($docsize bytes exceeds $maxsize bytes limit). Doc ID: ({$doc['id']})";
+                error_service::record_document_error($message, $doc);
+                continue;
+            }
+
+            if (!$this->index_single_document($doc)) {
+                $retryignored++;
+                $message = get_string('addfail', 'search_elastic') .
+                    " Failed on individual retry after 413. Doc ID: ({$doc['id']})";
+                error_service::record_document_error($message, $doc);
+            }
+        }
+
+        unset($payloaddocs);
+
+        return $retryignored;
+    }
+
+    /**
+     * Log bulk response individual item errors.
+     *
+     * @param stdClass $responsebody
+     * @return int Number of documents that failed.
+     */
+    private function log_bulk_response_item_errors(stdClass $responsebody): int {
+        $payloaddocs = $this->parse_payload_documents();
+        $numdocsignored = 0;
+
+        if (!isset($responsebody->items) || !is_array($responsebody->items)) {
+            unset($payloaddocs);
+            return $numdocsignored;
+        }
+
+        foreach ($responsebody->items as $responseindex => $item) {
+            if (!isset($item->index->status) || $item->index->status < 300) {
+                continue;
+            }
+
+            $errortype = $item->index->error->type ?? 'unknown';
+            $errorreason = $item->index->error->reason ?? 'unknown';
+
+            $message = get_string('addfail', 'search_elastic') .
+                ' Error Type: ' . $errortype .
+                ' Error Reason: ' . $errorreason;
+
+            // Get corresponding document data using the same index.
+            $docdata = null;
+            if (isset($payloaddocs[$responseindex]) && is_array($payloaddocs[$responseindex])) {
+                $candidatedoc = $payloaddocs[$responseindex];
+
+                // Verify document ID matches to ensure we have the right document.
+                $expectedid = $item->index->_id ?? null;
+                $parsedid = $candidatedoc['id'] ?? null;
+
+                if ($expectedid && $parsedid && $expectedid === $parsedid) {
+                    $docdata = $candidatedoc;
+                } else {
+                    // Log mismatch for debugging but continue with error recording.
+                    debugging('Document ID mismatch at index ' . $responseindex . ': expected ' .
+                        $expectedid . ', got ' . $parsedid, DEBUG_DEVELOPER);
                 }
             }
 
-            // Reser the counts.
-            $this->payload = false;
-            $this->payloadsize = 0;
-
-            // Reset the parent doc count after attempting to add.
-            if ($isdoc) {
-                $this->count = 0;
-            }
+            error_service::record_document_error($message, $docdata);
+            $numdocsignored++;
         }
+
+        unset($payloaddocs);
 
         return $numdocsignored;
     }
@@ -717,11 +780,16 @@ class engine extends \core_search\engine {
                 if ($metadata && $docdata) {
                     $documents[$docindex] = [
                         'metadata' => $metadata,
-                        'id' => $docdata['id'] ?? 'unknown',
-                        'contextid' => $docdata['contextid'] ?? \context_system::instance(),
-                        'areaid' => $docdata['areaid'] ?? 'unknown',
-                        'itemid' => $docdata['itemid'] ?? 0,
-                        'modified' => $docdata['modified'] ?? null,
+                        ...$docdata,
+                    ];
+
+                    // Add defaults for missing keys.
+                    $documents[$docindex] += [
+                        'id' => 'unknown',
+                        'contextid' => \context_system::instance(),
+                        'areaid' => 'unknown',
+                        'itemid' => 0,
+                        'modified' => null,
                     ];
                 }
             }
@@ -734,12 +802,12 @@ class engine extends \core_search\engine {
 
 
     /**
-     * Index a single file document.
+     * Index a single document.
      *
-     * @param array $filedocdata
+     * @param array $docdata
      * @return bool
      */
-    public function index_single_file_document($filedocdata): bool {
+    public function index_single_document(array $docdata): bool {
         try {
             $url = $this->get_url();
             $luceneversion = $this->get_es_lucene_version();
@@ -749,8 +817,8 @@ class engine extends \core_search\engine {
                 $docprefix = '';
             }
 
-            $docurl = $url . '/' . $this->config->index . '/' . $docprefix . 'doc/' . $filedocdata['id'];
-            $jsondoc = json_encode($filedocdata);
+            $docurl = $url . '/' . $this->config->index . '/' . $docprefix . 'doc/' . $docdata['id'];
+            $jsondoc = json_encode($docdata);
 
             $client = new \search_elastic\esrequest();
             $response = $client->post($docurl, $jsondoc);
