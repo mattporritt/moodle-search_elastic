@@ -700,9 +700,9 @@ class engine extends \core_search\engine {
     }
 
     /**
-     * Log bulk response individual item errors.
+     * Matches failed items with original documents and records error details.
      *
-     * @param stdClass $responsebody
+     * @param stdClass $responsebody Decoded JSON response from bulk operation.
      * @return int Number of documents that failed.
      */
     private function log_bulk_response_item_errors(stdClass $responsebody): int {
