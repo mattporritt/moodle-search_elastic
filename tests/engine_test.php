@@ -149,7 +149,7 @@ final class engine_test extends \advanced_testcase {
      *
      * @return array
      */
-    public function is_server_ready_provider(): array {
+    public static function is_server_ready_provider(): array {
         return [
           '200' => [
             'code' => 200,
@@ -1099,7 +1099,9 @@ final class engine_test extends \advanced_testcase {
         $this->assertFalse($result);
     }
 
-    /** Test docoffset is incremented correctly for multiple pages of search results. */
+    /**
+     * Test docoffset is incremented correctly for multiple pages of search results.
+     */
     public function test_execute_query_docoffset(): void {
         $searchuser = $this->getDataGenerator()->create_user();
         $this->setUser($searchuser);

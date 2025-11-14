@@ -378,7 +378,7 @@ final class query_test extends \advanced_testcase {
      * A data provider for test_construct_wildcard.
      * @return array
      */
-    public function construct_wildcard_data_provider() {
+    public static function construct_wildcard_data_provider(): array {
         return [
             ['test', null, null, 'test'],
 

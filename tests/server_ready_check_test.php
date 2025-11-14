@@ -45,7 +45,7 @@ final class server_ready_check_test extends advanced_testcase {
      * Provides server ready test configurations.
      * @return array
      */
-    public function server_ready_provider(): array {
+    public static function server_ready_provider(): array {
         return [
             'not set' => [
                 'hostname' => self::EMPTY_HOSTNAME,

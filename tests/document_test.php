@@ -41,7 +41,7 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/aws_rekognit
 final class document_test extends \advanced_testcase {
     /**
      * Summary of generator
-     * @var
+     * @var testing_data_generator
      */
     private $generator;
 
