@@ -37,27 +37,38 @@ use core_external\external_value;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class search_elastic_external extends external_api {
-
     /**
      * Returns description of method parameters
      * @return external_function_parameters
      */
     public static function search_parameters() {
-        return new external_function_parameters ( array (
+        return new external_function_parameters([
                 'q' => new external_value(PARAM_TEXT, 'The search query', VALUE_DEFAULT, '*'),
-                'timestart' => new external_value(PARAM_INT,
-                        'Return results newer than this. Value in seconds since Epoch', VALUE_DEFAULT, 0 ),
-                'timeend' => new external_value(PARAM_INT,
-                        'Return results older than this. Value in seconds since Epoch', VALUE_DEFAULT, 0 ),
+                'timestart' => new external_value(
+                    PARAM_INT,
+                    'Return results newer than this. Value in seconds since Epoch',
+                    VALUE_DEFAULT,
+                    0
+                ),
+                'timeend' => new external_value(
+                    PARAM_INT,
+                    'Return results older than this. Value in seconds since Epoch',
+                    VALUE_DEFAULT,
+                    0
+                ),
                 'title' => new external_value(PARAM_TEXT, 'Show results that match this title', VALUE_DEFAULT, ''),
                 'limit' => new external_value(PARAM_TEXT, 'Limit results to this number', VALUE_DEFAULT, '100'),
                 'courseids' => new external_multiple_structure(
-                        new external_value(PARAM_INT, 'Course ids'),
-                        'List of course ids. If empty return all courses.', VALUE_OPTIONAL),
+                    new external_value(PARAM_INT, 'Course ids'),
+                    'List of course ids. If empty return all courses.',
+                    VALUE_OPTIONAL
+                ),
                 'areaids' => new external_multiple_structure(
-                        new external_value(PARAM_TEXT, 'Area ids'),
-                        'List of area ids. If empty return all areas.', VALUE_OPTIONAL ),
-        ) );
+                    new external_value(PARAM_TEXT, 'Area ids'),
+                    'List of area ids. If empty return all areas.',
+                    VALUE_OPTIONAL
+                ),
+        ]);
     }
 
     /**
@@ -73,13 +84,14 @@ class search_elastic_external extends external_api {
      * @throws moodle_exception
      * @return array $docs The search results
      */
-    public static function search($q, $timestart, $timeend, $title, $limit, $courseids=array(), $areaids=array()) {
+    public static function search($q, $timestart, $timeend, $title, $limit, $courseids = [], $areaids = []) {
         global $USER;
 
         // Parameter validation.
         // This feels dumb and the docs are vague, buy it is required.
-        $params = self::validate_parameters(self::search_parameters(),
-                array('q' => $q,
+        $params = self::validate_parameters(
+            self::search_parameters(),
+            ['q' => $q,
                        'timestart' => $timestart,
                        'timeend' => $timeend,
                        'title' => $title,
@@ -87,7 +99,8 @@ class search_elastic_external extends external_api {
                        'courseids' => $courseids,
                        'areaids' => $areaids,
 
-                       ));
+            ]
+        );
 
         // Context validation.
         $context = context_user::instance($USER->id);
@@ -103,7 +116,7 @@ class search_elastic_external extends external_api {
         $results = $search->search((object)$params, $params['limit']);
 
         // Process the results.
-        $docs = array();
+        $docs = [];
         foreach ($results as $result) {
             $docs[] = $result->export_for_webservice();
         }
@@ -118,7 +131,7 @@ class search_elastic_external extends external_api {
     public static function search_returns() {
         return new external_multiple_structure(
             new external_single_structure(
-                    array(
+                [
                         'componentname' => new external_value(PARAM_TEXT, 'The name of the document'),
                         'areaname' => new external_value(PARAM_TEXT, 'the search area the document is associated with'),
                         'courseurl' => new external_value(PARAM_RAW, 'URL of course associated with result'),
@@ -130,8 +143,8 @@ class search_elastic_external extends external_api {
                         'contexturl' => new external_value(PARAM_RAW, 'URL of the result context'),
                         'description1' => new external_value(PARAM_TEXT, 'Extra data fields for result'),
                         'description2' => new external_value(PARAM_TEXT, 'Extra data fields for result'),
-                    )
-                )
+                    ]
+            )
         );
     }
 
@@ -140,9 +153,9 @@ class search_elastic_external extends external_api {
      * @return external_function_parameters
      */
     public static function search_areas_parameters() {
-        return new external_function_parameters ( array (
-                'enabled' => new external_value(PARAM_BOOL, 'Return only enabled search areas', VALUE_DEFAULT, false)
-        ) );
+        return new external_function_parameters([
+                'enabled' => new external_value(PARAM_BOOL, 'Return only enabled search areas', VALUE_DEFAULT, false),
+        ]);
     }
 
     /**
@@ -157,8 +170,10 @@ class search_elastic_external extends external_api {
 
         // Parameter validation.
         // This feels dumb and the docs are vague, buy it is required.
-        $params = self::validate_parameters(self::search_areas_parameters(),
-                array('enabled' => $enabled));
+        $params = self::validate_parameters(
+            self::search_areas_parameters(),
+            ['enabled' => $enabled]
+        );
 
         // Context validation.
         $context = context_user::instance($USER->id);
@@ -182,10 +197,9 @@ class search_elastic_external extends external_api {
      */
     public static function search_areas_returns() {
         return new external_multiple_structure(
-                new external_single_structure(
-                        array('areaid' => new external_value(PARAM_TEXT, 'The search area ID'))
-                        )
-                );
+            new external_single_structure(
+                ['areaid' => new external_value(PARAM_TEXT, 'The search area ID')]
+            )
+        );
     }
-
 }

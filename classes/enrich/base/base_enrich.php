@@ -32,7 +32,6 @@ namespace search_elastic\enrich\base;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class base_enrich {
-
     /**
      * @var mixed $config Search plugin configuration.
      */
@@ -62,7 +61,7 @@ abstract class base_enrich {
      *
      * @var array
      */
-    protected $acceptedmime = array();
+    protected $acceptedmime = [];
 
     /**
      * Returns all accepted file types.
@@ -108,7 +107,6 @@ abstract class base_enrich {
      * @param mixed $config
      */
     public static function form_definition_extra($form, $mform, $customdata, $config) {
-
     }
 
     /**
@@ -129,5 +127,4 @@ abstract class base_enrich {
             $mform->setDefault($element, $default);
         }
     }
-
 }

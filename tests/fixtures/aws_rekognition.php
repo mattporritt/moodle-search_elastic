@@ -40,13 +40,13 @@ class MockRekognition {
     // @codingStandardsIgnoreStart
     public function detectLabels($params) {
         // @codingStandardsIgnoreEnd
-        $results = array (
-                'Labels' => array (
-                        array ( 'Name' => 'black',
-                                'Confidence' => 91.745529174805
-                        )
-                )
-        );
+        $results = [
+                'Labels' => [
+                         [ 'Name' => 'black',
+                                'Confidence' => 91.745529174805,
+                         ],
+                ],
+        ];
         return $results;
     }
 
@@ -60,12 +60,12 @@ class MockRekognition {
     // @codingStandardsIgnoreStart
     public function detectText($params) {
         // @codingStandardsIgnoreEnd
-        $results = array (
-            'TextDetections' => array (
-                array ( 'DetectedText' => 'thecolor',
-                )
-            )
-        );
+        $results = [
+            'TextDetections' => [
+                 [ 'DetectedText' => 'thecolor',
+                 ],
+            ],
+        ];
         return $results;
     }
 }

@@ -36,14 +36,13 @@ use Throwable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class tika extends base_enrich {
-
     /**
      * Array of file mimetypes that enrichment class supports
      * processing of / extracting data from.
      *
      * @var array
      */
-    protected $acceptedmime = array(
+    protected $acceptedmime = [
             'application/pdf',
             'text/html',
             'application/msword',
@@ -67,8 +66,8 @@ class tika extends base_enrich {
             'application/vnd.oasis.opendocument.text',
             'application/vnd.oasis.opendocument.spreadsheet',
             'application/vnd.oasis.opendocument.presentation',
-            'application/epub+zip'
-    );
+            'application/epub+zip',
+    ];
     /**
      * Summary of config
      * @var
@@ -164,7 +163,7 @@ class tika extends base_enrich {
         $extractedtext = '';
         $port = $this->tikaport;
         $hostname = $this->tikahostname;
-        $url = $hostname . ':'. $port . '/rmeta/form'; // Support embedded documents.
+        $url = $hostname . ':' . $port . '/rmeta/form'; // Support embedded documents.
         $filesize = $file->get_filesize();
 
         if ($filesize > $this->config->tikasendsize) {
@@ -227,20 +226,19 @@ class tika extends base_enrich {
      * @param mixed $config
      */
     public static function form_definition_extra($form, $mform, $customdata, $config) {
-        $mform->addElement('text', 'tikahostname',  get_string ('tikahostname', 'search_elastic'));
+        $mform->addElement('text', 'tikahostname', get_string('tikahostname', 'search_elastic'));
         $mform->setType('tikahostname', PARAM_URL);
         $mform->addHelpButton('tikahostname', 'tikahostname', 'search_elastic');
         self::set_default('tikahostname', 'http://127.0.0.1', $mform, $customdata, $config);
 
-        $mform->addElement('text', 'tikaport',  get_string ('tikaport', 'search_elastic'));
+        $mform->addElement('text', 'tikaport', get_string('tikaport', 'search_elastic'));
         $mform->setType('tikaport', PARAM_INT);
         $mform->addHelpButton('tikaport', 'tikaport', 'search_elastic');
         self::set_default('tikaport', 9998, $mform, $customdata, $config);
 
-        $mform->addElement('text', 'tikasendsize',  get_string ('tikasendsize', 'search_elastic'));
+        $mform->addElement('text', 'tikasendsize', get_string('tikasendsize', 'search_elastic'));
         $mform->setType('tikasendsize', PARAM_ALPHANUMEXT);
         $mform->addHelpButton('tikasendsize', 'tikasendsize', 'search_elastic');
         self::set_default('tikasendsize', 512000000, $mform, $customdata, $config);
     }
-
 }

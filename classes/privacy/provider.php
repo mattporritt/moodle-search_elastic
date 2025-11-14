@@ -42,7 +42,6 @@ class provider implements
     \core_privacy\local\metadata\provider,
     \core_privacy\local\request\core_userlist_provider,
     \core_privacy\local\request\plugin\provider {
-
     // This trait must be included to provide the relevant polyfill for the metadata provider.
     use \core_privacy\local\legacy_polyfill;
 
@@ -53,8 +52,11 @@ class provider implements
      * @return  collection     A listing of user data stored through this system.
      */
     public static function get_metadata(collection $collection): collection {
-        return $collection->add_external_location_link('elastic', ['data' => 'privacy:metadata:data'],
-                                                       'privacy:metadata');
+        return $collection->add_external_location_link(
+            'elastic',
+            ['data' => 'privacy:metadata:data'],
+            'privacy:metadata'
+        );
     }
 
     /**

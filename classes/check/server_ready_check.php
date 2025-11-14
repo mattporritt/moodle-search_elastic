@@ -61,7 +61,7 @@ class server_ready_check extends check {
         // Format the check details nicely.
         $statusdetails = get_string('connection:status', 'search_elastic', [
             'url' => $url,
-            'status' => $status
+            'status' => $status,
         ]);
 
         return new result($resultstatus, $statusdetails);
@@ -79,4 +79,3 @@ class server_ready_check extends check {
         return new action_link($configurl, $configstr);
     }
 }
-

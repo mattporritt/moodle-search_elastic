@@ -34,7 +34,6 @@ use html_writer;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class error extends base {
-
     /**
      * Returns the default table aliases.
      *
@@ -86,7 +85,7 @@ class error extends base {
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_TEXT)
             ->add_field("{$alias}.docid")
-            ->add_callback(static function($value, stdClass $row): string {
+            ->add_callback(static function ($value, stdClass $row): string {
                 return html_writer::tag('code', s($value));
             })
             ->set_is_sortable(true);
@@ -99,7 +98,7 @@ class error extends base {
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_TEXT)
             ->add_field("{$alias}.areaid")
-            ->add_callback(static function($value, stdClass $row): string {
+            ->add_callback(static function ($value, stdClass $row): string {
                 // Get search area display name.
                 $searchareas = manager::get_search_areas_list(true);
                 return isset($searchareas[$value]) ? $searchareas[$value]->get_visible_name() : $value;
@@ -115,7 +114,7 @@ class error extends base {
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_TEXT)
             ->add_field("{$alias}.errortype")
-            ->add_callback(static function($value, stdClass $row) use ($typeoptions): string {
+            ->add_callback(static function ($value, stdClass $row) use ($typeoptions): string {
                 return $typeoptions[$row->errortype] ?? $row->errortype;
             })
             ->set_is_sortable(true);
@@ -128,7 +127,7 @@ class error extends base {
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_TEXT)
             ->add_field("{$alias}.errormessage")
-            ->add_callback(static function($value, stdClass $row): string {
+            ->add_callback(static function ($value, stdClass $row): string {
                 return s($value);
             });
 
@@ -141,7 +140,7 @@ class error extends base {
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_TEXT)
             ->add_field("{$alias}.status")
-            ->add_callback(static function($value, stdClass $row) use ($statusoptions): string {
+            ->add_callback(static function ($value, stdClass $row) use ($statusoptions): string {
                 $statustext = $statusoptions[$row->status] ?? $row->status;
 
                 $statusclasses = [
@@ -184,7 +183,7 @@ class error extends base {
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_TIMESTAMP)
             ->add_field("{$alias}.contentmodified")
-            ->add_callback(static function($value, stdClass $row): string {
+            ->add_callback(static function ($value, stdClass $row): string {
                 return $value ? userdate($value) : '-';
             })
             ->set_is_sortable(true);
@@ -197,7 +196,7 @@ class error extends base {
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_TEXT)
             ->add_field("{$alias}.parentid")
-            ->add_callback(static function($value, stdClass $row): string {
+            ->add_callback(static function ($value, stdClass $row): string {
                 return $value ? html_writer::tag('code', s($row->parentid)) : '-';
             })
             ->set_is_sortable(true);
@@ -341,5 +340,4 @@ class error extends base {
             error_model::STATUS_OBSOLETE => get_string('status_obsolete', 'search_elastic'),
         ];
     }
-
 }

@@ -37,12 +37,11 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/aws_rekognit
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \search_elastic\enrich\image\rekognition
  */
-class rekognition_test extends \advanced_testcase {
-
+final class rekognition_test extends \advanced_testcase {
     /**
      * Test image with AWS rekgonition
      */
-    public function test_export_image_file_for_engine() {
+    public function test_export_image_file_for_engine(): void {
         $this->resetAfterTest();
         global $CFG;
         $config = new \stdClass();
@@ -54,28 +53,27 @@ class rekognition_test extends \advanced_testcase {
 
         // Create file to analyze.
         $fs = get_file_storage();
-        $filerecord = array(
+        $filerecord = [
             'contextid' => 1,
             'component' => 'mod_test',
             'filearea' => 'search',
             'itemid' => 0,
             'filepath' => '/',
-            'filename' => 'testfile.png');
+            'filename' => 'testfile.png'];
         $fileurl = $CFG->dirroot . '/search/engine/elastic/tests/pix/black.png';
         $file = $fs->create_file_from_pathname($filerecord, $fileurl);
 
         // Mock out thw AWS Rekognition client and response.
         // Add missing data to stub record object.
         $builder = $this->getMockBuilder('\search_elastic\enrich\image\rekognition');
-        $builder->onlyMethods(array('get_rekognition_client'));
-        $builder->setConstructorArgs(array($config));
+        $builder->onlyMethods(['get_rekognition_client']);
+        $builder->setConstructorArgs([$config]);
         $stub = $builder->getMock();
 
-        $rekognition = new \MockRekognition;
+        $rekognition = new \MockRekognition();
         $stub->method('get_rekognition_client')->willReturn($rekognition);
 
         $filetext = $stub->analyze_file($file);
         $this->assertEquals('blackthecolor', $filetext);
     }
-
 }

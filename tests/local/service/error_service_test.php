@@ -43,7 +43,6 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_eng
  * @covers      \search_elastic\local\service\error_service
  */
 final class error_service_test extends advanced_testcase {
-
     /**
      * @var \core_search::manager
      */

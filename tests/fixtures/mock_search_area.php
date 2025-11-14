@@ -20,13 +20,12 @@ namespace core_mocksearch\search;
 /**
  * Component implementing search for testing purposes.
  *
- * @package   core_search
+ * @package   search_elastic
  * @category  phpunit
  * @copyright David Monllao {@link http://www.davidmonllao.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mock_boost_area extends \core_mocksearch\search\mock_search_area {
-
     /** @var float If set, waits when doing the indexing query (seconds) */
     protected $indexingdelay = 0;
 
@@ -50,11 +49,12 @@ class mock_boost_area extends \core_mocksearch\search\mock_search_area {
 
         if ($this->indexingdelay) {
             \testable_core_search::fake_current_time(
-                    \core_search\manager::get_current_time() + $this->indexingdelay);
+                \core_search\manager::get_current_time() + $this->indexingdelay
+            );
         }
 
         $sql = "SELECT * FROM {temp_mock_search_area} WHERE timemodified >= ? ORDER BY timemodified ASC";
-        return $DB->get_recordset_sql($sql, array($modifiedfrom));
+        return $DB->get_recordset_sql($sql, [$modifiedfrom]);
     }
 
 
@@ -71,7 +71,7 @@ class mock_boost_area extends \core_mocksearch\search\mock_search_area {
         return $docdata;
     }
 
-    public function get_document($record, $options = array()) {
+    public function get_document($record, $options = []) {
         global $USER;
 
         $info = unserialize($record->info);
@@ -94,7 +94,7 @@ class mock_boost_area extends \core_mocksearch\search\mock_search_area {
     public function attach_files($document) {
         global $DB;
 
-        if (!$record = $DB->get_record('temp_mock_search_area', array('id' => $document->get('itemid')))) {
+        if (!$record = $DB->get_record('temp_mock_search_area', ['id' => $document->get('itemid')])) {
             return;
         }
 
@@ -111,7 +111,7 @@ class mock_boost_area extends \core_mocksearch\search\mock_search_area {
     public function check_access($id) {
         global $DB, $USER;
 
-        if ($record = $DB->get_record('temp_mock_search_area', array('id' => $id))) {
+        if ($record = $DB->get_record('temp_mock_search_area', ['id' => $id])) {
             $info = unserialize($record->info);
 
             if (in_array($USER->id, $info->denyuserids)) {
@@ -142,5 +142,4 @@ class mock_boost_area extends \core_mocksearch\search\mock_search_area {
     public function set_indexing_delay($seconds) {
         $this->indexingdelay = $seconds;
     }
-
 }

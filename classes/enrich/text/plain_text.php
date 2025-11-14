@@ -34,20 +34,19 @@ use search_elastic\enrich\base\base_enrich;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class plain_text extends base_enrich {
-
     /**
      * Array of file mimetypes that enrichment class supports
      * processing of / extracting data from.
      *
      * @var array
      */
-    protected $acceptedmime = array(
+    protected $acceptedmime = [
         'text/plain',
         'text/csv',
         'text/css',
         'text/javascript',
-        'text/ecmascript'
-    );
+        'text/ecmascript',
+    ];
 
     /**
      * Returns the step name.
@@ -82,6 +81,4 @@ class plain_text extends base_enrich {
     public static function form_definition_extra($form, $mform, $customdata, $config) {
         // This is a no-op for this class.
     }
-
 }
-

@@ -35,7 +35,6 @@ use search_elastic\aws_helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class rekognition extends base_enrich {
-
     /**
      * Summary of config
      * @var mixed
@@ -73,10 +72,10 @@ class rekognition extends base_enrich {
      *
      * @var array
      */
-    protected $acceptedmime = array(
+    protected $acceptedmime = [
         'image/jpeg',
-        'image/png'
-    );
+        'image/png',
+    ];
 
     /**
      * The constructor for the class, will be overwritten in most cases.
@@ -113,8 +112,8 @@ class rekognition extends base_enrich {
             'region'  => $this->rekregion,
             'credentials' => [
                 'key'    => $this->rekkey,
-                'secret' => $this->reksecret
-            ]
+                'secret' => $this->reksecret,
+            ],
         ];
 
         // If Moodle has a proxy in use, we need to use it here too.
@@ -140,10 +139,11 @@ class rekognition extends base_enrich {
         $filesize = $file->get_filesize();
 
         // Check if we can analyze this type of file.
-        if ($imageinfo['height'] >= 80 &&
+        if (
+            $imageinfo['height'] >= 80 &&
             $imageinfo['width'] >= 80 &&
             $filesize <= 5000000
-            ) {
+        ) {
                 $cananalyze = true;
         }
 
@@ -152,32 +152,32 @@ class rekognition extends base_enrich {
             $client = $this->get_rekognition_client();
 
             // Detect labels from Rekognition.
-            $result = $client->detectLabels(array(
-                'Image' => array(
+            $result = $client->detectLabels([
+                'Image' => [
                     'Bytes' => $file->get_content(),
-                ),
-                'Attributes' => array('ALL'),
+                ],
+                'Attributes' => ['ALL'],
                 'MaxLabels' => (int)$this->maxlabels,
-                'MinConfidence' => (float)$this->minconfidence
-            ));
+                'MinConfidence' => (float)$this->minconfidence,
+            ]);
 
             // Process the results from AWS Rekognition service
             // and extra result labels.
-            $labelarray = array ();
+            $labelarray = [];
             foreach ($result['Labels'] as $label) {
                 $labelarray[] = $label['Name'];
             }
             $imagetext = implode(', ', $labelarray);
 
             // Detect text from reckognition.
-            $result = $client->detectText(array(
-                'Image' => array(
+            $result = $client->detectText([
+                'Image' => [
                     'Bytes' => $file->get_content(),
-                )
-            ));
+                ],
+            ]);
 
             // Process results.
-            $textarray = array();
+            $textarray = [];
             foreach ($result['TextDetections'] as $text) {
                 $textarray[] = $text['DetectedText'];
             }
@@ -197,30 +197,29 @@ class rekognition extends base_enrich {
      * @param mixed $config
      */
     public static function form_definition_extra($form, $mform, $customdata, $config) {
-        $mform->addElement('text', 'rekkeyid',  get_string ('rekkeyid', 'search_elastic'));
+        $mform->addElement('text', 'rekkeyid', get_string('rekkeyid', 'search_elastic'));
         $mform->setType('rekkeyid', PARAM_TEXT);
         $mform->addHelpButton('rekkeyid', 'rekkeyid', 'search_elastic');
         self::set_default('rekkeyid', '', $mform, $customdata, $config);
 
-        $mform->addElement('text', 'reksecretkey',  get_string ('reksecretkey', 'search_elastic'));
+        $mform->addElement('text', 'reksecretkey', get_string('reksecretkey', 'search_elastic'));
         $mform->setType('reksecretkey', PARAM_TEXT);
         $mform->addHelpButton('reksecretkey', 'reksecretkey', 'search_elastic');
         self::set_default('reksecretkey', '', $mform, $customdata, $config);
 
-        $mform->addElement('text', 'rekregion',  get_string ('rekregion', 'search_elastic'));
+        $mform->addElement('text', 'rekregion', get_string('rekregion', 'search_elastic'));
         $mform->setType('rekregion', PARAM_TEXT);
         $mform->addHelpButton('rekregion', 'rekregion', 'search_elastic');
         self::set_default('rekregion', 'us-west-2', $mform, $customdata, $config);
 
-        $mform->addElement('text', 'maxlabels',  get_string ('maxlabels', 'search_elastic'));
+        $mform->addElement('text', 'maxlabels', get_string('maxlabels', 'search_elastic'));
         $mform->setType('maxlabels', PARAM_INT);
         $mform->addHelpButton('maxlabels', 'maxlabels', 'search_elastic');
         self::set_default('maxlabels', 10, $mform, $customdata, $config);
 
-        $mform->addElement('text', 'minconfidence',  get_string ('minconfidence', 'search_elastic'));
+        $mform->addElement('text', 'minconfidence', get_string('minconfidence', 'search_elastic'));
         $mform->setType('minconfidence', PARAM_INT);
         $mform->addHelpButton('minconfidence', 'minconfidence', 'search_elastic');
         self::set_default('minconfidence', 90, $mform, $customdata, $config);
     }
-
 }

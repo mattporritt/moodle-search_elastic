@@ -41,7 +41,6 @@ use search_elastic\local\service\error_service;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class engine extends \core_search\engine {
-
     /**
      * @var int Factor to multiply fetch limit by when getting results.
      */
@@ -66,14 +65,14 @@ class engine extends \core_search\engine {
      *
      * @var array Configuration defaults.
      */
-    protected $configdefaults = array(
+    protected $configdefaults = [
             'fileindexing' => 0,
             'hostname' => 'http://127.0.0.1',
             'port' => 9200,
             'index' => 'moodle',
             'sendsize' => 9000000,
-            'logging' => 0
-    );
+            'logging' => 0,
+    ];
 
     /**
      * Initialises the search engine configuration.
@@ -88,7 +87,6 @@ class engine extends \core_search\engine {
         foreach ($this->config as $name => $value) {
             set_config($name, $value, 'search_elastic');
         }
-
     }
 
     /**
@@ -116,7 +114,7 @@ class engine extends \core_search\engine {
         if (!empty($this->config->hostname) && !empty($this->config->port)) {
             $url = rtrim($this->config->hostname, "/");
             $port = $this->config->port;
-            return $url . ':'. $port;
+            return $url . ':' . $port;
         }
 
         return $returnval;
@@ -134,10 +132,9 @@ class engine extends \core_search\engine {
         $client = new \search_elastic\esrequest();
 
         if (!empty($this->config->index) && $url) {
-            $index = $url . '/'. $this->config->index;
+            $index = $url . '/' . $this->config->index;
             $response = $client->get($index);
             $responsecode = $response->getStatusCode();
-
         }
         if ($responsecode == 200) {
             $returnval = true;
@@ -156,7 +153,7 @@ class engine extends \core_search\engine {
 
         // Get existing index definition.
         $url = $this->get_url();
-        $indexeurl = $url . '/'. $this->config->index. '/_mapping';
+        $indexeurl = $url . '/' . $this->config->index . '/_mapping';
         $client = new \search_elastic\esrequest();
         $response = $client->get($indexeurl);
         $responsebody = json_decode($response->getBody());
@@ -215,7 +212,7 @@ class engine extends \core_search\engine {
      * @param integer $luceneversion The version of Apache Lucene to get the mapping for.
      * @return array $mapping  The Elasticsearch mapping.
      */
-    public function get_mapping($luceneversion=0) {
+    public function get_mapping($luceneversion = 0) {
         $requiredfields = \search_elastic\document::get_required_fields_definition();
         $optionalfields = \search_elastic\document::get_optional_fields_definition();
         $fields = array_merge($requiredfields, $optionalfields);
@@ -240,7 +237,7 @@ class engine extends \core_search\engine {
         $url = $this->get_url();
         $client = new \search_elastic\esrequest();
         if (!empty($this->config->index) && $url) {
-            $indexurl = $url . '/'. $this->config->index;
+            $indexurl = $url . '/' . $this->config->index;
             $mapping = $this->get_mapping();
             $response = $client->put($indexurl, json_encode($mapping));
             $responsecode = $response->getStatusCode();
@@ -250,7 +247,6 @@ class engine extends \core_search\engine {
         if ($responsecode !== 200) {
             throw new \moodle_exception('indexfail', 'search_elastic', '');
         }
-
     }
 
     /**
@@ -272,7 +268,7 @@ class engine extends \core_search\engine {
         if ($status !== 200) {
             return get_string('connection:status', 'search_elastic', [
               'url' => $this->get_url(),
-              'status' => $status
+              'status' => $status,
             ]);
         }
 
@@ -327,41 +323,40 @@ class engine extends \core_search\engine {
      */
     private function get_indexed_files($document, $start = 0, $rows = 500) {
         $url = $this->get_url();
-        $indexeurl = $url . '/'. $this->config->index. '/_search';
+        $indexeurl = $url . '/' . $this->config->index . '/_search';
         $client = new \search_elastic\esrequest();
         // TODO: move this to document class.
-        $query = array('query' => array(
-                'bool' => array(
-                        'must' => array(
-                            array('match' => array('type' => 2)),
-                            array('match' => array('areaid' => $document->get('areaid'))),
-                            array('match' => array('parentid' => $document->get('id'))),
-                        )
-                )),
-                '_source' => array('id',
+        $query = ['query' => [
+                'bool' => [
+                        'must' => [
+                            ['match' => ['type' => 2]],
+                            ['match' => ['areaid' => $document->get('areaid')]],
+                            ['match' => ['parentid' => $document->get('id')]],
+                        ],
+                ]],
+                '_source' => ['id',
                                   'modified',
                                   'filecontenthash',
-                                  'title'),
+                                  'title'],
                 'from' => $start,
                 'size' => $rows,
-                );
+                ];
         $jsonquery = json_encode($query);
         $response = $client->post($indexeurl, $jsonquery)->getBody();
         $results = json_decode($response);
 
         if (!isset($results->hits)) {
-            $returnarray = array(0, array());
+            $returnarray = [0, []];
         } else {
             if (is_object($results->hits->total)) {
                 $totalhits = $results->hits->total->value;
             } else {
                 $totalhits = $results->hits->total;
             }
-            $returnarray = array($totalhits, $results->hits->hits);
+            $returnarray = [$totalhits, $results->hits->hits];
         }
 
         return $returnarray;
-
     }
 
     /**
@@ -388,7 +383,7 @@ class engine extends \core_search\engine {
         // Delete files that are no longer attached.
         foreach ($idstodelete as $id => $type) {
             // We directly delete the item using the client, as the engine delete_by_id won't work on file docs.
-            $this->delete_by_id ($id);
+            $this->delete_by_id($id);
         }
     }
 
@@ -403,9 +398,9 @@ class engine extends \core_search\engine {
         $rows = 500; // Maximum rows to process at a time.
         $files = $document->get_files(); // Get the attached files.
         // We do this progressively, so we can handle lots of files cleanly.
-        list ( $numfound, $indexedfiles ) = $this->get_indexed_files ( $document, 0, $rows );
+         [ $numfound, $indexedfiles ] = $this->get_indexed_files($document, 0, $rows);
         $count = 0;
-        $idstodelete = array ();
+        $idstodelete = [];
 
         do {
             // Go through each indexed file. We want to not index any stored and unchanged ones, delete any missing ones.
@@ -436,11 +431,11 @@ class engine extends \core_search\engine {
 
             if ($count < $numfound) {
                 // If we haven't hit the total count yet, fetch the next batch.
-                list ( $numfound, $indexedfiles ) = $this->get_indexed_files ( $document, $count, $rows );
+                 [ $numfound, $indexedfiles ] = $this->get_indexed_files($document, $count, $rows);
             }
-        } while ( $count < $numfound );
+        } while ($count < $numfound);
 
-        return array($files, $idstodelete);
+        return [$files, $idstodelete];
     }
 
     /**
@@ -451,7 +446,7 @@ class engine extends \core_search\engine {
      * @param integer $luceneversion Apache Lucene version to get the mapping for.
      * @return string The JSON representation of doc data, ready to be indexed.
      */
-    private function create_payload($docdata, $luceneversion=0) {
+    private function create_payload($docdata, $luceneversion = 0) {
 
         // We need to change some of the mappings if Apache Lucene version is less than 8.
         if (!$luceneversion) {
@@ -468,7 +463,7 @@ class engine extends \core_search\engine {
 
         $jsonmeta = json_encode($meta);
         $jsondoc = json_encode($docdata);
-        $jsonpayload = $jsonmeta . "\n" . $jsondoc. "\n";
+        $jsonpayload = $jsonmeta . "\n" . $jsondoc . "\n";
 
         // Return false if we can't JSON encode the document data.
         if ($jsonmeta == false || $jsondoc == false) {
@@ -485,15 +480,13 @@ class engine extends \core_search\engine {
      */
     private function process_document_files($document) {
         // Handle already indexed Files.
-        $files = array();
+        $files = [];
         if (!$document->get_is_new()) {
-
             // If this isn't a new document, we need to check the exiting indexed files.
-            list ($files, $idstodelete) = $this->filter_indexed_files($document);
+             [$files, $idstodelete] = $this->filter_indexed_files($document);
 
             // Delete files that are no longer attached.
             $this->delete_indexed_files($idstodelete);
-
         } else {
             $files = $document->get_files();
         }
@@ -508,7 +501,6 @@ class engine extends \core_search\engine {
         }
 
         $this->batch_add_documents(false, false, true);
-
     }
 
     /**
@@ -521,21 +513,17 @@ class engine extends \core_search\engine {
     public function highlight_result($result) {
 
         if (property_exists($result, 'highlight')) {
-
             $query = new \search_elastic\query();
 
             foreach ($result->highlight as $highlightfield => $value) {
                 $result->_source->$highlightfield = $value[0]; // Replace _source element with highlight element.
-
             }
             $highlightedsource = $result;
-
         } else {
             $highlightedsource = $result;
         }
 
         return $highlightedsource;
-
     }
 
     /**
@@ -561,8 +549,10 @@ class engine extends \core_search\engine {
         foreach ($iterator as $document) {
             // Stop if we have exceeded the time limit (and there are still more items). Always
             // do at least one second's worth of documents otherwise it will never make progress.
-            if ($lastindexeddoc !== $firstindexeddoc &&
-                    !empty($options['stopat']) && microtime(true) >= $options['stopat']) {
+            if (
+                $lastindexeddoc !== $firstindexeddoc &&
+                    !empty($options['stopat']) && microtime(true) >= $options['stopat']
+            ) {
                         $partial = true;
                         break;
             }
@@ -584,7 +574,7 @@ class engine extends \core_search\engine {
             if ($jsonpayload) {
                 $numdocsignored += $this->batch_add_documents($jsonpayload, true);
             } else {
-                $numdocsignored ++;
+                $numdocsignored++;
             }
 
             if ($options['indexfiles']) {
@@ -598,10 +588,10 @@ class engine extends \core_search\engine {
 
         if (method_exists($this, 'supports_add_document_batch')) {
             $numbatches = 0;  // TODO: fix https://github.com/catalyst/moodle-search_elastic/issues/67.
-            return array($numrecords, $numdocs, $numdocsignored, $lastindexeddoc, $partial, $numbatches);
+            return [$numrecords, $numdocs, $numdocsignored, $lastindexeddoc, $partial, $numbatches];
         }
 
-        return array($numrecords, $numdocs, $numdocsignored, $lastindexeddoc, $partial);
+        return [$numrecords, $numdocs, $numdocsignored, $lastindexeddoc, $partial];
     }
 
     /**
@@ -613,7 +603,7 @@ class engine extends \core_search\engine {
      * @param bool $sendnow
      * @return number Number of documents not indexed.
      */
-    private function batch_add_documents($jsonpayload, $isdoc=false, $sendnow=false) {
+    private function batch_add_documents($jsonpayload, $isdoc = false, $sendnow = false) {
         $numdocsignored = 0;
         if (!$sendnow) {
             $this->payload .= $jsonpayload;
@@ -631,25 +621,24 @@ class engine extends \core_search\engine {
         if ($this->payloadsize < $this->config->sendsize && !$sendnow) {
             return $numdocsignored;
         } else if ($this->payloadsize > 0) { // Make sure we have at least some data to send.
-            $url = $this->get_url ();
-            $client = new \search_elastic\esrequest ();
+            $url = $this->get_url();
+            $client = new \search_elastic\esrequest();
             $docurl = $url . '/' . $this->config->index . '/_bulk';
-            $response = $client->post ( $docurl, $this->payload );
-            $responsebody = json_decode ($response->getBody () );
+            $response = $client->post($docurl, $this->payload);
+            $responsebody = json_decode($response->getBody());
 
             // Process response.
             // If no errors were returned from bulk operation then numdocs = numrecords.
             // If there are errors we need to iterate through he response and count how many.
             if ($response->getStatusCode() == 413) {
                 // TODO: add handling to retry sending payload one record at a time.
-                $message = get_string ('addfail', 'search_elastic') . ' Request Entity Too Large';
+                $message = get_string('addfail', 'search_elastic') . ' Request Entity Too Large';
                 error_service::record_batch_error($message, $this->payload);
                 $numdocsignored = $this->count;
             } else if ($response->getStatusCode() >= 300) {
                 $message = get_string('addfail', 'search_elastic') . ' Error Code: ' . $response->getStatusCode();
                 error_service::record_batch_error($message, $this->payload);
                 $numdocsignored = $this->count;
-
             } else if (isset($responsebody->errors) && $responsebody->errors) {
                 $payloaddocs = $this->parse_payload_documents();
 
@@ -718,7 +707,6 @@ class engine extends \core_search\engine {
         // Process pair of lines (metadata and document data).
         $docindex = 0;
         for ($i = 0; $i < count($lines); $i += 2) {
-
             // Always increment docindex for each attempted document pair,
             // regardless of whether lines exist or parsing succeeds.
             $documents[$docindex] = null;
@@ -761,7 +749,7 @@ class engine extends \core_search\engine {
                 $docprefix = '';
             }
 
-            $docurl = $url . '/'. $this->config->index . '/' . $docprefix . 'doc/' . $filedocdata['id'];
+            $docurl = $url . '/' . $this->config->index . '/' . $docprefix . 'doc/' . $filedocdata['id'];
             $jsondoc = json_encode($filedocdata);
 
             $client = new \search_elastic\esrequest();
@@ -788,7 +776,7 @@ class engine extends \core_search\engine {
      * @param integer $luceneversion Apache Lucene version to get the mapping for.
      * @return bool
      */
-    public function add_document($document, $fileindexing = false, $luceneversion=0) {
+    public function add_document($document, $fileindexing = false, $luceneversion = 0) {
         $docdata = $document->export_for_engine();
         $url = $this->get_url();
         if (!$luceneversion) {
@@ -798,7 +786,7 @@ class engine extends \core_search\engine {
         if ($luceneversion < 8) {
             $docprefix = '';
         }
-        $docurl = $url . '/'. $this->config->index . '/' . $docprefix . 'doc/' . $docdata['id'];
+        $docurl = $url . '/' . $this->config->index . '/' . $docprefix . 'doc/' . $docdata['id'];
         $jsondoc = json_encode($docdata);
 
         $client = new \search_elastic\esrequest();
@@ -818,7 +806,6 @@ class engine extends \core_search\engine {
             $this->process_document_files($document);
         }
         return true;
-
     }
 
     /**
@@ -829,7 +816,7 @@ class engine extends \core_search\engine {
      * @return array $docs The found result documents.
      */
     private function compile_results($results, $limit) {
-        $docs = array();
+        $docs = [];
         $doccount = 0;
 
         foreach ($results->hits->hits as $result) {
@@ -842,7 +829,6 @@ class engine extends \core_search\engine {
             if ($access == \core_search\manager::ACCESS_DELETED) {
                 $this->delete_by_id($result->_id);
             } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit) {
-
                 // Add hightlighting to document.
                 $highlightedresult = $this->highlight_result($result);
 
@@ -858,7 +844,6 @@ class engine extends \core_search\engine {
             if ($this->totalresultdocs >= \core_search\manager::MAX_RESULTS) {
                 break;
             }
-
         }
 
         return $docs;
@@ -876,9 +861,9 @@ class engine extends \core_search\engine {
      * @return array $docs
      */
     public function execute_query($filters, $accessinfo, $limit = 0) {
-        $docs = array();
+        $docs = [];
         $docoffest = 0;
-        $url = $this->get_url() . '/'.  $this->config->index . '/_search';
+        $url = $this->get_url() . '/' .  $this->config->index . '/_search';
         $client = new \search_elastic\esrequest();
 
         $returnlimit = \core_search\manager::MAX_RESULTS;
@@ -922,13 +907,13 @@ class engine extends \core_search\engine {
                     $helptext = \html_writer::tag('p', get_string('complexhelptext', 'search_elastic', $helplink));
                 }
 
-                $msg = get_string('queryerror', 'search_elastic', array(
+                $msg = get_string('queryerror', 'search_elastic', [
                     'reason' => $results->error->root_cause[0]->reason,
-                    'help' => $helptext
-                ));
+                    'help' => $helptext,
+                ]);
 
                 \core\notification::error($msg);
-                $results = array();
+                $results = [];
             }
 
             $totalhits = 0;
@@ -943,7 +928,6 @@ class engine extends \core_search\engine {
                 $docs = array_merge($docs, $this->compile_results($results, $limit));
                 $docoffest += count($results->hits->hits);
             }
-
         } while ((count($docs) < $limit) && ($totalhits > \search_elastic\query::MAX_RESULTS) && ($docoffest < $totalhits));
 
         // TODO: handle negative cases and errors.
@@ -957,7 +941,7 @@ class engine extends \core_search\engine {
      * @param integer $luceneversion Apache Lucene version to get the mapping for.
      * @return void
      */
-    public function delete_by_id($id, $luceneversion=0) {
+    public function delete_by_id($id, $luceneversion = 0) {
         if (!$luceneversion) {
             $luceneversion = $this->get_es_lucene_version();
         }
@@ -966,7 +950,7 @@ class engine extends \core_search\engine {
             $docprefix = '';
         }
         $url = $this->get_url();
-        $deleteurl = $url . '/'. $this->config->index . '/' . $docprefix . 'doc/'. $id;
+        $deleteurl = $url . '/' . $this->config->index . '/' . $docprefix . 'doc/' . $id;
         $client = new \search_elastic\esrequest();
 
         $client->delete($deleteurl);
@@ -980,7 +964,7 @@ class engine extends \core_search\engine {
      */
     public function delete($areaid = false) {
         $url = $this->get_url();
-        $indexeurl = $url . '/'. $this->config->index;
+        $indexeurl = $url . '/' . $this->config->index;
         $client = new \search_elastic\esrequest();
         $returnval = false;
 
@@ -1000,13 +984,13 @@ class engine extends \core_search\engine {
         } else {
             $url = $url . '/_search';
             // TODO: move this to request class and check query construction.
-            $query = array('query' => array(
-                                'bool' => array(
-                                    'must' => array(
-                                        'match' => array('areaid' => $areaid)
-                                    )
-                                )
-                            ));
+            $query = ['query' => [
+                                'bool' => [
+                                    'must' => [
+                                        'match' => ['areaid' => $areaid],
+                                    ],
+                                ],
+                            ]];
             $results = json_decode($client->post($url, json_encode($query))->getBody());
             if (isset($results->hits)) {
                 foreach ($results->hits->hits as $result) {
@@ -1080,8 +1064,11 @@ class engine extends \core_search\engine {
         $coursecontext = $context->get_course_context(false);
         if ($coursecontext) {
             // Within a course or activity/block, support sort by location.
-            $orders['location'] = get_string('order_location', 'search',
-                $context->get_context_name());
+            $orders['location'] = get_string(
+                'order_location',
+                'search',
+                $context->get_context_name()
+            );
         }
         return $orders;
     }

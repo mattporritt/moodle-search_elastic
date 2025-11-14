@@ -78,17 +78,19 @@ class esrequest {
      */
     private function signrequest($request) {
         // Check we are all configured for request signing.
-        if (empty($this->config->signingkeyid) ||
+        if (
+            empty($this->config->signingkeyid) ||
                 empty($this->config->signingsecretkey) ||
-                empty($this->config->region)) {
+                empty($this->config->region)
+        ) {
             throw new \moodle_exception('noconfig', 'search_elastic', '');
         }
 
         // Pull credentials from the default provider chain.
         $credentials = new \Aws\Credentials\Credentials(
-                $this->config->signingkeyid,
-                $this->config->signingsecretkey
-                );
+            $this->config->signingkeyid,
+            $this->config->signingsecretkey
+        );
         // Create a signer with the service's signing name and region.
         $signer = new \Aws\Signature\SignatureV4('es', $this->config->region);
 
@@ -138,7 +140,6 @@ class esrequest {
         $response = $this->http_action($psr7request);
 
         return $response;
-
     }
 
     /**
@@ -148,7 +149,7 @@ class esrequest {
      * @param array $params
      * @return \GuzzleHttp\Psr7\Response
      */
-    public function put($url, $params=null) {
+    public function put($url, $params = null) {
         $headers = $this->get_authorization_header();
         $headers['content-type'] = 'application/json';
 
@@ -161,7 +162,6 @@ class esrequest {
         $response = $this->http_action($psr7request);
 
         return $response;
-
     }
 
     /**
@@ -183,7 +183,6 @@ class esrequest {
         $response = $this->http_action($psr7request);
 
         return $response;
-
     }
 
     /**
@@ -200,7 +199,7 @@ class esrequest {
         $multipart = new \GuzzleHttp\Psr7\MultipartStream([
                 [
                         'name' => 'upload_file',
-                        'contents' => $contents
+                        'contents' => $contents,
                 ],
         ]);
 
@@ -209,7 +208,6 @@ class esrequest {
         $response = $this->http_action($psr7request);
 
         return $response;
-
     }
 
     /**
@@ -230,7 +228,6 @@ class esrequest {
         $response = $this->http_action($psr7request);
 
         return $response;
-
     }
 
     /**

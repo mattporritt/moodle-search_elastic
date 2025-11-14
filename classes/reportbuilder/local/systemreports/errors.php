@@ -36,7 +36,6 @@ use stdClass;
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class errors extends system_report {
-
     /**
      * Initialise the report.
      *
@@ -111,7 +110,7 @@ class errors extends system_report {
             false,
             new lang_string('retry', 'core')
         ))
-            ->add_callback(function(stdClass $row): bool {
+            ->add_callback(function (stdClass $row): bool {
                 // Only show retry button for retrying or failed errors.
                 return in_array($row->status, [error_model::STATUS_RETRYING, error_model::STATUS_FAILED]);
             }));

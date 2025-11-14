@@ -36,25 +36,24 @@ require($CFG->dirroot . '/search/engine/elastic/classes/enrich/text/plain_text.p
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \search_elastic\enrich\text\plain_text
  */
-class plain_text_test extends \advanced_testcase {
-
+final class plain_text_test extends \advanced_testcase {
     /**
      * Test binary text file extraction request.
      */
-    public function test_export_text_plain_text() {
+    public function test_export_text_plain_text(): void {
         $this->resetAfterTest();
         global $CFG;
         $config = get_config('search_elastic');
 
         // Create file to analyze.
         $fs = get_file_storage();
-        $filerecord = array(
+        $filerecord = [
                 'contextid' => 1,
                 'component' => 'mod_test',
                 'filearea' => 'search',
                 'itemid' => 0,
                 'filepath' => '/',
-                'filename' => 'testfile.txt');
+                'filename' => 'testfile.txt'];
         $content = 'All the news that\'s fit to print';
         $file = $fs->create_file_from_string($filerecord, $content);
 
@@ -63,5 +62,4 @@ class plain_text_test extends \advanced_testcase {
         $result = $plaintext->analyze_file($file);
         $this->assertEquals($content, $result);
     }
-
 }
