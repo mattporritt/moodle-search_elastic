@@ -35,7 +35,6 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_eng
  * @covers      \search_elastic\engine::parse_payload_documents
  */
 final class parse_payload_documents_test extends advanced_testcase {
-
     /** @var Instance of testable_engine. */
     protected $engine = null;
 
@@ -106,7 +105,7 @@ final class parse_payload_documents_test extends advanced_testcase {
 
         $jsonmeta = json_encode($metadata);
         $jsondoc = json_encode($docdata);
-        $payload = $jsonmeta . "\n" . $jsondoc. "\n";
+        $payload = $jsonmeta . "\n" . $jsondoc . "\n";
 
         $result = $this->invoke_parse_payload_documents($payload);
         $this->assertCount(1, $result);
@@ -174,10 +173,16 @@ final class parse_payload_documents_test extends advanced_testcase {
         ];
 
         foreach ($expectedmapping as $index => $expectedid) {
-            $this->assertEquals($expectedid, $result[$index]['metadata']['index']['_id'],
-                "Metadata ID at index $index should match expected");
-            $this->assertEquals($expectedid, $result[$index]['id'],
-                "Extracted ID at index $index should match expected");
+            $this->assertEquals(
+                $expectedid,
+                $result[$index]['metadata']['index']['_id'],
+                "Metadata ID at index $index should match expected"
+            );
+            $this->assertEquals(
+                $expectedid,
+                $result[$index]['id'],
+                "Extracted ID at index $index should match expected"
+            );
         }
     }
 

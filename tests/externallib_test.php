@@ -42,7 +42,7 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_eng
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \search_elastic_external
  */
-class externallib_test extends \advanced_testcase {
+final class externallib_test extends \advanced_testcase {
     /**
      * @var \core_search::manager
      */
@@ -60,6 +60,7 @@ class externallib_test extends \advanced_testcase {
 
     public function setUp(): void {
         global $CFG;
+        parent::setUp();
 
         $this->resetAfterTest();
         set_config('enableglobalsearch', true);
@@ -73,7 +74,7 @@ class externallib_test extends \advanced_testcase {
         if (!$hostname && defined('TEST_SEARCH_ELASTIC_HOSTNAME')) {
             $hostname = TEST_SEARCH_ELASTIC_HOSTNAME;
         }
-        if (!$port &&defined('TEST_SEARCH_ELASTIC_PORT')) {
+        if (!$port && defined('TEST_SEARCH_ELASTIC_PORT')) {
             $port = TEST_SEARCH_ELASTIC_PORT;
         }
         if (!$index && defined('TEST_SEARCH_ELASTIC_INDEX')) {
@@ -111,22 +112,23 @@ class externallib_test extends \advanced_testcase {
             $this->generator = null;
         }
         $this->engine->delete('core_mocksearch-mock_search_area');
+        parent::tearDown();
     }
 
     /**
      * Simple data provider to allow tests to be run with file indexing on and off.
      */
     public function file_indexing_provider() {
-        return array(
-                'file-indexing-off' => array(0)
-        );
+        return [
+                'file-indexing-off' => [0],
+        ];
     }
 
     /**
      * Test the actual basic search functionality.
      * Make sure we can index a document and get the content back via external method.
      */
-    public function test_external_search() {
+    public function test_external_search(): void {
 
         // Construct the search object and add it to the engine.
         $rec = new \stdClass();
@@ -150,9 +152,14 @@ class externallib_test extends \advanced_testcase {
         sleep(1);
 
         $results = search_elastic_external::search(
-                'video', 0, 0, '', 100,
-                [1],
-                ['core_mocksearch-mock_search_area']);
+            'video',
+            0,
+            0,
+            '',
+            100,
+            [1],
+            ['core_mocksearch-mock_search_area']
+        );
 
         // We need to execute the return values cleaning process to simulate the web service server.
         $results = external_api::clean_returnvalue(search_elastic_external::search_returns(), $results);
@@ -167,7 +174,7 @@ class externallib_test extends \advanced_testcase {
      * Test the actual basic search functionality.
      * Make sure we can index a document and get the content back via external method.
      */
-    public function test_external_search_areas() {
+    public function test_external_search_areas(): void {
 
         $results = search_elastic_external::search_areas(false);
 
@@ -175,7 +182,5 @@ class externallib_test extends \advanced_testcase {
         $results = external_api::clean_returnvalue(search_elastic_external::search_areas_returns(), $results);
 
         $this->assertEquals('core_mocksearch-mock_search_area', $results[0]['areaid']);
-
     }
-
 }

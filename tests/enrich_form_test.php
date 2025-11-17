@@ -32,17 +32,16 @@ namespace search_elastic;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \search_elastic\enrich_form
  */
-class enrich_form_test extends \advanced_testcase {
-
+final class enrich_form_test extends \advanced_testcase {
     /**
      * Test getting enrich classes class names.
      */
-    public function test_get_enrich_classes() {
-        $expected = array(
+    public function test_get_enrich_classes(): void {
+        $expected = [
             '\search_elastic\enrich\text\tika',
                 '\search_elastic\enrich\text\plain_text',
 
-        );
+        ];
 
         $builder = $this->getMockBuilder('\search_elastic\enrich_form');
         $builder->disableOriginalConstructor();
@@ -61,12 +60,12 @@ class enrich_form_test extends \advanced_testcase {
     /**
      * Test getting enrich options for form.
      */
-    public function test_get_enrich_options() {
-        $classname = array('\search_elastic\enrich\text\tika');
+    public function test_get_enrich_options(): void {
+        $classname = ['\search_elastic\enrich\text\tika'];
 
-        $expected = array(
-                '\search_elastic\enrich\text\tika' => 'Apache Tika'
-        );
+        $expected = [
+                '\search_elastic\enrich\text\tika' => 'Apache Tika',
+        ];
 
         $builder = $this->getMockBuilder('\search_elastic\enrich_form');
         $builder->disableOriginalConstructor();

@@ -57,7 +57,7 @@ function xmldb_search_elastic_upgrade($oldversion) {
 
     if ($oldversion < 2020022800) {
         // Manually upgrade boosting settings to new control name.
-        require_once(__DIR__.'/upgradelib.php');
+        require_once(__DIR__ . '/upgradelib.php');
         update_boosting_setting_names();
         upgrade_plugin_savepoint(true, 2020022800, 'search', 'elastic');
     }

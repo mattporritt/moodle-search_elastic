@@ -31,10 +31,10 @@ require_once($CFG->dirroot . '/search/tests/fixtures/testable_core_search.php');
 require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_engine.php');
 
-use \GuzzleHttp\Handler\MockHandler;
-use \GuzzleHttp\HandlerStack;
-use \GuzzleHttp\Middleware;
-use \GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Response;
 
 /**
  * Tests for esrequest class
@@ -44,8 +44,7 @@ use \GuzzleHttp\Psr7\Response;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \search_elastic\esrequest
  */
-class esrequest_test extends \advanced_testcase {
-
+final class esrequest_test extends \advanced_testcase {
     /**
      * @var \stdClass $cfg Backup of global config.
      */
@@ -71,6 +70,7 @@ class esrequest_test extends \advanced_testcase {
      */
     public function setUp(): void {
         global $CFG;
+        parent::setUp();
         $this->cfg = clone $CFG;
         $this->resetAfterTest(true);
         new \search_elastic\engine();
@@ -85,6 +85,7 @@ class esrequest_test extends \advanced_testcase {
         global $CFG;
         $CFG = clone $this->cfg;
         unset($this->cfg);
+        parent::tearDown();
     }
 
     /**
@@ -102,13 +103,13 @@ class esrequest_test extends \advanced_testcase {
     /**
      * Test unsigned esrequest get functionality
      */
-    public function test_get() {
+    public function test_get(): void {
         $container = [];
         $history = Middleware::history($container);
 
         // Create a mock and queue two responses.
         $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'])
+                new Response(200, ['Content-Type' => 'text/plain']),
         ]);
 
         $stack = HandlerStack::create($mock);
@@ -126,13 +127,12 @@ class esrequest_test extends \advanced_testcase {
         $this->assertEquals('8080', $request->getUri()->getPort());
         $this->assertEquals('/foo', $request->getUri()->getPath());
         $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
-
     }
 
     /**
      * Test signed esrequest get functionality
      */
-    public function test_signed_get() {
+    public function test_signed_get(): void {
         $this->resetAfterTest(true);
         set_config('signing', 1, 'search_elastic');
         set_config('signingkeyid', 'key_id', 'search_elastic');
@@ -144,7 +144,7 @@ class esrequest_test extends \advanced_testcase {
 
         // Create a mock and queue two responses.
         $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'])
+                new Response(200, ['Content-Type' => 'text/plain']),
         ]);
 
         $stack = HandlerStack::create($mock);
@@ -171,13 +171,13 @@ class esrequest_test extends \advanced_testcase {
     /**
      * Test unsigned esrequest put functionality
      */
-    public function test_put() {
+    public function test_put(): void {
         $container = [];
         $history = Middleware::history($container);
 
         // Create a mock and queue two responses.
         $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'])
+                new Response(200, ['Content-Type' => 'text/plain']),
         ]);
 
         $stack = HandlerStack::create($mock);
@@ -198,14 +198,13 @@ class esrequest_test extends \advanced_testcase {
         $this->assertEquals('/foo', $request->getUri()->getPath());
         $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals(array('application/json'), $contentheader);
-
+        $this->assertEquals(['application/json'], $contentheader);
     }
 
     /**
      * Test signed esrequest put functionality
      */
-    public function test_signed_put() {
+    public function test_signed_put(): void {
         $this->resetAfterTest(true);
         set_config('signing', 1, 'search_elastic');
         set_config('signingkeyid', 'key_id', 'search_elastic');
@@ -217,7 +216,7 @@ class esrequest_test extends \advanced_testcase {
 
         // Create a mock and queue two responses.
         $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'])
+                new Response(200, ['Content-Type' => 'text/plain']),
         ]);
 
         $stack = HandlerStack::create($mock);
@@ -242,19 +241,19 @@ class esrequest_test extends \advanced_testcase {
         $this->assertTrue($request->hasHeader('Authorization'));
         $this->assertMatchesRegularExpression('/key_id.{10}region/', $authheader[0]);
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals(array('application/json'), $contentheader);
+        $this->assertEquals(['application/json'], $contentheader);
     }
 
     /**
      * Test unsigned esrequest post functionality
      */
-    public function test_post() {
+    public function test_post(): void {
         $container = [];
         $history = Middleware::history($container);
 
         // Create a mock and queue two responses.
         $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'])
+                new Response(200, ['Content-Type' => 'text/plain']),
         ]);
 
         $stack = HandlerStack::create($mock);
@@ -275,14 +274,13 @@ class esrequest_test extends \advanced_testcase {
         $this->assertEquals('/foo', $request->getUri()->getPath());
         $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals(array('application/json'), $contentheader);
-
+        $this->assertEquals(['application/json'], $contentheader);
     }
 
     /**
      * Test signed esrequest post functionality
      */
-    public function test_signed_post() {
+    public function test_signed_post(): void {
         $this->resetAfterTest(true);
         set_config('signing', 1, 'search_elastic');
         set_config('signingkeyid', 'key_id', 'search_elastic');
@@ -294,7 +292,7 @@ class esrequest_test extends \advanced_testcase {
 
         // Create a mock and queue two responses.
         $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'])
+                new Response(200, ['Content-Type' => 'text/plain']),
         ]);
 
         $stack = HandlerStack::create($mock);
@@ -319,19 +317,19 @@ class esrequest_test extends \advanced_testcase {
         $this->assertTrue($request->hasHeader('Authorization'));
         $this->assertMatchesRegularExpression('/key_id.{10}region/', $authheader[0]);
         $this->assertTrue($request->hasHeader('content-type'));
-        $this->assertEquals(array('application/json'), $contentheader);
+        $this->assertEquals(['application/json'], $contentheader);
     }
 
     /**
      * Test unsigned esrequest delete functionality
      */
-    public function test_delete() {
+    public function test_delete(): void {
         $container = [];
         $history = Middleware::history($container);
 
         // Create a mock and queue two responses.
         $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'])
+                new Response(200, ['Content-Type' => 'text/plain']),
         ]);
 
         $stack = HandlerStack::create($mock);
@@ -349,13 +347,12 @@ class esrequest_test extends \advanced_testcase {
         $this->assertEquals('8080', $request->getUri()->getPort());
         $this->assertEquals('/foo', $request->getUri()->getPath());
         $this->assertEquals('bar=blerg', $request->getUri()->getQuery());
-
     }
 
     /**
      * Test signed esrequest delete functionality
      */
-    public function test_signed_delete() {
+    public function test_signed_delete(): void {
         $this->resetAfterTest(true);
         set_config('signing', 1, 'search_elastic');
         set_config('signingkeyid', 'key_id', 'search_elastic');
@@ -367,7 +364,7 @@ class esrequest_test extends \advanced_testcase {
 
         // Create a mock and queue two responses.
         $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'])
+                new Response(200, ['Content-Type' => 'text/plain']),
         ]);
 
         $stack = HandlerStack::create($mock);
@@ -394,7 +391,7 @@ class esrequest_test extends \advanced_testcase {
     /**
      * Test esrequest get with proxy functionality
      */
-    public function test_proxy_get() {
+    public function test_proxy_get(): void {
         global $CFG;
         $CFG->proxyhost = 'proxy.com';
         $CFG->proxyport = 3128;
@@ -405,7 +402,7 @@ class esrequest_test extends \advanced_testcase {
 
         // Create a mock and queue two responses.
         $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'])
+                new Response(200, ['Content-Type' => 'text/plain']),
         ]);
 
         $stack = HandlerStack::create($mock);

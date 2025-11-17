@@ -80,7 +80,7 @@ class admin_setting_check extends admin_setting {
         $resultinfo = $checkresult->get_summary();
         $out = $resulthtml . ' ' . $resultinfo;
 
-        switch($checkresult->get_status()){
+        switch ($checkresult->get_status()) {
             case result::CRITICAL:
             case result::ERROR:
                 $out = $OUTPUT->notification($out, notification::NOTIFY_ERROR, false);

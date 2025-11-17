@@ -39,7 +39,6 @@ namespace search_elastic;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class query {
-
     /**
      * @var number of records to return to Global Search.
      */
@@ -48,7 +47,7 @@ class query {
     /**
      * @var query string to pass to Elastic search.
      */
-    private $query = array();
+    private $query = [];
 
     /**
      * Highlighting fragsize. Slightly larger than output size (500) to allow for ... appending.
@@ -68,7 +67,7 @@ class query {
     /**
      * @var array Fields that can be highlighted.
      */
-    protected $highlightfields = array('title', 'content', 'description1', 'description2');
+    protected $highlightfields = ['title', 'content', 'description1', 'description2'];
 
     /** @var float Boost value for matching course in location-ordered searches */
     const COURSE_BOOST = 2;
@@ -84,21 +83,21 @@ class query {
      *
      * @param int $docoffest Offset for the docs.
      */
-    public function __construct($docoffest=0) {
+    public function __construct($docoffest = 0) {
 
         $returnlimit = self::MAX_RESULTS;
 
         // Basic object to build query from.
-        $this->query = array('query' => array(
-                                'bool' => array(
-                                    'must' => array(),
-                                    'should' => array(),
-                                    'filter' => array('bool' => array('must' => array()))
-                            )),
+        $this->query = ['query' => [
+                                'bool' => [
+                                    'must' => [],
+                                    'should' => [],
+                                    'filter' => ['bool' => ['must' => []]],
+                                ]],
                              'from' => $docoffest,
                              'size' => $returnlimit,
-                             '_source' => array('excludes' => array('filetext'))
-        );
+                             '_source' => ['excludes' => ['filetext']],
+        ];
     }
 
     /**
@@ -109,9 +108,9 @@ class query {
      * @return array
      */
     private function get_search_fields() {
-        $allfields = array_keys( \core_search\document::get_default_fields_definition());
+        $allfields = array_keys(\core_search\document::get_default_fields_definition());
         array_push($allfields, 'filetext');
-        $excludedfields = array('itemid',
+        $excludedfields = ['itemid',
                 'areaid',
                 'courseid',
                 'contextid',
@@ -119,8 +118,8 @@ class query {
                 'owneruserid',
                 'modified',
                 'type',
-                'groupid'
-        );
+                'groupid',
+        ];
         $searchfields = array_diff($allfields, $excludedfields);
 
         return array_values($searchfields);
@@ -138,11 +137,10 @@ class query {
     private function add_wildcards($q, $start = false, $end = false) {
 
         $terms = explode(" ", $q); // Break search string into individual words.
-        $wildcardterms = array();
+        $wildcardterms = [];
 
         // Add wildcards to start and end of words.
         foreach ($terms as $term) {
-
             if (empty($term)) {
                 continue;
             }
@@ -193,7 +191,7 @@ class query {
 
         $qtype = get_config('search_elastic', 'usesimplequery') ? 'simple_query_string' : 'query_string';
         $searchfields = $this->get_search_fields();
-        $qobj = array($qtype => array('query' => $q, 'fields' => $searchfields));
+        $qobj = [$qtype => ['query' => $q, 'fields' => $searchfields]];
 
         return $qobj;
     }
@@ -204,7 +202,7 @@ class query {
      */
     private function construct_q_all() {
         $qtype = get_config('search_elastic', 'usesimplequery') ? 'simple_query_string' : 'query_string';
-        return array($qtype => array('query' => '*', 'fields' => $this->get_search_fields()));
+        return [$qtype => ['query' => '*', 'fields' => $this->get_search_fields()]];
     }
 
     /**
@@ -216,14 +214,14 @@ class query {
      * @return array
      */
     private function construct_contexts($usercontexts) {
-        $contextobj = array('terms' => array('contextid' => array()));
-        $contexts = array();
+        $contextobj = ['terms' => ['contextid' => []]];
+        $contexts = [];
         $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($usercontexts));
 
         foreach ($iterator as $key => $value) {
-            array_push ($contexts, $value);
+            array_push($contexts, $value);
         }
-        $contexts = array_values(array_unique ($contexts));
+        $contexts = array_values(array_unique($contexts));
         $contextobj['terms']['contextid'] = $contexts;
         return $contextobj;
     }
@@ -236,10 +234,10 @@ class query {
      * @return array
      */
     private function construct_title($title) {
-        $titleobj = array('multi_match' => array('query' => $title,
-                                                 'fields' => array('title'),
-                                                 'type' => "phrase_prefix")
-        );
+        $titleobj = ['multi_match' => ['query' => $title,
+                                                 'fields' => ['title'],
+                                                 'type' => "phrase_prefix"],
+        ];
 
         return $titleobj;
     }
@@ -254,11 +252,11 @@ class query {
      * @return array
      */
     private function construct_array($filters, $key, $match) {
-        $arrayobj = array('terms' => array($match => array()));
+        $arrayobj = ['terms' => [$match => []]];
         $values = $filters->$key;
 
         foreach ($values as $value) {
-            array_push ($arrayobj['terms'][$match], $value);
+            array_push($arrayobj['terms'][$match], $value);
         }
 
         return $arrayobj;
@@ -272,7 +270,7 @@ class query {
      * @return array
      */
     private function construct_time_range($filters) {
-        $contextobj = array('range' => array('modified' => array()));
+        $contextobj = ['range' => ['modified' => []]];
 
         if (isset($filters->timestart) && $filters->timestart != 0) {
             $contextobj['range']['modified']['gte'] = (string) $filters->timestart;
@@ -292,10 +290,10 @@ class query {
      */
     private function consruct_boosting($boostedareas) {
 
-        $boostarray = array();
+        $boostarray = [];
 
         foreach ($boostedareas as $area => $value) {
-            array_push($boostarray, array('match' => array('areaid' => array('query' => $area, 'boost' => $value))));
+            array_push($boostarray, ['match' => ['areaid' => ['query' => $area, 'boost' => $value]]]);
         }
 
         return $boostarray;
@@ -311,7 +309,7 @@ class query {
      */
     private function consruct_location_boosting($area, $query, $boost) {
 
-        $boostarray = array(array('match' => array($area => array('query' => $query, 'boost' => $boost))));
+        $boostarray = [['match' => [$area => ['query' => $query, 'boost' => $boost]]]];
 
         return $boostarray;
     }
@@ -322,7 +320,7 @@ class query {
      */
     public function get_boosted_areas() {
         $configitems = get_config('search_elastic');
-        $boostedareas = array();
+        $boostedareas = [];
         $query = 'boost_';
 
         foreach ($configitems as $item => $value) {
@@ -347,13 +345,13 @@ class query {
      * @return array $query updated query array with highlighting elements.
      */
     public function set_highlighting($query) {
-        $hightlighting = array(
-                'pre_tags' => array(self::HIGHLIGHT_START),
-                'post_tags' => array(self::HIGHLIGHT_END),
+        $hightlighting = [
+                'pre_tags' => [self::HIGHLIGHT_START],
+                'post_tags' => [self::HIGHLIGHT_END],
                 'fragment_size' => self::FRAGMENT_SIZE,
                 'encoder' => 'html',
-                'fields' => array()
-        );
+                'fields' => [],
+        ];
 
         foreach ($this->highlightfields as $field) {
             $hightlighting['fields'][$field] = new \stdClass();
@@ -390,7 +388,7 @@ class query {
         $usercontexts = $this->extract_usercontexts($accessinfo);
         if (gettype($usercontexts) == 'array') {
             $contexts = $this->construct_contexts($usercontexts);
-            array_push ($query['query']['bool']['filter']['bool']['must'], $contexts);
+            array_push($query['query']['bool']['filter']['bool']['must'], $contexts);
         }
 
         // Add filters.
@@ -400,23 +398,23 @@ class query {
         }
         if (isset($filters->areaids) && $filters->areaids != null && !empty($filters->areaids)) {
             $areaids = $this->construct_array($filters, 'areaids', 'areaid');
-            array_push ($query['query']['bool']['filter']['bool']['must'], $areaids);
+            array_push($query['query']['bool']['filter']['bool']['must'], $areaids);
         }
         if (isset($filters->courseids) && $filters->courseids != null && !empty($filters->courseids)) {
             $courseids = $this->construct_array($filters, 'courseids', 'courseid');
-            array_push ($query['query']['bool']['filter']['bool']['must'], $courseids);
+            array_push($query['query']['bool']['filter']['bool']['must'], $courseids);
         }
         if (isset($filters->userids) && $filters->userids != null && !empty($filters->userids)) {
             $userids = $this->construct_array($filters, 'userids', 'userid');
-            array_push ($query['query']['bool']['filter']['bool']['must'], $userids);
+            array_push($query['query']['bool']['filter']['bool']['must'], $userids);
         }
         if (isset($filters->groupids) && $filters->groupids != null && !empty($filters->groupids)) {
             $groupids = $this->construct_array($filters, 'groupids', 'groupid');
-            array_push ($query['query']['bool']['filter']['bool']['must'], $groupids);
+            array_push($query['query']['bool']['filter']['bool']['must'], $groupids);
         }
         if ($filters->timestart != 0 || $filters->timeend != 0) {
             $timerange = $this->construct_time_range($filters);
-            array_push ($query['query']['bool']['filter']['bool']['must'], $timerange);
+            array_push($query['query']['bool']['filter']['bool']['must'], $timerange);
         }
 
         // Add highlighting.
@@ -436,7 +434,7 @@ class query {
                 $contextid = $filters->context->id;
                 $contextboost = $this->consruct_location_boosting('contextid', $contextid, self::CONTEXT_BOOST);
                 if (count($query['query']['bool']['should'])) {
-                    array_merge ($query['query']['bool']['should'], $contextboost);
+                    array_merge($query['query']['bool']['should'], $contextboost);
                 } else {
                     $query['query']['bool']['should'] = $contextboost;
                 }
@@ -447,7 +445,7 @@ class query {
         if ($boostedareas) {
             $boosting = $this->consruct_boosting($boostedareas);
             if (count($query['query']['bool']['should'])) {
-                array_merge ($query['query']['bool']['should'], $boosting);
+                array_merge($query['query']['bool']['should'], $boosting);
             } else {
                 $query['query']['bool']['should'] = $boosting;
             }
@@ -455,7 +453,7 @@ class query {
 
         // Add date based sorting.
         if (!empty($filters->order) && ($filters->order === 'asc' || $filters->order === 'desc')) {
-            $query['sort'] = array('modified' => array('order' => $filters->order));
+            $query['sort'] = ['modified' => ['order' => $filters->order]];
         }
 
         return $query;

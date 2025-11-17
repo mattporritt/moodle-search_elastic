@@ -31,14 +31,13 @@ admin_externalpage_setup('search_elastic_enrichsettings');
 
 $context = context_system::instance();
 
-$PAGE->requires->js_call_amd('search_elastic/enrich', 'init', array($context->id));
+$PAGE->requires->js_call_amd('search_elastic/enrich', 'init', [$context->id]);
 
 $config = get_config('search_elastic');
 $form = new \search_elastic\enrich_form(null, null, 'post', '', ['class' => 'ignoredirty']);
 if ($form->is_cancelled()) {
-    redirect(new moodle_url('/admin/category.php', array('category' => 'search_elastic')));
+    redirect(new moodle_url('/admin/category.php', ['category' => 'search_elastic']));
 } else if ($data = $form->get_data()) {
-
     // Save plugin config.
     foreach ($data as $name => $value) {
         set_config($name, $value, 'search_elastic');

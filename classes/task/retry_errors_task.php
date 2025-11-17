@@ -33,7 +33,6 @@ use search_elastic\local\service\error_service;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class retry_errors_task extends adhoc_task {
-
     /**
      * Get a descriptive name for this task (shown to admins).
      *
@@ -102,7 +101,6 @@ class retry_errors_task extends adhoc_task {
                 $errorcount++;
                 mtrace("Failed to retry error ID {$errorid}: {$result['message']}");
             }
-
         } catch (Exception $e) {
             $errorcount++;
             mtrace("Exception retrying error ID {$errorid}: " . $e->getMessage());

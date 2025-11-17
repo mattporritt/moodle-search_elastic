@@ -29,10 +29,10 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 
 
-use \GuzzleHttp\Handler\MockHandler;
-use \GuzzleHttp\HandlerStack;
-use \GuzzleHttp\Middleware;
-use \GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Response;
 
 /**
  * Elastic search engine enrichment text tika unit tests.
@@ -42,12 +42,11 @@ use \GuzzleHttp\Psr7\Response;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \search_elastic\enrich\text\tika
  */
-class tika_test extends \advanced_testcase {
-
+final class tika_test extends \advanced_testcase {
      /**
       * Test binary text file extraction request
       */
-    public function test_export_text_tika() {
+    public function test_export_text_tika(): void {
         $this->resetAfterTest();
         global $CFG;
         set_config('tikahostname', 'http://127.0.0.1', 'search_elastic');
@@ -58,13 +57,13 @@ class tika_test extends \advanced_testcase {
 
         // Create file to analyze.
         $fs = get_file_storage();
-        $filerecord = array(
+        $filerecord = [
                 'contextid' => 1,
                 'component' => 'mod_test',
                 'filearea' => 'search',
                 'itemid' => 0,
                 'filepath' => '/',
-                'filename' => 'testfile.pdf');
+                'filename' => 'testfile.pdf'];
         $content = 'All the news that\'s fit to print';
         $fileurl = $CFG->dirroot . '/search/engine/elastic/tests/fixtures/test.pdf';
         $file = $fs->create_file_from_pathname($filerecord, $fileurl);
@@ -75,7 +74,7 @@ class tika_test extends \advanced_testcase {
 
         // Create a mock and queue two responses.
         $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'text/plain'], $content)
+                new Response(200, ['Content-Type' => 'text/plain'], $content),
         ]);
 
         $stack = HandlerStack::create($mock);
@@ -88,5 +87,4 @@ class tika_test extends \advanced_testcase {
         $result = $tika->extract_text($file, $esclient);
         $this->assertEquals($content, $result);
     }
-
 }

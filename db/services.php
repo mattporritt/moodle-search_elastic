@@ -25,33 +25,33 @@
 defined('MOODLE_INTERNAL') || die();
 
 // We defined the web service functions to install.
-$functions = array(
-        'search_elastic_search' => array(
+$functions = [
+        'search_elastic_search' => [
                 'classname'   => 'search_elastic_external',
                 'methodname'  => 'search',
                 'classpath'   => 'search/engine/elastic/externallib.php',
                 'description' => 'Returns search results based on provided search query',
                 'type'        => 'read',
                 'capabilities'  => 'moodle/search:query',
-                'ajax' => true
-        ),
-        'search_elastic_search_areas' => array(
+                'ajax' => true,
+        ],
+        'search_elastic_search_areas' => [
                 'classname'   => 'search_elastic_external',
                 'methodname'  => 'search_areas',
                 'classpath'   => 'search/engine/elastic/externallib.php',
                 'description' => 'Returns search areas',
                 'type'        => 'read',
                 'capabilities'  => 'moodle/search:query',
-                'ajax' => true
-        )
-);
+                'ajax' => true,
+        ],
+];
 
 
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
-$services = array(
-        'Search service' => array(
-                'functions' => array('search_elastic_search', 'search_elastic_search_areas'),
+$services = [
+        'Search service' => [
+                'functions' => ['search_elastic_search', 'search_elastic_search_areas'],
                 'restrictedusers' => 0,
                 'enabled' => 1,
-        )
-);
+        ],
+];

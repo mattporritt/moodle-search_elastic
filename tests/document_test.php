@@ -38,15 +38,15 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/aws_rekognit
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \search_elastic\document
  */
-class document_test extends \advanced_testcase {
-
+final class document_test extends \advanced_testcase {
     /**
      * Summary of generator
-     * @var
+     * @var testing_data_generator
      */
     private $generator;
 
     public function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest();
         new \search_elastic\engine();
         $this->generator = self::getDataGenerator()->get_plugin_generator('core_search');
@@ -60,12 +60,13 @@ class document_test extends \advanced_testcase {
             $this->generator->teardown();
             $this->generator = null;
         }
+        parent::tearDown();
     }
 
     /**
      * Test hightlight string replacement is done correctly.
      */
-    public function test_highlight_text() {
+    public function test_highlight_text(): void {
         $text = 'search test @@HI_S@@book@@HI_E@@ description description';
         $expected = 'search test <span class="highlight">book</span> description description';
 
@@ -84,7 +85,7 @@ class document_test extends \advanced_testcase {
     /**
      * Test hightlight string replacement is down correctly for multiple replacements.
      */
-    public function test_highlight_text_multiple() {
+    public function test_highlight_text_multiple(): void {
         $text = 'this is an @@HI_S@@assignment@@HI_E@@ @@HI_S@@on@@HI_E@@ @@HI_S@@frogs@@HI_E@@ and toads';
         $expected = 'this is an <span class="highlight">assignment on frogs</span> and toads';
 
@@ -103,13 +104,13 @@ class document_test extends \advanced_testcase {
     /**
      * Test getting enrichment processors.
      */
-    public function test_get_enrichment_processors() {
+    public function test_get_enrichment_processors(): void {
         set_config('fileindexing', 1, 'search_elastic');
 
         $expected = '\search_elastic\enrich\text\plain_text';
 
         $builder = $this->getMockBuilder('\search_elastic\document');
-        $builder->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'));
+        $builder->setConstructorArgs(['1', 'core_mocksearch', 'mock_search_area']);
         $stub = $builder->getMock();
 
         // We're testing a private method, so we need to setup reflector magic.
@@ -123,17 +124,17 @@ class document_test extends \advanced_testcase {
     /**
      * Test texport file for engine with no text extraction.
      */
-    public function test_export_file_for_engine() {
+    public function test_export_file_for_engine(): void {
         global $CFG;
         // Create file to analyze.
         $fs = get_file_storage();
-        $filerecord = array(
+        $filerecord = [
             'contextid' => 1,
             'component' => 'mod_test',
             'filearea' => 'search',
             'itemid' => 0,
             'filepath' => '/',
-            'filename' => 'testfile.txt');
+            'filename' => 'testfile.txt'];
         $content = 'All the news that\'s fit to print';
         $file = $fs->create_file_from_string($filerecord, $content);
 
@@ -146,8 +147,8 @@ class document_test extends \advanced_testcase {
 
         // Mock out and add missing data to stub record object.
         $builder = $this->getMockBuilder('\search_elastic\document');
-        $builder->setMethods(array('_'));
-        $builder->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'));
+        $builder->setMethods(['_']);
+        $builder->setConstructorArgs(['1', 'core_mocksearch', 'mock_search_area']);
         $stub = $builder->getMock();
 
         $stub->set('title', $info->title);
@@ -166,25 +167,24 @@ class document_test extends \advanced_testcase {
         $this->assertEquals('2', $data['type']);
         $this->assertEquals('', $data['filetext']);
         $this->assertEquals('6b6cfc16188deb2e2d7ae8512f059cf20f486d27', $data['filecontenthash']);
-
     }
 
     /**
      * Test text file extraction
      */
-    public function test_export_text_file_for_engine() {
+    public function test_export_text_file_for_engine(): void {
         global $CFG;
         set_config('fileindexing', '1', 'search_elastic');
 
         // Create file to analyze.
         $fs = get_file_storage();
-        $filerecord = array(
+        $filerecord = [
             'contextid' => 1,
             'component' => 'mod_test',
             'filearea' => 'search',
             'itemid' => 0,
             'filepath' => '/',
-            'filename' => 'testfile.txt');
+            'filename' => 'testfile.txt'];
         $content = 'All the news that\'s fit to print';
         $file = $fs->create_file_from_string($filerecord, $content);
 
@@ -197,8 +197,8 @@ class document_test extends \advanced_testcase {
 
         // Mock out and add missing data to stub record object.
         $builder = $this->getMockBuilder('\search_elastic\document');
-        $builder->setMethods(array('_'));
-        $builder->setConstructorArgs(array('1', 'core_mocksearch', 'mock_search_area'));
+        $builder->setMethods(['_']);
+        $builder->setConstructorArgs(['1', 'core_mocksearch', 'mock_search_area']);
         $stub = $builder->getMock();
 
         $stub->set('title', $info->title);
@@ -214,5 +214,4 @@ class document_test extends \advanced_testcase {
         $filearray = $stub->export_file_for_engine($file);
         $this->assertEquals($content, $filearray['filetext']);
     }
-
 }

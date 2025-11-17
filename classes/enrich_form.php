@@ -38,7 +38,6 @@ require_once("$CFG->libdir/formslib.php");
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrich_form extends \moodleform {
-
     /**
      * @var mixed $customdata Customdata passed to the form.
      */
@@ -70,7 +69,7 @@ class enrich_form extends \moodleform {
      * @return array $classnames Array of enrich classes names.
      */
     private function get_enrich_classes($type) {
-        $classnames = array();
+        $classnames = [];
         $typedir = __DIR__ . '/enrich/' . $type;
         $handle = opendir($typedir);
         while (($file = readdir($handle)) !== false) {
@@ -93,7 +92,7 @@ class enrich_form extends \moodleform {
      * @return array $options Array with classes as key and human readbale names as values.
      */
     private function get_enrich_options($classnames) {
-        $options = array();
+        $options = [];
         foreach ($classnames as $classname) {
             if ($classname != '\search_elastic\enrich\text\plain_text') { // Filter out plain text process as it always applies.
                 $options[$classname] = $classname::get_enrich_name();
@@ -127,10 +126,14 @@ class enrich_form extends \moodleform {
         $mform->addElement('html', $desccontent);
 
         // Enable file indexing.
-        $mform->addElement('advcheckbox',
-                'fileindexing',
-                get_string ('fileindexing', 'search_elastic'),
-                'Enable', array(), array(0, 1));
+        $mform->addElement(
+            'advcheckbox',
+            'fileindexing',
+            get_string('fileindexing', 'search_elastic'),
+            'Enable',
+            [],
+            [0, 1]
+        );
         $mform->setType('fileindexing', PARAM_INT);
         $mform->addHelpButton('fileindexing', 'fileindexing', 'search_elastic');
         $this->set_default('fileindexing', 0, $mform, $config);
@@ -142,7 +145,7 @@ class enrich_form extends \moodleform {
         $mform->addElement('html', $desccontent);
 
         // Text extraction processor selection.
-        $fileprocessors = array('' => get_string('none', 'search_elastic'));
+        $fileprocessors = ['' => get_string('none', 'search_elastic')];
         $classnames = $this->get_enrich_classes('text');
         $fileprocessors = array_merge($fileprocessors, $this->get_enrich_options($classnames));
 
@@ -172,12 +175,16 @@ class enrich_form extends \moodleform {
         $mform->addElement('html', $desccontent);
 
         // Image recognition processor selection.
-        $imageprocessors = array('' => get_string('none', 'search_elastic'));
+        $imageprocessors = ['' => get_string('none', 'search_elastic')];
         $classnames = $this->get_enrich_classes('image');
         $imageprocessors = array_merge($imageprocessors, $this->get_enrich_options($classnames));
 
-        $select = $mform->addElement('select', 'imageindexselect',
-            get_string('imageindexselect', 'search_elastic'), $imageprocessors);
+        $select = $mform->addElement(
+            'select',
+            'imageindexselect',
+            get_string('imageindexselect', 'search_elastic'),
+            $imageprocessors
+        );
         $mform->addHelpButton('imageindexselect', 'imageindexselect', 'search_elastic');
 
         if (isset($this->customdata['imageindexselect'])) {
@@ -198,5 +205,4 @@ class enrich_form extends \moodleform {
 
         $this->add_action_buttons();
     }
-
 }

@@ -33,7 +33,6 @@ use search_elastic\task\retry_errors_task;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class error_action_handler {
-
     /** Delete a single error record from database. */
     const ACTION_DELETE_SINGLE = 'delete_single';
 

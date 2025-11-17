@@ -48,42 +48,42 @@ class document extends \core_search\document {
      *
      * @var array
      */
-    protected static $requiredfields = array(
-            'id' => array(
-                    'type' => 'keyword'
-            ),
-            'parentid' => array(
-                    'type' => 'keyword'
-            ),
-            'itemid' => array(
-                    'type' => 'integer'
-            ),
-            'title' => array(
-                    'type' => 'text'
-            ),
-            'content' => array(
-                    'type' => 'text'
-            ),
-            'contextid' => array(
-                    'type' => 'integer'
-            ),
-            'areaid' => array(
-                    'type' => 'keyword'
-            ),
-            'type' => array(
-                    'type' => 'integer'
-            ),
-            'courseid' => array(
-                    'type' => 'integer'
-            ),
-            'owneruserid' => array(
-                    'type' => 'integer'
-            ),
-            'modified' => array(
+    protected static $requiredfields = [
+            'id' => [
+                    'type' => 'keyword',
+            ],
+            'parentid' => [
+                    'type' => 'keyword',
+            ],
+            'itemid' => [
+                    'type' => 'integer',
+            ],
+            'title' => [
+                    'type' => 'text',
+            ],
+            'content' => [
+                    'type' => 'text',
+            ],
+            'contextid' => [
+                    'type' => 'integer',
+            ],
+            'areaid' => [
+                    'type' => 'keyword',
+            ],
+            'type' => [
+                    'type' => 'integer',
+            ],
+            'courseid' => [
+                    'type' => 'integer',
+            ],
+            'owneruserid' => [
+                    'type' => 'integer',
+            ],
+            'modified' => [
                     'type' => 'date',
-                    'format' => 'epoch_second'
-            ),
-    );
+                    'format' => 'epoch_second',
+            ],
+    ];
 
     /**
      * All optional fields docs can contain.
@@ -95,23 +95,23 @@ class document extends \core_search\document {
      *
      * @var array
      */
-    protected static $optionalfields = array(
-            'userid' => array(
-                    'type' => 'integer'
-            ),
-            'groupid' => array(
-                    'type' => 'integer'
-            ),
-            'description1' => array(
-                    'type' => 'text'
-            ),
-            'description2' => array(
-                    'type' => 'text'
-            ),
-            'filetext' => array(
-                    'type' => 'text'
-            ),
-    );
+    protected static $optionalfields = [
+            'userid' => [
+                    'type' => 'integer',
+            ],
+            'groupid' => [
+                    'type' => 'integer',
+            ],
+            'description1' => [
+                    'type' => 'text',
+            ],
+            'description2' => [
+                    'type' => 'text',
+            ],
+            'filetext' => [
+                    'type' => 'text',
+            ],
+    ];
 
     /**
      * @var mixed $config Search plugin configuration.
@@ -161,7 +161,7 @@ class document extends \core_search\document {
         $endcount = 0;
 
         // Remove end/start pairs that span a few common seperation characters. Allows us to highlight phrases instead of words.
-        $regex = '|'.query::HIGHLIGHT_END.'([ .,-]{0,3})'.query::HIGHLIGHT_START.'|';
+        $regex = '|' . query::HIGHLIGHT_END . '([ .,-]{0,3})' . query::HIGHLIGHT_START . '|';
         $out = preg_replace($regex, '$1', $out);
 
         // Now replace our start and end highlight markers.
@@ -200,10 +200,9 @@ class document extends \core_search\document {
      * @return array $processors
      */
     private function get_enrichment_processors() {
-        $processors = array();
+        $processors = [];
 
         if ($this->fileindexing == true) { // Only look for processors if file indexing is enabled.
-
             $processors[] = '\search_elastic\enrich\text\plain_text';  // Plain text processing is always enabled.
 
             // Text extraction processing.
@@ -264,13 +263,13 @@ class document extends \core_search\document {
      * @return array
      */
     public function export_for_webservice() {
-        list($componentname, $areaname) = \core_search\manager::extract_areaid_parts($this->get('areaid'));
+        [$componentname, $areaname] = \core_search\manager::extract_areaid_parts($this->get('areaid'));
         $title = $this->is_set('title') ? $this->format_text($this->get('title')) : '';
         $data = [
             'componentname' => $componentname,
             'areaname' => $areaname,
             'courseurl' => course_get_url($this->get('courseid'))->out(),
-            'coursefullname' => format_string($this->get('coursefullname'), true, array('context' => $this->get('contextid'))),
+            'coursefullname' => format_string($this->get('coursefullname'), true, ['context' => $this->get('contextid')]),
             'modified' => userdate($this->get('modified')),
             'title' => ($title !== '') ? $title : get_string('notitle', 'search'),
             'docurl' => $this->get_doc_url()->out(),
@@ -283,26 +282,27 @@ class document extends \core_search\document {
         $files = $this->get_files();
         if (!empty($files)) {
             if (count($files) > 1) {
-                $filenames = array();
+                $filenames = [];
                 foreach ($files as $file) {
-                    $filenames[] = format_string($file->get_filename(), true, array('context' => $this->get('contextid')));
+                    $filenames[] = format_string($file->get_filename(), true, ['context' => $this->get('contextid')]);
                 }
                 $data['multiplefiles'] = true;
                 $data['filenames'] = $filenames;
             } else {
                 $file = reset($files);
-                $data['filename'] = format_string($file->get_filename(), true, array('context' => $this->get('contextid')));
+                $data['filename'] = format_string($file->get_filename(), true, ['context' => $this->get('contextid')]);
             }
         }
         if ($this->is_set('userid')) {
             $data['userurl'] = new \moodle_url(
-                    '/user/view.php',
-                    array('id' => $this->get('userid'), 'course' => $this->get('courseid'))
-                    );
-            $data['userfullname'] = format_string($this->get('userfullname'),
-                    true,
-                    array('context' => $this->get('contextid'))
-                    );
+                '/user/view.php',
+                ['id' => $this->get('userid'), 'course' => $this->get('courseid')]
+            );
+            $data['userfullname'] = format_string(
+                $this->get('userfullname'),
+                true,
+                ['context' => $this->get('contextid')]
+            );
         }
         return $data;
     }
@@ -315,7 +315,6 @@ class document extends \core_search\document {
     public function set_data_from_engine($docdata) {
         $fields = static::$requiredfields + static::$optionalfields + static::$enginefields;
         foreach ($fields as $fieldname => $field) {
-
             // Optional params might not be there.
             if (isset($docdata[$fieldname])) {
                 if ($field['type'] === 'tdate') {
@@ -333,7 +332,6 @@ class document extends \core_search\document {
                     } else {
                         $this->set($fieldname, $docdata[$fieldname]);
                     }
-
                 }
             }
         }

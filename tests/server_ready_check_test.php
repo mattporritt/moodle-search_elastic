@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 namespace search_elastic;
 
 use advanced_testcase;
@@ -32,8 +31,7 @@ use search_elastic\check\server_ready_check;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \search_elastic\check\server_ready_check
  */
-class server_ready_check_test extends advanced_testcase {
-
+final class server_ready_check_test extends advanced_testcase {
     /** @var string Valid hostname for testing */
     private const VALID_HOSTNAME = 'valid.com';
 
@@ -47,7 +45,7 @@ class server_ready_check_test extends advanced_testcase {
      * Provides server ready test configurations.
      * @return array
      */
-    public function server_ready_provider(): array {
+    public static function server_ready_provider(): array {
         return [
             'not set' => [
                 'hostname' => self::EMPTY_HOSTNAME,
@@ -55,12 +53,12 @@ class server_ready_check_test extends advanced_testcase {
             ],
             'invalid hostname' => [
                 'hostname' => self::INVALID_HOSTNAME,
-                'status' => result::ERROR
+                'status' => result::ERROR,
             ],
             'valid hostname' => [
                 'hostname' => self::VALID_HOSTNAME,
-                'status' => result::OK
-            ]
+                'status' => result::OK,
+            ],
         ];
     }
 
@@ -71,18 +69,18 @@ class server_ready_check_test extends advanced_testcase {
      * @param string $expectedstatus
      * @dataProvider server_ready_provider
      */
-    public function test_check(string $hostname, string $expectedstatus) {
+    public function test_check(string $hostname, string $expectedstatus): void {
         $this->resetAfterTest();
         set_config('hostname', $hostname, 'search_elastic');
 
         $testhostnamestatus = [
             self::VALID_HOSTNAME => 200,
             self::INVALID_HOSTNAME => 404,
-            self::EMPTY_HOSTNAME => 400
+            self::EMPTY_HOSTNAME => 400,
         ];
 
         $mock = new MockHandler([
-            new Response($testhostnamestatus[$hostname], ['Content-Type' => 'application/json'])
+            new Response($testhostnamestatus[$hostname], ['Content-Type' => 'application/json']),
         ]);
         $stack = HandlerStack::create($mock);
 

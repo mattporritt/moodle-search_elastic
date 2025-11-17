@@ -35,7 +35,6 @@ use Throwable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class error_service {
-
     /**
      * Retry a specific error by ID.
      *
@@ -84,8 +83,16 @@ class error_service {
      * @param int|null $contentmodified Content modification timestamp
      * @param string $parentid The parent ID used for file documents
      */
-    public static function save_error($documentid, $itemid, $contextid, $areaid, $errortype, $errormessage,
-            $contentmodified = null, $parentid = null): void {
+    public static function save_error(
+        $documentid,
+        $itemid,
+        $contextid,
+        $areaid,
+        $errortype,
+        $errormessage,
+        $contentmodified = null,
+        $parentid = null
+    ): void {
         global $DB;
 
         $now = time();
@@ -106,7 +113,6 @@ class error_service {
             $error->set('timemodified', $now);
             $error->set('contentmodified', $contentmodified);
             $error->save();
-
         } else {
             // Create new error.
             $error = new error();
@@ -159,8 +165,15 @@ class error_service {
 
                     debugging($message, $debuglevel);
 
-                    self::save_error($docid, $itemid, $contextid, $areaid, error::TYPE_INDEXING,
-                        $message . ' (Document: ' . $docid .')', $modified);
+                    self::save_error(
+                        $docid,
+                        $itemid,
+                        $contextid,
+                        $areaid,
+                        error::TYPE_INDEXING,
+                        $message . ' (Document: ' . $docid . ')',
+                        $modified
+                    );
                 }
             }
         }
@@ -179,8 +192,15 @@ class error_service {
         }
 
         $documentinfo = self::extract_document_info($docdata);
-        self::save_error($documentinfo['docid'], $documentinfo['itemid'], $documentinfo['contextid'],
-            $documentinfo['areaid'], error::TYPE_INDEXING, $message, $documentinfo['modified']);
+        self::save_error(
+            $documentinfo['docid'],
+            $documentinfo['itemid'],
+            $documentinfo['contextid'],
+            $documentinfo['areaid'],
+            error::TYPE_INDEXING,
+            $message,
+            $documentinfo['modified']
+        );
 
         debugging($message, $debuglevel);
     }
@@ -193,16 +213,28 @@ class error_service {
      * @param  string|null $parentid The file document parent ID
      * @param  int $debuglevel The level at which the debugging statement should show
      */
-    public static function record_tika_error(stored_file $file, string $message, ?string $parentid = null,
-            int $debuglevel = DEBUG_DEVELOPER): void {
+    public static function record_tika_error(
+        stored_file $file,
+        string $message,
+        ?string $parentid = null,
+        int $debuglevel = DEBUG_DEVELOPER
+    ): void {
         $areaid = self::get_file_areaid($file);
 
         $errormessage = $message . ' (File: ' . $file->get_filename() . ', Size: ' . $file->get_filesize() . ' bytes' .
             ', Component: ' . $file->get_component() . ', Filearea: ' . $areaid . ')';
 
         $docid = $file->get_id();
-        self::save_error($docid, $file->get_itemid(), $file->get_contextid(), $areaid,
-            error::TYPE_TIKA, $errormessage, $file->get_timemodified(), $parentid);
+        self::save_error(
+            $docid,
+            $file->get_itemid(),
+            $file->get_contextid(),
+            $areaid,
+            error::TYPE_TIKA,
+            $errormessage,
+            $file->get_timemodified(),
+            $parentid
+        );
 
         debugging($errormessage, $debuglevel);
     }
@@ -479,7 +511,6 @@ class error_service {
                 $error->mark_failed();
                 return ['success' => false, 'message' => 'File extraction succeeded but indexing failed'];
             }
-
         } catch (Exception $e) {
             return ['success' => false, 'message' => 'Exception during Tika retry: ' . $e->getMessage()];
         }
