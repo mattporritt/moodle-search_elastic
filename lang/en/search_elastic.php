@@ -23,7 +23,7 @@
  */
 
 $string['actions'] = 'Actions';
-$string['addfail'] = 'Failed to add document to index';
+$string['addfail'] = 'Failed to add document to index.';
 $string['adminsettings'] = 'Plugin settings';
 $string['advsettings'] = 'Advanced settings';
 $string['all'] = 'All';

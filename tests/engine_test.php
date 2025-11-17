@@ -1141,4 +1141,273 @@ final class engine_test extends \advanced_testcase {
             $seenresults[] = $content;
         }
     }
+
+    /**
+     * Test handle_413_retry with all documents under size limit.
+     */
+    public function test_handle_413_retry_all_succeed(): void {
+        global $DB;
+
+        $docs = [
+            ['id' => 'doc1', 'content' => 'Content1', 'areaid' => 'test-area',
+                'contextid' => 1, 'itemid' => 1, 'modified' => time()],
+            ['id' => 'doc2', 'content' => 'Content2', 'areaid' => 'test-area',
+                'contextid' => 1, 'itemid' => 2, 'modified' => time()],
+        ];
+        $payload = $this->create_test_payload($docs);
+        $this->engine->set_test_payload($payload);
+
+        // Mock successful indexing.
+        $this->engine->set_mock_index_results([true, true]);
+
+        // Call the handler.
+        $ignored = $this->engine->test_handle_413_retry();
+
+        // Verify there are no errors.
+        $errors = $DB->count_records('search_elastic_errors');
+        $this->assertEquals(0, $ignored);
+        $this->assertEquals(0, $errors);
+    }
+
+    /**
+     * Test handle_413_retry with oversized document.
+     */
+    public function test_handle_413_retry_oversized_document(): void {
+        global $DB;
+
+        $config = get_config('search_elastic');
+        $maxsize = $config->sendsize ?? 9000000;
+
+        $docs = [
+            ['id' => 'doc1', 'content' => 'Small content', 'areaid' => 'test-area-413-oversized',
+                'contextid' => 1, 'itemid' => 1, 'modified' => time()],
+            ['id' => 'doc2', 'content' => str_repeat('Content', $maxsize + 100), 'areaid' => 'test-area-413-oversized',
+                'contextid' => 1, 'itemid' => 2, 'modified' => time()],
+        ];
+        $payload = $this->create_test_payload($docs);
+        $this->engine->set_test_payload($payload);
+
+        // Mock doc1 succeeds but doc2 won't be tried due to size.
+        $this->engine->set_mock_index_results([true]);
+
+        // Once document ignored (doc2).
+        $ignored = $this->engine->test_handle_413_retry();
+        $this->assertEquals(1, $ignored);
+        $this->assertDebuggingCalledCount(1);
+
+        // Verify error message mentions size.
+        $error = $DB->get_record('search_elastic_errors', ['areaid' => 'test-area-413-oversized']);
+        $this->assertStringContainsString('too large', strtolower($error->errormessage));
+        $this->assertStringContainsString('doc2', strtolower($error->errormessage));
+    }
+
+    /**
+     * Test handle_413_retry with failed retry.
+     */
+    public function test_handle_413_retry_individual_failure(): void {
+        global $DB;
+
+        $docs = [
+            ['id' => 'doc1', 'content' => 'Content1', 'areaid' => 'test-area-413-individual-retry-failure',
+                'contextid' => 1, 'itemid' => 1, 'modified' => time()],
+            ['id' => 'doc2', 'content' => 'Content2', 'areaid' => 'test-area-413-individual-retry-failure',
+                'contextid' => 1, 'itemid' => 2, 'modified' => time()],
+        ];
+        $payload = $this->create_test_payload($docs);
+        $this->engine->set_test_payload($payload);
+
+        // Mock doc1 succeeds but doc2 failed.
+        $this->engine->set_mock_index_results([true, false]);
+
+        $ignored = $this->engine->test_handle_413_retry();
+        $this->assertEquals(1, $ignored);
+        $this->assertDebuggingCalledCount(1);
+
+        // Verify error message mentions individual retry failure.
+        $error = $DB->get_record('search_elastic_errors', ['areaid' => 'test-area-413-individual-retry-failure']);
+        $this->assertStringContainsString('individual retry', strtolower($error->errormessage));
+        $this->assertStringContainsString('doc2', strtolower($error->errormessage));
+    }
+
+    /**
+     * Test handle_413_retry mixed scenarios.
+     */
+    public function test_handle_413_retry_mixed_scenarios(): void {
+        global $DB;
+
+        $config = get_config('search_elastic');
+        $maxsize = $config->sendsize ?? 9000000;
+
+        $docs = [
+            ['id' => 'doc1', 'content' => 'Content1', 'areaid' => 'test-area-413-mixed-scenarios',
+                'contextid' => 1, 'itemid' => 1, 'modified' => time()],
+            ['id' => 'doc2', 'content' => str_repeat('Content', $maxsize + 100), 'areaid' => 'test-area-413-mixed-scenarios',
+                'contextid' => 1, 'itemid' => 2, 'modified' => time()],
+            ['id' => 'doc3', 'content' => 'Content3', 'areaid' => 'test-area-413-mixed-scenarios',
+                'contextid' => 1, 'itemid' => 2, 'modified' => time()],
+        ];
+        $payload = $this->create_test_payload($docs);
+        $this->engine->set_test_payload($payload);
+
+        // Mock doc1 succeeds, doc2 skipped (oversized), doc 3 failed.
+        $this->engine->set_mock_index_results([true, false, false]);
+
+        // 2 documents ignored.
+        $ignored = $this->engine->test_handle_413_retry();
+        $this->assertEquals(2, $ignored);
+        $this->assertDebuggingCalledCount(2);
+
+        // 2 errors logged.
+        $errors = $DB->count_records('search_elastic_errors');
+        $this->assertEquals(2, $errors);
+    }
+
+    /**
+     * Test log_bulk_response_item_errors with all successful items.
+     */
+    public function test_log_bulk_response_item_errors_all_success(): void {
+        global $DB;
+
+        $docs = [
+            ['id' => 'doc1', 'content' => 'Content1', 'areaid' => 'test-area',
+                'contextid' => 1, 'itemid' => 1, 'modified' => time()],
+            ['id' => 'doc2', 'content' => 'Content2', 'areaid' => 'test-area',
+                'contextid' => 1, 'itemid' => 2, 'modified' => time()],
+        ];
+        $payload = $this->create_test_payload($docs);
+        $this->engine->set_test_payload($payload);
+
+        // Mock response with all successful items.
+        $responsebody = (object)[
+            'errors' => false,
+            'items' => [
+                (object)[
+                    'index' => (object)[
+                        '_id' => 'doc1',
+                        'status' => 201,
+                        'result' => 'created',
+                    ],
+                ],
+                (object)[
+                    'index' => (object)[
+                        '_id' => 'doc2',
+                        'status' => 201,
+                        'result' => 'created',
+                    ],
+                ],
+            ],
+        ];
+
+        // No documents ignored.
+        $ignored = $this->engine->test_log_bulk_response_item_errors($responsebody);
+        $this->assertEquals(0, $ignored);
+
+        // No errors.
+        $errors = $DB->count_records('search_elastic_errors');
+        $this->assertEquals(0, $errors);
+    }
+
+    /**
+     * Test log_bulk_response_item_errors with failures.
+     */
+    public function test_log_bulk_response_item_errors_with_failures(): void {
+        global $DB;
+
+        $docs = [
+            ['id' => 'doc1', 'content' => 'Content1', 'areaid' => 'test-area-bulk-item-fail',
+                'contextid' => 1, 'itemid' => 1, 'modified' => time()],
+            ['id' => 'doc2', 'content' => 'Content2', 'areaid' => 'test-area-bulk-item-fail',
+                'contextid' => 1, 'itemid' => 2, 'modified' => time()],
+        ];
+        $payload = $this->create_test_payload($docs);
+        $this->engine->set_test_payload($payload);
+
+        // Mock response with all successful items.
+        $responsebody = (object)[
+            'errors' => true,
+            'items' => [
+                (object)[
+                    'index' => (object)[
+                        '_id' => 'doc1',
+                        'status' => 429,
+                        'error' => (object)[
+                            'type' => 'some_exception',
+                            'reason' => 'Too Many Requests',
+                        ],
+                    ],
+                ],
+                (object)[
+                    'index' => (object)[
+                        '_id' => 'doc2',
+                        'status' => 201,
+                        'result' => 'created',
+                    ],
+                ],
+            ],
+        ];
+
+        // One document failed.
+        $ignored = $this->engine->test_log_bulk_response_item_errors($responsebody);
+        $this->assertEquals(1, $ignored);
+        $this->assertDebuggingCalledCount(1);
+
+        // Verify error details.
+        $error = $DB->get_record('search_elastic_errors', ['areaid' => 'test-area-bulk-item-fail']);
+        $this->assertStringContainsString('some_exception', strtolower($error->errormessage));
+        $this->assertStringContainsString('too many requests', strtolower($error->errormessage));
+    }
+
+    /**
+     * Test log_bulk_response_item_errors with document ID mismatch.
+     */
+    public function test_log_bulk_response_item_errors_id_mismatch(): void {
+        global $DB;
+
+        $docs = [
+            ['id' => 'doc1', 'content' => 'Content1', 'areaid' => 'test-area-id-mismatch',
+                'contextid' => 1, 'itemid' => 1, 'modified' => time()],
+        ];
+        $payload = $this->create_test_payload($docs);
+        $this->engine->set_test_payload($payload);
+
+        // Mock response with mismatched ID.
+        $responsebody = (object)[
+            'errors' => true,
+            'items' => [
+                (object)[
+                    'index' => (object)[
+                        '_id' => 'wrong-id',
+                        'status' => 400,
+                        'error' => (object)[
+                            'type' => 'test_error',
+                            'reason' => 'test reason',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $ignored = $this->engine->test_log_bulk_response_item_errors($responsebody);
+        $errors = $DB->count_records('search_elastic_errors');
+
+        // Error is not logged but debugging is called with mismatch.
+        $this->assertDebuggingCalled('Document ID mismatch at index 0: expected wrong-id, got doc1');
+        $this->assertEquals(1, $ignored);
+        $this->assertEquals(0, $errors);
+    }
+
+    /**
+     * Helper method to create a test payload from document arrays.
+     * @param array $docs
+     * @return string
+     */
+    private function create_test_payload(array $docs): string {
+        $config = get_config('search_elastic');
+        $payload = '';
+        foreach ($docs as $doc) {
+            $meta = ['index' => ['_index' => $config->index, '_id' => $doc['id']]];
+            $payload .= json_encode($meta) . "\n" . json_encode($doc) . "\n";
+        }
+        return $payload;
+    }
 }
