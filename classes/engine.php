@@ -85,9 +85,6 @@ class engine extends \core_search\engine {
     public function __construct() {
         parent::__construct();
         $this->config = (object)array_merge($this->configdefaults, (array)$this->config);
-        foreach ($this->config as $name => $value) {
-            set_config($name, $value, 'search_elastic');
-        }
     }
 
     /**
