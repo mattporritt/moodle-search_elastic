@@ -50,14 +50,16 @@ class esrequest {
      * Search engine availability should be checked separately.
      *
      * @param \GuzzleHttp\HandlerStack $handler Optional custom Guzzle handler stack
+     * @param int $timeout default connection timeout to override the timeout in the plugin setting.
+     * Often used in health check.
      * @return void
      */
-    public function __construct($handler = false) {
+    public function __construct($handler = false, $timeout = null) {
         $this->config = get_config('search_elastic');
         $this->signing = (isset($this->config->signing) ? (bool)$this->config->signing : false);
 
         $config = [
-            'timeout' => isset($this->config->timeout) ? intval($this->config->timeout) : 0,
+            'timeout' => $timeout != null ? $timeout : (isset($this->config->timeout) ? intval($this->config->timeout) : 0),
             'connect_timeout' => intval($this->config->connecttimeout),
         ];
 

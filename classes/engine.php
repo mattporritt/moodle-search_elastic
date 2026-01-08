@@ -255,6 +255,7 @@ class engine extends \core_search\engine {
      * @return string|bool true if server is ready, else error string.
      */
     public function is_server_ready($stack = false) {
+        global $CFG;
         // Not configured yet.
         if (empty($this->get_url())) {
             return get_string('connection:na', 'search_elastic');
@@ -281,13 +282,17 @@ class engine extends \core_search\engine {
      */
     public function get_server_status_code($stack = false): int {
         $url = $this->get_url();
-        $client = new \search_elastic\esrequest($stack);
 
-        try {
-            $response = $client->get($url);
-            $responsecode = $response->getStatusCode();
-        } catch (\GuzzleHttp\Exception\ConnectException $e) {
-            return 503;
+        // Regardless the setting timeout, check timeout should be always 5.
+        $client = new \search_elastic\esrequest($stack, 5);
+        $responsecode = 503;
+        if ($url) {
+            try {
+                $response = $client->get($url);
+                $responsecode = $response->getStatusCode();
+            } catch (\GuzzleHttp\Exception\ConnectException $e) {
+                return 503;
+            }
         }
 
         return $responsecode;
