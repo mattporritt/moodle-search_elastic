@@ -68,7 +68,7 @@ function search_elastic_status_checks(): array {
         isset($CFG->searchengine) &&
         $CFG->searchengine == 'elastic'
     ) {
-        return [new \search_elastic\check\server_ready_check()];
+        return [new \search_elastic\check\server_ready_check(), new \search_elastic\check\chunking_status()];
     }
     return [];
 }

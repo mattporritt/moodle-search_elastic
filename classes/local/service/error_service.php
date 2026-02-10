@@ -17,7 +17,9 @@
 namespace search_elastic\local\service;
 
 use context;
+use core_search\base;
 use core_search\manager;
+use dml_missing_record_exception;
 use Exception;
 use search_elastic\engine;
 use search_elastic\enrich\text\tika;
@@ -63,7 +65,7 @@ class error_service {
             }
 
             return $result;
-        } catch (\dml_missing_record_exception $e) {
+        } catch (dml_missing_record_exception $e) {
             return ['success' => false, 'message' => get_string('erroridnotfound', 'search_elastic', $id)];
         } catch (Exception $e) {
             $error->increment_retry();
@@ -346,14 +348,14 @@ class error_service {
         $searcharea->attach_files($document);
         $files = $document->get_files();
 
-        return empty($files) ? false : true;
+        return !empty($files);
     }
 
     /**
      * Retry a failed document indexing operation.
      *
      * @param error $error Error instance
-     * @param \core_search\base $searcharea Search area instance
+     * @param base $searcharea Search area instance
      * @param engine $engine Elasticsearch engine
      * @return array Result array
      */
@@ -361,7 +363,6 @@ class error_service {
         try {
             $itemid = $error->get('itemid');
             $context = context::instance_by_id($error->get('contextid'));
-            $config = get_config('search_elastic');
 
             // Get the record from search area.
             $record = self::get_record_for_context($searcharea, $context, $itemid);
@@ -375,19 +376,6 @@ class error_service {
             if (!$document) {
                 $error->mark_failed();
                 return ['success' => false, 'message' => 'Search area could not create document from record'];
-            }
-
-            // Check document size before attempting to index.
-            $docdata = $document->export_for_engine();
-            $docsize = strlen(json_encode($docdata));
-            $maxsize = (int)$config->sendsize;
-            if ($docsize > $maxsize) {
-                // Can't index this document because it's too large.
-                $error->mark_failed();
-                return [
-                    'success' => false,
-                    'message' => "Document too large ($docsize) bytes exceeds $config->sendsize bytes limit).",
-                ];
             }
 
             // Index the parent document first.
@@ -411,19 +399,9 @@ class error_service {
             }
 
             $fileerrorcount = 0;
-            $filesskipped = 0;
 
             foreach ($files as $file) {
                 $filedocdata = $document->export_file_for_engine($file);
-
-                // Check file document size.
-                $filesize = strlen(json_encode($filedocdata));
-                if ($filesize > $config->sendsize) {
-                    $filesskipped++;
-                    debugging("Skipping file (too large): {$file->get_filename()} ($filesize bytes, exceeds $maxsize bytes limit)");
-                    continue;
-                }
-
                 $success = $engine->index_single_document($filedocdata);
                 if (!$success) {
                     $fileerrorcount++;
@@ -432,16 +410,6 @@ class error_service {
 
             if ($fileerrorcount == 0) {
                 return ['success' => true, 'message' => 'Content reindexed successfully'];
-            } else if ($filesskipped > 0 && $fileerrorcount == 0) {
-                return [
-                    'success' => true, 'message' => "Content reindexed $filesskipped file(s) skipped - too large",
-                ];
-            } else if ($filesskipped > 0 && $fileerrorcount > 0) {
-                $error->mark_failed();
-                return [
-                    'success' => false,
-                    'message' => "Failed to reindex some files. $filesskipped file(s) skipped (too large).",
-                ];
             }
 
             $error->mark_failed();
@@ -454,7 +422,7 @@ class error_service {
     /**
      * Get record for context and item ID.
      *
-     * @param \core_search\base $searcharea Search area instance
+     * @param base $searcharea Search area instance
      * @param context $context Context instance
      * @param int $itemid Item ID
      * @return stdClass|null Record or null if not found
@@ -484,7 +452,7 @@ class error_service {
      * and re-index it with its parent document using the parentid reference.
      *
      * @param error $error Error instance
-     * @param \core_search\base $searcharea Search area instance
+     * @param base $searcharea Search area instance
      * @param engine $engine Elasticsearch engine
      * @return array Result array
      */
