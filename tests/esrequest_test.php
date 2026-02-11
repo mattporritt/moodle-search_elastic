@@ -89,9 +89,8 @@ final class esrequest_test extends \advanced_testcase {
     }
 
     /**
-     * Test that exceptions don't get eaten when host is unreachable.
-     *
-     * @see https://github.com/catalyst/moodle-search_elastic/pull/119 PR #119 for why this matters.
+     * Test that unreachable host must return 503
+     * The GuzzleHttp exception is no longer be throwed
      */
     public function test_get_unreachable_host(): void {
         $this->expectException(\GuzzleHttp\Exception\ConnectException::class);

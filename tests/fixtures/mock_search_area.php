@@ -21,7 +21,7 @@ namespace core_mocksearch\search;
  * Component implementing search for testing purposes.
  *
  * @package   search_elastic
- * @category  phpunit
+ * @category  test
  * @copyright David Monllao {@link http://www.davidmonllao.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -44,6 +44,9 @@ class mock_boost_area extends \core_mocksearch\search\mock_search_area {
         return true;
     }
 
+    /**
+     * Mock get_recordset_by_timestamp.
+     */
     public function get_recordset_by_timestamp($modifiedfrom = 0) {
         global $DB;
 
@@ -71,6 +74,9 @@ class mock_boost_area extends \core_mocksearch\search\mock_search_area {
         return $docdata;
     }
 
+    /**
+     * Mock get_document.
+     */
     public function get_document($record, $options = []) {
         global $USER;
 
@@ -91,6 +97,9 @@ class mock_boost_area extends \core_mocksearch\search\mock_search_area {
         return $doc;
     }
 
+    /**
+     * Mock attach_files.
+     */
     public function attach_files($document) {
         global $DB;
 
@@ -104,10 +113,16 @@ class mock_boost_area extends \core_mocksearch\search\mock_search_area {
         }
     }
 
+    /**
+     * Mock uses_file_indexing.
+     */
     public function uses_file_indexing() {
         return true;
     }
 
+    /**
+     * Mock uses_file_indexing.
+     */
     public function check_access($id) {
         global $DB, $USER;
 
@@ -122,14 +137,23 @@ class mock_boost_area extends \core_mocksearch\search\mock_search_area {
         return \core_search\manager::ACCESS_DELETED;
     }
 
+    /**
+     * Mock get_doc_url.
+     */
     public function get_doc_url(\core_search\document $doc) {
         return new \moodle_url('/index.php');
     }
 
+    /**
+     * Mock get_context_url.
+     */
     public function get_context_url(\core_search\document $doc) {
         return new \moodle_url('/index.php');
     }
 
+    /**
+     * Mock get_visible_name.
+     */
     public function get_visible_name($lazyload = false) {
         return 'Mock search area';
     }

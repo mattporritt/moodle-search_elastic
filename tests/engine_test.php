@@ -152,12 +152,32 @@ final class engine_test extends \advanced_testcase {
     public static function is_server_ready_provider(): array {
         return [
           '200' => [
-            'code' => 200,
-            'ok' => true,
+              'code' => 200,
+              'ok' => true,
+              'host' => null,
+              'searchengine' => 'elastic',
+              'status' => true,
           ],
           '404' => [
-            'code' => 404,
-            'ok' => false,
+              'code' => 404,
+              'ok' => false,
+              'host' => null,
+              'searchengine' => 'elastic',
+              'status' => '404',
+          ],
+          '503' => [
+              'code' => 200,
+              'ok' => false,
+              'host' => '',
+              'searchengine' => 'elastic',
+              'status' => '503',
+          ],
+          'na' => [
+              'code' => 200,
+              'ok' => false,
+              'host' => '',
+              'searchengine' => 'other',
+              'status' => get_string('connection:na', 'search_elastic'),
           ],
         ];
     }
@@ -167,25 +187,38 @@ final class engine_test extends \advanced_testcase {
      *
      * @param int $code Simulated HTTP status code
      * @param bool $expectedok If the server should be expected to be ready/ok.
+     * @param string|null $host elastic host.
+     * @param string $searchengine Selected search engine.
+     * @param string|bool $expectedstatus Expected return status.
      * @dataProvider is_server_ready_provider
      */
-    public function test_is_server_ready(int $code, bool $expectedok): void {
+    public function test_is_server_ready(
+        int $code,
+        bool $expectedok,
+        string|null $host,
+        string $searchengine,
+        string|bool $expectedstatus
+    ): void {
         // Create a mock stack and queue a response.
         $mock = new MockHandler([
             new Response($code, ['Content-Type' => 'application/json']),
         ]);
+        if (isset($host)) {
+            set_config('hostname', '', 'search_elastic');
+        }
+        set_config('searchengine', $searchengine);
 
         $stack = HandlerStack::create($mock);
 
         $engine = new \search_elastic\engine();
-        $status = $engine->is_server_ready($stack);
+        $result = $engine->is_server_ready($stack);
 
         if ($expectedok) {
-            $this->assertTrue($status);
+            $this->assertTrue(is_bool($result));
+            $this->assertEquals($result, $expectedstatus);
         } else {
-            // Status should contain a string with the 404 code in it.
-            $this->assertTrue(is_string($status));
-            $this->assertTrue(strpos($status, '404') != false);
+            $this->assertTrue(is_string($result));
+            $this->assertTrue($result === $expectedstatus || strpos($result, $expectedstatus) != false);
         }
     }
 
