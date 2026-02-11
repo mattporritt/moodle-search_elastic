@@ -16,7 +16,7 @@
 
 namespace search_elastic;
 
-use search_elastic\chunking\strategy_interface;
+use search_elastic\local\chunking\strategy_interface;
 
 /**
  * Test-only chunking strategy.

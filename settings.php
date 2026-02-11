@@ -25,7 +25,7 @@
 use search_elastic\admin_setting_check;
 use search_elastic\admin_setting_chunking_overlap;
 use search_elastic\check\server_ready_check;
-use search_elastic\chunking\manager;
+use search_elastic\local\chunking\manager;
 
 defined('MOODLE_INTERNAL') || die();
 

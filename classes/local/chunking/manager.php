@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace search_elastic\chunking;
+namespace search_elastic\local\chunking;
 
 use moodle_exception;
 use Exception;
@@ -53,7 +53,7 @@ class manager {
             $classname = basename($file, '.php');
 
             // Build fully qualified class name.
-            $fqcn = "\\search_elastic\\chunking\\{$classname}";
+            $fqcn = "\\search_elastic\\local\\chunking\\{$classname}";
             if (class_exists($fqcn)) {
                 try {
                     $instance = new $fqcn();

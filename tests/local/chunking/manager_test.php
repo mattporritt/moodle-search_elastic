@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace search_elastic\chunking;
+namespace search_elastic\local\chunking;
 
 use advanced_testcase;
 use search_elastic\test_chunking_manager;
@@ -33,7 +33,7 @@ require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/test_chunkin
  * @author     Trisha Milan <trishamilan@catalyst-au.net>
  * @copyright  2026 Monash University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \search_elastic\chunking\manager
+ * @covers     \search_elastic\local\chunking\manager
  */
 final class manager_test extends advanced_testcase {
     /**

@@ -16,8 +16,8 @@
 
 namespace search_elastic;
 
-use search_elastic\chunking\manager;
-use search_elastic\chunking\strategy_interface;
+use search_elastic\local\chunking\manager;
+use search_elastic\local\chunking\strategy_interface;
 
 /**
  * Extends chunking manager to allow injecting test strategies.

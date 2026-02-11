@@ -31,8 +31,8 @@
 
 namespace search_elastic;
 
-use search_elastic\chunking\manager;
-use search_elastic\chunking\fixed_size;
+use search_elastic\local\chunking\manager;
+use search_elastic\local\chunking\fixed_size;
 use search_elastic\local\service\error_service;
 use stdClass;
 use Exception;

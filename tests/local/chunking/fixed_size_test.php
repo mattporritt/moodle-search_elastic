@@ -23,7 +23,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace search_elastic\chunking;
+namespace search_elastic\local\chunking;
 
 use advanced_testcase;
 use core_mocksearch\search\mock_search_area;
@@ -41,7 +41,7 @@ require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
  * @package     search_elastic
  * @copyright   Trisha Milan <trishamilan@catalyst-au.net>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers      \search_elastic\chunking\fixed_size
+ * @covers      \search_elastic\local\chunking\fixed_size
  */
 final class fixed_size_test extends advanced_testcase {
     /**
