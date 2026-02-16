@@ -16,6 +16,7 @@
 
 namespace search_elastic\local\chunking;
 
+use core_component;
 use moodle_exception;
 use Exception;
 
@@ -41,38 +42,25 @@ class manager {
         }
 
         $strategies = [];
-
-        $filestoskip = ['.', '..', 'manager.php', 'strategy_interface.php'];
-        $files = scandir(__DIR__);
-        foreach ($files as $file) {
-            if (in_array($file, $filestoskip) || !preg_match('/\.php$/', $file)) {
+        $classes = core_component::get_component_classes_in_namespace('search_elastic', 'local\\chunking');
+        foreach (array_keys($classes) as $classname) {
+            // Skip this manager class.
+            if ($classname === self::class) {
                 continue;
             }
 
-            // Extract class name from filename.
-            $classname = basename($file, '.php');
+            // Only instantiate actual strategies.
+            if (!is_subclass_of($classname, strategy_interface::class)) {
+                continue;
+            }
 
-            // Build fully qualified class name.
-            $fqcn = "\\search_elastic\\local\\chunking\\{$classname}";
-            if (class_exists($fqcn)) {
-                try {
-                    $instance = new $fqcn();
-
-                    // Verify it implements the strategy interface.
-                    if ($instance instanceof strategy_interface) {
-                        $strategies[$classname] = $instance;
-                    } else {
-                        debugging(
-                            "Class {$fqcn} does not implement strategy_interface, skipping" . $e->getMessage(),
-                            DEBUG_DEVELOPER
-                        );
-                    }
-                } catch (Exception $e) {
-                    debugging(
-                        "Failed to instantiate chunking strategy {$classname}: " . $e->getMessage(),
-                        DEBUG_DEVELOPER
-                    );
-                }
+            try {
+                $strategies[$classname] = new $classname();
+            } catch (Exception $e) {
+                debugging(
+                    "Failed to instantiate chunking strategy {$classname}: " . $e->getMessage(),
+                    DEBUG_DEVELOPER
+                );
             }
         }
 
@@ -92,31 +80,41 @@ class manager {
      * @return strategy_interface The configured strategy instance.
      */
     public static function get_configured_strategy(): strategy_interface {
-        $strategyname = get_config('search_elastic', 'chunkingstrategy') ?: 'fixed_size';
+        $strategy = get_config('search_elastic', 'chunkingstrategy') ?: 'search_elastic\\local\\chunking\\fixed_size';
         try {
             $strategies = self::get_strategies();
-            if (!isset($strategies[$strategyname])) {
+            if (!isset($strategies[$strategy])) {
                 debugging(
-                    "Configured chunking strategy '{$strategyname}' not found. Falling back to 'fixed_size'",
+                    "Configured chunking strategy '{$strategy}' not found. Falling back to 'fixed_size'",
                     DEBUG_DEVELOPER
                 );
-                $strategyname = 'fixed_size';
+                $strategy = 'search_elastic\\local\\chunking\\fixed_size';
             }
 
-            if (!isset($strategies[$strategyname])) {
-                throw new moodle_exception('nostrategy', 'search_elastic', '', $strategyname);
+            if (!isset($strategies[$strategy])) {
+                throw new moodle_exception('nostrategy', 'search_elastic', '', $strategy);
             }
 
-            return $strategies[$strategyname];
+            return $strategies[$strategy];
         } catch (Exception $e) {
             throw new moodle_exception(
                 'strategyfailed',
                 'search_elastic',
                 '',
-                $strategyname,
+                $strategy,
                 'Failed to instantiate chunking strategy: ' . $e->getMessage()
             );
         }
+    }
+
+    /**
+     * Get chunking options from plugin configuration.
+     *
+     * @return array Configured chunking options
+     */
+    public static function get_chunking_options(): array {
+        $strategy = self::get_configured_strategy();
+        return $strategy->get_options();
     }
 
     /**
@@ -131,5 +129,15 @@ class manager {
             $options[$key] = $strategy->get_name();
         }
         return $options;
+    }
+
+    /**
+     * Determines whether document chunking is enabled.
+     *
+     * @return bool
+     */
+    public static function is_chunking_enabled(): bool {
+        $chunkingenabled = get_config('search_elastic', 'enablechunking');
+        return !empty($chunkingenabled);
     }
 }

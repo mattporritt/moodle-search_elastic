@@ -36,6 +36,9 @@ class error extends persistent {
     /** Error type for Tika-related errors. */
     const TYPE_TIKA = 'tika';
 
+    /** Error type for Tika-related errors. */
+    const TYPE_CHUNKING = 'chunking';
+
     /** For errors currently being processed. */
     const STATUS_RETRYING = 'retrying';
 
@@ -74,6 +77,7 @@ class error extends persistent {
                 'null' => NULL_NOT_ALLOWED,
                 'choices' => [
                     self::TYPE_INDEXING,
+                    self::TYPE_CHUNKING,
                     self::TYPE_TIKA,
                 ],
             ],

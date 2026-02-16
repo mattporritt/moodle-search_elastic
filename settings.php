@@ -23,7 +23,6 @@
  */
 
 use search_elastic\admin_setting_check;
-use search_elastic\admin_setting_chunking_overlap;
 use search_elastic\check\server_ready_check;
 use search_elastic\local\chunking\manager;
 
@@ -203,35 +202,20 @@ if ($hassiteconfig) {
     ));
 
     // Strategy selection.
+    $defaultstrategy = 'search_elastic\\local\\chunking\\fixed_size';
     $strategies = manager::get_strategy_options();
     $settings->add(new admin_setting_configselect(
         'search_elastic/chunkingstrategy',
         get_string('chunkingstrategy', 'search_elastic'),
         get_string('chunkingstrategy_desc', 'search_elastic'),
-        'fixed_size',
+        $defaultstrategy,
         $strategies
     ));
 
-    // Fixed size specific settings.
-    $settings->add(new admin_setting_configtext(
-        'search_elastic/fs_chunkmaxsize',
-        get_string('fs_chunkmaxsize', 'search_elastic'),
-        get_string('fs_chunkmaxsize_desc', 'search_elastic'),
-        8000000,
-        PARAM_INT
-    ));
-    $settings->add(new admin_setting_chunking_overlap(
-        'search_elastic/fs_chunkoverlapwords',
-        get_string('fs_chunkoverlapwords', 'search_elastic'),
-        get_string('fs_chunkoverlapwords_desc', 'search_elastic'),
-        100,
-        PARAM_INT
-    ));
-
-    $settings->hide_if('search_elastic/fs_chunkmaxsize', 'search_elastic/enablechunking', 'notchecked');
-    $settings->hide_if('search_elastic/fs_chunkmaxsize', 'search_elastic/chunkingstrategy', 'neq', 'fixed_size');
-    $settings->hide_if('search_elastic/fs_chunkoverlapwords', 'search_elastic/enablechunking', 'notchecked');
-    $settings->hide_if('search_elastic/fs_chunkoverlapwords', 'search_elastic/chunkingstrategy', 'neq', 'fixed_size');
+    $chunkingstrategies = manager::get_strategies();
+    foreach ($chunkingstrategies as $strategy) {
+        $strategy->add_settings($settings);
+    }
 
     $enrichsettings = new admin_externalpage(
         'search_elastic_enrichsettings',

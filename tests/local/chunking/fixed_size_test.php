@@ -167,7 +167,7 @@ final class fixed_size_test extends advanced_testcase {
         // Create text larger than max chunk size.
         $text = str_repeat('testing ', 10000);
 
-        $chunks = $strategy->chunk($text, ['maxsize' => 50000]);
+        $chunks = $strategy->chunk($text, ['maxsize' => 50000, 'overlap' => 0]);
         $this->assertCount(2, $chunks);
 
         foreach ($chunks as $index => $chunk) {

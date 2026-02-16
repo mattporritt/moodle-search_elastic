@@ -454,7 +454,6 @@ class engine extends \core_search\engine {
 
             if ($responsecode === 200) {
                 $deletedcount = $responsebody->deleted ?? 0;
-                debugging("Deleted {$deletedcount} document(s) for {$description}.", DEBUG_DEVELOPER);
                 return true;
             }
 
@@ -480,7 +479,11 @@ class engine extends \core_search\engine {
         [$numfound, $indexedfiles] = $this->get_indexed_files($document, 0, $rows);
         $count = 0;
         $idstodelete = [];
-        $processedoriginals = []; // Track which original files we've already processed.
+
+        // Track which original files we've already processed. Chunked files create multiple
+        // entries in Elasticsearch (e.g. file_123_c1, file_123_c2) with the same original_id.
+        // This map ensures we only process each original file once.
+        $processedoriginals = [];
 
         do {
             // Go through each indexed file. We want to not index any stored and unchanged ones, delete any missing ones.
@@ -500,41 +503,27 @@ class engine extends \core_search\engine {
                 if (isset($files[$originalfileid])) {
                     // Check for changes that would mean we need to re-index the file. If so, just leave in $files.
                     // Filelib does not guarantee time modified is updated, so we will check important values.
-                    $needsreindex = false;
+                    $unchanged = $indexedfile->_source->modified == $files[$originalfileid]->get_timemodified()
+                        && strcmp($indexedfile->_source->title, $files[$originalfileid]->get_filename()) === 0
+                        && $indexedfile->_source->filecontenthash != $files[$originalfileid]->get_contenthash();
 
-                    if ($indexedfile->_source->modified != $files[$originalfileid]->get_timemodified()) {
-                        $needsreindex = true;
+                    // If the file is already indexed and unchanged, we can just remove it from the files array and skip it.
+                    if ($unchanged) {
+                        unset($files[$originalfileid]);
+                        $processedoriginals[$originalfileid] = true;
+                        continue;
                     }
-                    if (strcmp($indexedfile->_source->title, $files[$originalfileid]->get_filename()) !== 0) {
-                        $needsreindex = true;
-                    }
-                    if ($indexedfile->_source->filecontenthash != $files[$originalfileid]->get_contenthash()) {
-                        $needsreindex = true;
-                    }
-
-                    // If the file is already indexed, we can just remove it from the files array and skip it.
-                    if (!$needsreindex) {
-                        unset($files[$fileid]);
-                    } else {
-                        // File changed so we need to delete the old version (including chunks) and re-index.
-                        $idstodelete[$originalfileid] = [
-                            'id' => $originalfileid,
-                            'is_chunk' => $ischunk,
-                            'type' => $indexedfile->_type,
-                        ];
-                    }
-
-                    $processedoriginals[$originalfileid] = true;
-                } else {
-                    // This means we have found a file that is no longer attached, so we need to delete from the index.
-                    // We do it later, since this is progressive, and it could reorder results.
-                    $idstodelete[$originalfileid] = [
-                        'id' => $originalfileid,
-                        'is_chunk' => $ischunk,
-                        'type' => $indexedfile->_type,
-                    ];
-                    $processedoriginals[$originalfileid] = true;
                 }
+
+                // If we get here, it means we have found a file that is no longer attached, or has changed so we need
+                // to delete from the index. We do it later, since this is progressive, and it could reorder results.
+                $idstodelete[$originalfileid] = [
+                    'id' => $originalfileid,
+                    'is_chunk' => $ischunk,
+                    'type' => $indexedfile->_type,
+                ];
+
+                $processedoriginals[$originalfileid] = true;
             }
             $count += $rows;
 
@@ -601,14 +590,14 @@ class engine extends \core_search\engine {
         }
 
         // Check if chunking is enabled.
-        $chunkingenabled = (bool)$this->config->enablechunking;
+        $chunkingenabled = manager::is_chunking_enabled();
 
         $strategy = null;
         $options = [];
         if ($chunkingenabled) {
             // Get chunking strategy and options.
             $strategy = manager::get_configured_strategy();
-            $options = $this->get_chunking_options();
+            $options = manager::get_chunking_options();
         }
 
         foreach ($files as $fileid => $file) {
@@ -638,25 +627,6 @@ class engine extends \core_search\engine {
         }
 
         $this->batch_add_documents(false, false, true);
-    }
-
-
-    /**
-     * Get chunking options from plugin configuration.
-     *
-     * @return array Configured chunking options
-     */
-    private function get_chunking_options(): array {
-        $options = [];
-        $strategy = manager::get_configured_strategy();
-        if ($strategy instanceof fixed_size) {
-            $options = [
-                'maxsize' => (int)$this->config->fs_chunkmaxsize,
-                'overlap' => (int)$this->config->fs_chunkoverlapwords,
-            ];
-        }
-
-        return $options;
     }
 
     /**
@@ -749,14 +719,14 @@ class engine extends \core_search\engine {
         $partial = false;
 
         // Check if chunking is enabled.
-        $chunkingenabled = (bool)$this->config->enablechunking;
+        $chunkingenabled = manager::is_chunking_enabled();
 
         $strategy = null;
         $chunkingoptions = [];
         if ($chunkingenabled) {
             // Get chunking strategy and options.
             $strategy = manager::get_configured_strategy();
-            $chunkingoptions = $this->get_chunking_options();
+            $chunkingoptions = manager::get_chunking_options();
         }
 
         // First we'll process all the documents, then if we
@@ -962,7 +932,7 @@ class engine extends \core_search\engine {
             $docsize = strlen(json_encode($doc));
             if ($docsize > $maxsize) {
                 // Document is too large - try chunk if enabled.
-                $chunkingenabled = (bool)$this->config->enablechunking;
+                $chunkingenabled = manager::is_chunking_enabled();
                 if ($chunkingenabled) {
                     if ($this->retry_with_chunking($doc)) {
                         continue;
@@ -1014,7 +984,7 @@ class engine extends \core_search\engine {
         try {
             // Get chunking strategy and options.
             $strategy = manager::get_configured_strategy();
-            $options = $this->get_chunking_options();
+            $options = manager::get_chunking_options();
 
             // Check if content needs chunking.
             $contentchunks = [];
@@ -1233,13 +1203,13 @@ class engine extends \core_search\engine {
         }
 
         // Check if chunking is enabled.
-        $chunkingenabled = (bool)$this->config->enablechunking;
+        $chunkingenabled = manager::is_chunking_enabled();
 
         $needschunking = false;
         if ($chunkingenabled) {
             // Get chunking strategy and options.
             $strategy = manager::get_configured_strategy();
-            $options = $this->get_chunking_options();
+            $options = manager::get_chunking_options();
 
             // Check if chunking is needed for content.
             $contentchunks = [];
@@ -1417,7 +1387,7 @@ class engine extends \core_search\engine {
                 'docid' => $originaldocid,
                 'total' => $totalchunks,
             ]);
-            error_service::record_document_error($message, $docdata);
+            error_service::record_chunking_error($message, $docdata);
             return false;
         } else if ($successpercentage < $threshold) {
             // Critical partial failure - less than 50% succeeded.
@@ -1429,7 +1399,7 @@ class engine extends \core_search\engine {
                 'threshold' => $threshold,
                 'failed' => implode(', ', $failedchunks),
             ]);
-            error_service::record_document_error($message, $docdata);
+            error_service::record_chunking_error($message, $docdata);
             return false;
         } else if ($successcount < $totalchunks) {
             // Above threshold but not 100%.
@@ -1527,7 +1497,7 @@ class engine extends \core_search\engine {
         $task->set_custom_data(['deletiondocs' => array_values($deletiondocs)]);
 
         // Queue the task.
-        \core\task\manager::queue_adhoc_task($task);
+        \core\task\manager::queue_adhoc_task($task, true);
     }
 
     /**

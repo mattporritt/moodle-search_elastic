@@ -241,7 +241,6 @@ final class engine_test extends \advanced_testcase {
 
         // Delete all entries in the area.
         $this->engine->delete('core_mocksearch-mock_search_area');
-        $this->assertDebuggingCalled('Deleted 1 document(s) for area core_mocksearch-mock_search_area.');
 
         sleep(1);
 

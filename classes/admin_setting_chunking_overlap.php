@@ -38,25 +38,20 @@ class admin_setting_chunking_overlap extends admin_setting_configtext {
             return $result;
         }
 
+        $maxsize = get_config('search_elastic', 'fs_chunkmaxsize') ?: 8000000;
+
+        // Estimate max words that fit in chunk (assuming 6 bytes per word average).
+        $estimatedwords = floor($maxsize / 6);
+
+        // Overlap should be less than 50% of chunk capacity.
+        $maxreasonableoverlap = floor($estimatedwords * 0.5);
         $overlapwords = $data;
-
-        // Get current chunking strategy.
-        $strategy = get_config('search_elastic', 'chunkingstrategy') ?: 'fixed_size';
-        if ($strategy === 'fixed_size') {
-            $maxsize = get_config('search_elastic', 'fs_chunkmaxsize') ?: 8000000;
-
-            // Estimate max words that fit in chunk (assuming 6 bytes per word average).
-            $estimatedwords = floor($maxsize / 6);
-
-            // Overlap should be less than 50% of chunk capacity.
-            $maxreasonableoverlap = floor($estimatedwords * 0.5);
-            if ($overlapwords > $maxreasonableoverlap) {
-                return get_string('chunkonverlaptoolarge', 'search_elastic', [
-                    'overlap' => $overlapwords,
-                    'maxsize' => $maxsize,
-                    'maxreasonable' => $maxreasonableoverlap,
-                ]);
-            }
+        if ($overlapwords > $maxreasonableoverlap) {
+            return get_string('chunkonverlaptoolarge', 'search_elastic', [
+                'overlap' => $overlapwords,
+                'maxsize' => $maxsize,
+                'maxreasonable' => $maxreasonableoverlap,
+            ]);
         }
 
         return true;

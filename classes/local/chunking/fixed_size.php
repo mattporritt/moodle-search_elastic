@@ -16,6 +16,10 @@
 
 namespace search_elastic\local\chunking;
 
+use admin_settingpage;
+use admin_setting_configtext;
+use search_elastic\admin_setting_chunking_overlap;
+
 /**
  * Fixed-size chunking strategy.
  *
@@ -28,24 +32,70 @@ namespace search_elastic\local\chunking;
  */
 class fixed_size implements strategy_interface {
     /**
+     * When chunking, we try to split at these word boundaries to avoid
+     * cutting words in half.
+     */
+    private const WORD_BOUNDARY_CHARS = [' ', '\n', '\t', '\r'];
+
+    /**
+     * Default maximum chunk size in bytes (8 MB).
+     */
+    private const DEFAULT_MAXSIZE = 8000000;
+
+    /**
+     * Default number of overlapping words between chunks.
+     */
+    private const DEFAULT_OVERLAPWORDS = 100;
+
+    /**
      * Return the human-readable name for this strategy.
      *
      * @return string
      */
-    public static function get_name(): string {
+    public function get_name(): string {
         return get_string('fixedsizestrategy', 'search_elastic');
     }
 
     /**
-     * Get the default options for this strategy.
+     * Return options derived from plugin configuration.
      *
      * @return array
      */
-    public static function get_default_options(): array {
+    public function get_options(): array {
         return [
-            'maxsize' => 8000000,
-            'overlap' => 100,
+            'maxsize' => get_config('search_elastic', 'fs_chunkmaxsize') ?? self::DEFAULT_MAXSIZE,
+            'overlap' => get_config('search_elastic', 'fs_chunkoverlapwords') ?? self::DEFAULT_OVERLAPWORDS,
         ];
+    }
+
+    /**
+     * Add admin settings specific to the fixed-size chunking strategy.
+     *
+     * @param admin_settingpage $settings
+     */
+    public function add_settings(admin_settingpage $settings): void {
+        // Fixed size specific settings.
+        $settings->add(new admin_setting_configtext(
+            'search_elastic/fs_chunkmaxsize',
+            get_string('fs_chunkmaxsize', 'search_elastic'),
+            get_string('fs_chunkmaxsize_desc', 'search_elastic'),
+            self::DEFAULT_MAXSIZE,
+            PARAM_INT
+        ));
+        $settings->add(new admin_setting_chunking_overlap(
+            'search_elastic/fs_chunkoverlapwords',
+            get_string('fs_chunkoverlapwords', 'search_elastic'),
+            get_string('fs_chunkoverlapwords_desc', 'search_elastic'),
+            self::DEFAULT_OVERLAPWORDS,
+            PARAM_INT
+        ));
+
+        // Hide unless chunking is enabled and this strategy is selected.
+        $settings->hide_if('search_elastic/fs_chunkmaxsize', 'search_elastic/enablechunking', 'notchecked');
+        $settings->hide_if('search_elastic/fs_chunkmaxsize', 'search_elastic/chunkingstrategy', 'neq', self::class);
+
+        $settings->hide_if('search_elastic/fs_chunkoverlapwords', 'search_elastic/enablechunking', 'notchecked');
+        $settings->hide_if('search_elastic/fs_chunkoverlapwords', 'search_elastic/chunkingstrategy', 'neq', self::class);
     }
 
     /**
@@ -60,9 +110,6 @@ class fixed_size implements strategy_interface {
      * @return array Array of chunks containing 'text', 'index' and 'size' keys
      */
     public function chunk(string $text, array $options = []): array {
-        // Merge provided options with defaults.
-        $options = array_merge($this->get_default_options(), $options);
-
         if (empty($text) || strlen($text) <= $options['maxsize']) {
             return [[
                 'text' => $text,
@@ -128,7 +175,18 @@ class fixed_size implements strategy_interface {
     /**
      * Find the start of the word at the given position.
      *
-     * If position is mid-word, backs up to the start of that word.
+     * Searches backward to find whitespace, newline, tab, or carriage return (word boundary),
+     * then returns the position immediately after that word boundary.
+     *
+     * For example:
+     * Text: "The quick brown fox"
+     * Position: 13 (at 'w' in 'brown')
+     * Searches backward:
+     * - Position 12: 'o'
+     * - Position 11: 'r'
+     * - Position 10: 'b'
+     * - Position 9: ' ' (Whitespace/word boundary found!)
+     * Returns position 10 (N+1) which is the start of 'brown' after the space.
      *
      * @param string $text Full text
      * @param int $position Position to adjust
@@ -148,25 +206,28 @@ class fixed_size implements strategy_interface {
 
         // Check if we are already at the start of a word (previous char is a whitespace).
         $prevchar = substr($text, $position - 1, 1);
-        if ($prevchar === ' ' || $prevchar === '\n' || $prevchar === '\t' || $prevchar === '\r') {
+        if (in_array($prevchar, self::WORD_BOUNDARY_CHARS)) {
             return $position;
         }
 
-        // We are at the mid of a word - search backward to find the start.
+        // We are at the mid of a word - search backward to find the beginning of the word.
         $searchpos = $position - 1;
         while ($searchpos >= $minposition) {
             $char = substr($text, $searchpos, 1);
-            if ($char === ' ' || $char === '\n' || $char === '\t' || $char === '\r') {
+            if (in_array($char, self::WORD_BOUNDARY_CHARS)) {
+                // We found the word boundary, return position after the start of the word.
                 return $searchpos + 1;
             }
             $searchpos--;
 
-            // Don't search more than 100 bytes back.
+            // Don't search more than 100 bytes back. This should cover longest real words in english
+            // (45 bytes) while preventing excessive backtracking through base64/URLs that have no spaces.
             if ($position - $searchpos > 100) {
                 return $position;
             }
         }
 
+        // Return the original position if no boundary found.
         return $minposition;
     }
 
@@ -181,7 +242,7 @@ class fixed_size implements strategy_interface {
      * Example:
      * - Chunk text: "The quick brown fox jumps over the lazy dog"
      * - Overlap: 3 words
-     * - Returns: byte length of "the lazy dog" (~13 bytes)
+     * - Returns: byte length of "the lazy dog" (~12 bytes)
      *
      * @param string $chunktext The chunk text to calculate the overlap from
      * @param int $overlapwords Number of words to overlap

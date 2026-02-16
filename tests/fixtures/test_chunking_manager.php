@@ -51,7 +51,7 @@ class test_chunking_manager extends manager {
      * @return strategy_interface
      */
     public static function get_configured_strategy(): strategy_interface {
-        $strategyname = get_config('search_elastic', 'chunkingstrategy') ?: 'fixed_size';
+        $strategyname = get_config('search_elastic', 'chunkingstrategy') ?: 'search_elastic\\local\\chunking\\fixed_size';
         $strategies = self::get_strategies();
         return $strategies[$strategyname];
     }

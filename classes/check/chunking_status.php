@@ -16,13 +16,19 @@
 
 namespace search_elastic\check;
 
+use search_elastic\local\chunking\manager;
+use search_elastic\local\model\error;
 use action_link;
 use core\check\check;
 use core\check\result;
 use moodle_url;
 
 /**
- * Elasticsearch plugin chunking status check.
+ * Health check for recent chunking-related errors.
+ *
+ * If chunking is disabled, this returns NA. If enabled, it queries the search_elastic_errors table
+ * for errors classified as TYPE_CHUNKING within the last 24 hours. If one or more chunking related
+ * errors are found, a WARNING result is returned. Otherwise, the check reports OK.
  *
  * @package     search_elastic
  * @author      Trisha Milan <trishamilan@catalyst-au.net>
@@ -38,11 +44,17 @@ class chunking_status extends check {
     public function get_result(): result {
         global $DB;
 
+        if (!manager::is_chunking_enabled()) {
+            return new result(result::NA, get_string('chunking:na', 'search_elastic'));
+        }
+
         $sql = "SELECT COUNT(*)
                   FROM {search_elastic_errors}
-                 WHERE {$DB->sql_like('errormessage', ':errormessage')}
-                       AND timecreated > :time";
-        $count = $DB->count_records_sql($sql, ['errormessage' => '%chunk%', 'time' => time() - DAYSECS]);
+                 WHERE errortype = :errortype AND timecreated > :time";
+        $count = $DB->count_records_sql($sql, [
+            'errortype' => error::TYPE_CHUNKING,
+            'time' => time() - DAYSECS,
+        ]);
         if ($count > 0) {
             return new result(result::WARNING, get_string('chunkingrelatederrorsfound', 'search_elastic', $count));
         }

@@ -26,18 +26,18 @@ namespace search_elastic\local\chunking;
  */
 interface strategy_interface {
     /**
-     * Get the default options for this strategy.
+     * Return strategy-specific options derived from plugin configuration.
      *
      * @return array
      */
-    public static function get_default_options(): array;
+    public function get_options(): array;
 
     /**
      * Return the human-readable name for this strategy.
      *
      * @return string
      */
-    public static function get_name(): string;
+    public function get_name(): string;
 
     /**
      * Chunk the given document data according to strategy.
@@ -47,4 +47,11 @@ interface strategy_interface {
      * @return array Array of chunk data
      */
     public function chunk(string $text, array $options): array;
+
+    /**
+     * Allow strategies to add their own admin settings.
+     *
+     * @param \admin_settingpage $settings Settings page to add fields to.
+     */
+    public function add_settings(\admin_settingpage $settings): void;
 }

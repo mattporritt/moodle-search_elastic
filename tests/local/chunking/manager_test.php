@@ -101,19 +101,19 @@ final class manager_test extends advanced_testcase {
      */
     public function test_strategy_auto_discovery(): void {
         $strategies = manager::get_strategies();
-        $this->assertArrayHasKey('fixed_size', $strategies);
+        $this->assertArrayHasKey('search_elastic\\local\\chunking\\fixed_size', $strategies);
         foreach ($strategies as $strategy) {
             $this->assertInstanceOf(strategy_interface::class, $strategy);
         }
     }
 
     /**
-     * Test default options are available for each strategy.
+     * Test options are available for each strategy.
      */
-    public function test_get_default_options(): void {
+    public function test_get_options(): void {
         $strategies = manager::get_strategies();
         foreach ($strategies as $strategy) {
-            $this->assertIsArray($strategy->get_default_options());
+            $this->assertIsArray($strategy->get_options());
         }
     }
 }

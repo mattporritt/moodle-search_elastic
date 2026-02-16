@@ -33,15 +33,6 @@ use search_elastic\engine;
  */
 class delete_document_task extends adhoc_task {
     /**
-     * Get a descriptive name for this task (shown to admins).
-     *
-     * @return string
-     */
-    public function get_name(): string {
-        return get_string('deletedocumenttask', 'search_elastic');
-    }
-
-    /**
      * Do the job.
      * Throw exceptions on errors (the job will be retried).
      */

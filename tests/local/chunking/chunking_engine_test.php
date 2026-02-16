@@ -100,7 +100,7 @@ final class chunking_engine_test extends advanced_testcase {
         set_config('port', $port, 'search_elastic');
         set_config('index', $index, 'search_elastic');
         set_config('enablechunking', 1, 'search_elastic');
-        set_config('chunkingstrategy', 'fixed_size', 'search_elastic');
+        set_config('chunkingstrategy', 'search_elastic\\local\\chunking\\fixed_size', 'search_elastic');
         set_config('fs_chunkmaxsize', 2000, 'search_elastic');
         set_config('fs_chunkoverlapwords', 0, 'search_elastic');
         set_config('chunksuccessthreshold', 50, 'search_elastic');
@@ -199,8 +199,8 @@ final class chunking_engine_test extends advanced_testcase {
         $doc = $this->area->get_document($record);
         $docdata = $doc->export_for_engine();
 
-        $this->engine->test_set_config('fs_chunkmaxsize', 200);
-        $this->engine->test_set_config('fs_chunkoverlapwords', 0);
+        set_config('fs_chunkmaxsize', 200, 'search_elastic');
+        set_config('fs_chunkoverlapwords', 0, 'search_elastic');
 
         $indexed = $this->engine->add_document($doc, false, $this->luceneversion);
         $this->assertTrue($indexed);
@@ -335,7 +335,6 @@ final class chunking_engine_test extends advanced_testcase {
         // Delete the forum by areaid.
         $result = $this->engine->delete('mod_forum-post');
         $this->assertTrue($result);
-        $this->assertDebuggingCalled("Deleted 25 document(s) for area mod_forum-post.");
         sleep(2);
 
         $matchparams = [
@@ -385,7 +384,6 @@ final class chunking_engine_test extends advanced_testcase {
 
         $result = $this->engine->delete('test_area_1');
         $this->assertTrue($result);
-        $this->assertDebuggingCalledCount(1);
 
         sleep(2);
 
@@ -463,7 +461,7 @@ final class chunking_engine_test extends advanced_testcase {
     public function test_add_documents_with_chunking(): void {
         global $DB;
 
-        set_config('chunkingstrategy', 'fixed_size', 'search_elastic');
+        set_config('chunkingstrategy', 'search_elastic\\local\\chunking\\fixed_size', 'search_elastic');
         set_config('fs_chunkmaxsize', 5000, 'search_elastic');
 
         // Create and index a large document.
@@ -697,7 +695,8 @@ final class chunking_engine_test extends advanced_testcase {
         // Generate course.
         $course = self::getDataGenerator()->create_course();
 
-        $this->engine->test_set_config('fs_chunkmaxsize', 200);
+        set_config('fs_chunkmaxsize', 200, 'search_elastic');
+        set_config('fs_chunkoverlapwords', 0, 'search_elastic');
 
         // Index a document with multiple chunks.
         $rec = new stdClass();
@@ -759,7 +758,6 @@ final class chunking_engine_test extends advanced_testcase {
         ];
         [$totalhits] = $this->get_indexed_document($matchparams);
         $this->assertEquals(0, $totalhits);
-        $this->assertDebuggingCalled("Deleted 7 document(s) for original document core_mocksearch-mock_search_area-1.");
 
         // Verify regular document was deleted.
         $matchparams = [

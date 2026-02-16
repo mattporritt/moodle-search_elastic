@@ -32,7 +32,7 @@ class test_chunking_strategy implements strategy_interface {
      *
      * @return string
      */
-    public static function get_name(): string {
+    public function get_name(): string {
         return 'Test Strategy';
     }
 
@@ -60,11 +60,20 @@ class test_chunking_strategy implements strategy_interface {
     }
 
     /**
-     * Get the default options for this strategy.
+     * Get the options for this strategy.
      *
      * @return array
      */
-    public static function get_default_options(): array {
+    public function get_options(): array {
         return [];
+    }
+
+    /**
+     * Add admin settings specific to the test chunking strategy.
+     *
+     * @param \admin_settingpage $settings Settings page to add fields to.
+     */
+    public function add_settings(\admin_settingpage $settings): void {
+        // Nothing to add.
     }
 }
