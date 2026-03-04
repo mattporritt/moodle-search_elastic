@@ -153,6 +153,9 @@ class document extends \core_search\document {
      * @return string HTML text to be renderer
      */
     protected function format_text($text) {
+        // Remove @@PLUGINFILE@@ tokens and associated file paths from search snippets.
+        $text = preg_replace('/@@PLUGINFILE@@[^\s"\'<>\]]*/', '', $text);
+
         // Since we allow output for highlighting, we need to encode html entities.
         // This ensures plaintext html chars don't become valid html.
         $out = s($text);
