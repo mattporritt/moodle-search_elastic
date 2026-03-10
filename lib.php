@@ -63,10 +63,11 @@ function search_elastic_extend_navigation_user() {
 function search_elastic_status_checks(): array {
     // If elastic isn't the selected engine or global search is off, do not register the check at all.
     if (
-        !\core_search\manager::is_global_search_enabled() ||
-        (isset($CFG->searchengine) && $CFG->searchengine !== 'elastic')
+        \core_search\manager::is_global_search_enabled() &&
+        isset($CFG->searchengine) &&
+        $CFG->searchengine == 'elastic'
     ) {
-        return [];
+        return [new \search_elastic\check\server_ready_check()];
     }
-    return [new \search_elastic\check\server_ready_check()];
+    return [];
 }
