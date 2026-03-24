@@ -125,8 +125,8 @@ class manager {
     public static function get_strategy_options(): array {
         $options = [];
         $strategies = self::get_strategies();
-        foreach ($strategies as $key => $strategy) {
-            $options[$key] = $strategy->get_name();
+        foreach ($strategies as $strategyclass => $strategy) {
+            $options[$strategyclass] = $strategy->get_name();
         }
         return $options;
     }

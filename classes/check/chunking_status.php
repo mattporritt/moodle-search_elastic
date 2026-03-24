@@ -27,8 +27,8 @@ use moodle_url;
  * Health check for recent chunking-related errors.
  *
  * If chunking is disabled, this returns NA. If enabled, it queries the search_elastic_errors table
- * for errors classified as TYPE_CHUNKING within the last 24 hours. If one or more chunking related
- * errors are found, a WARNING result is returned. Otherwise, the check reports OK.
+ * for errors classified as TYPE_CHUNKING. If one or more chunking related errors are found, a WARNING
+ * result is returned. Otherwise, the check reports OK.
  *
  * @package     search_elastic
  * @author      Trisha Milan <trishamilan@catalyst-au.net>
@@ -50,11 +50,8 @@ class chunking_status extends check {
 
         $sql = "SELECT COUNT(*)
                   FROM {search_elastic_errors}
-                 WHERE errortype = :errortype AND timecreated > :time";
-        $count = $DB->count_records_sql($sql, [
-            'errortype' => error::TYPE_CHUNKING,
-            'time' => time() - DAYSECS,
-        ]);
+                 WHERE errortype = :errortype";
+        $count = $DB->count_records_sql($sql, ['errortype' => error::TYPE_CHUNKING]);
         if ($count > 0) {
             return new result(result::WARNING, get_string('chunkingrelatederrorsfound', 'search_elastic', $count));
         }

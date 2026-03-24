@@ -656,8 +656,8 @@ class engine extends \core_search\engine {
 
                 // Add to batch payload.
                 $jsonpayload = $this->create_payload($chunkdata);
-                if ($jsonpayload) {
-                    $this->batch_add_documents($jsonpayload);
+                $numdocsignored = $this->batch_add_documents($jsonpayload);
+                if ($jsonpayload && $numdocsignored == 0) {
                     $successcount++;
                 } else {
                     $failedchunks[] = $chunknumber;
@@ -887,8 +887,8 @@ class engine extends \core_search\engine {
 
                 // Create payload and add to batch.
                 $jsonpayload = $this->create_payload($chunkdata);
-                if ($jsonpayload) {
-                    $this->batch_add_documents($jsonpayload, false);
+                $numdocsignored = $this->batch_add_documents($jsonpayload, false);
+                if ($jsonpayload && $numdocsignored == 0) {
                     $successcount++;
                 } else {
                     $failedchunks[] = $chunknumber;
@@ -980,7 +980,7 @@ class engine extends \core_search\engine {
      * @param  array  $docdata [description]
      * @return bool
      */
-    private function retry_with_chunking(array $docdata): bool {
+    public function retry_with_chunking(array $docdata): bool {
         try {
             // Get chunking strategy and options.
             $strategy = manager::get_configured_strategy();

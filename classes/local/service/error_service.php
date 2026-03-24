@@ -453,8 +453,15 @@ class error_service {
             $fileerrorcount = 0;
             $filesskipped = 0;
 
+            $errordocid = explode('_', $error->get('docid'));
             foreach ($files as $file) {
                 $filedocdata = $document->export_file_for_engine($file);
+                // If the document ID is numeric, it means the index is for a file resource.
+                // There is no need to index all the files related to the parent document when
+                // we are only re-indexing a single file document.
+                if (is_numeric($errordocid) && ($errordocid[0] !== $filedocdata['id'])) {
+                    continue;
+                }
 
                 if (!$chunkingenabled) {
                     // Check file document size.
@@ -465,9 +472,11 @@ class error_service {
                             "($filesize bytes, exceeds $maxsize bytes limit)");
                         continue;
                     }
+                    $success = $engine->index_single_document($filedocdata);
+                } else {
+                    $success = $engine->retry_with_chunking($filedocdata);
                 }
 
-                $success = $engine->index_single_document($filedocdata);
                 if (!$success) {
                     $fileerrorcount++;
                 }

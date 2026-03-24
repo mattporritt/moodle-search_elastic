@@ -144,6 +144,84 @@ final class fixed_size_test extends advanced_testcase {
     }
 
     /**
+     * Data provider for word boundary tests.
+     * @return array
+     */
+    public static function word_boundary_provider(): array {
+        return [
+            'Space' => [
+                'text' => 'The quick brown fox jumps over the lazy dog. ' .
+                          'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+                'maxsize' => 30,
+            ],
+            'Newline \n' => [
+                'text' => "First line of text\n\n\n\n\n\n\n\n\n\nSecond line of text\n" .
+                          "Third line of text\n\n\n\n\n\n\n\n\n\nFourth line of text",
+                'maxsize' => 23,
+            ],
+            'Tab boundary \t' => [
+                'text' => "Column1\tColumn2\tColumn3\t" .
+                          "Column4\tColumn5\tColumn6\t" .
+                          "Column7\tColumn8\tColumn9\t",
+                'maxsize' => 25,
+            ],
+            'Carriage return \r' => [
+                'text' => "Line one\rLine two\rLine three\r" .
+                          "Line four\rLine five\rLine six\r",
+                'maxsize' => 20,
+            ],
+            'Mixed boundaries' => [
+                'text' => "The quick brown fox jumps over the lazy dog.\n" .
+                          "New line\ttab\tmixed\r" .
+                          "Lorem Ipsum dolor sit amet\n\t" .
+                          "Testing all boundaries combined.",
+                'maxsize' => 30,
+            ],
+        ];
+    }
+
+    /**
+     * Test word boundary characters with no overlap.
+     *
+     * @dataProvider word_boundary_provider
+     * @param string $text
+     * @param int $maxsize
+     */
+    public function test_word_boundary_chars_with_no_overlap(string $text, int $maxsize): void {
+        $strategy = new fixed_size();
+        $chunks = $strategy->chunk($text, ['maxsize' => $maxsize, 'overlap' => 0]);
+
+        // With NO overlap, we should be able to reconstruct the exact text.
+        $allchunktext = implode('', array_column($chunks, 'text'));
+        $this->assertEquals($text, $allchunktext);
+    }
+
+    /**
+     * Test word boundary characters with overlap.
+     *
+     * @dataProvider word_boundary_provider
+     * @param string $text
+     * @param int $maxsize
+     */
+    public function test_word_boundary_chars_with_overlap(string $text, int $maxsize): void {
+        $strategy = new fixed_size();
+        $chunks = $strategy->chunk($text, ['maxsize' => $maxsize, 'overlap' => 1]);
+
+        // Verify no chunk starts with a word boundary character.
+        for ($i = 1; $i < count($chunks); $i++) {
+            $chunktext = $chunks[$i]['text'];
+            $firstchar = substr($chunktext, 0, 1);
+            $this->assertNotContains($firstchar, fixed_size::WORD_BOUNDARY_CHARS);
+        }
+
+        $originalwords = str_word_count($text, 1);
+        $allchunktext = implode(' ', array_column($chunks, 'text'));
+        foreach ($originalwords as $word) {
+            $this->assertStringContainsString($word, $allchunktext);
+        }
+    }
+
+    /**
      * Test fixed size strategy with small text (no chunking).
      */
     public function test_fixed_size_small_text(): void {

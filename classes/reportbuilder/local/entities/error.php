@@ -323,6 +323,7 @@ class error extends base {
      */
     private function get_error_type_options(): array {
         return [
+            error_model::TYPE_CHUNKING => get_string('type_chunking', 'search_elastic'),
             error_model::TYPE_INDEXING => get_string('type_indexing', 'search_elastic'),
             error_model::TYPE_TIKA => get_string('type_tika', 'search_elastic'),
         ];

@@ -167,22 +167,6 @@ if ($hassiteconfig) {
         0
     ));
 
-    // BOOSTING SETTINGS.
-    $settings->add(new admin_setting_heading('boostsettings', get_string('boostsettings', 'search_elastic'), ''));
-    $searchareas = \core_search\manager::get_search_areas_list(true);
-    foreach ($searchareas as $areaid => $searcharea) {
-        $boostconfig = 'boost_' . $areaid;
-        // Replace the dash with an underscore, so it is a valid control name.
-        $boostconfig = str_replace('-', '_', $boostconfig);
-        $settings->add(new admin_setting_configtext(
-            "search_elastic/$boostconfig",
-            $searcharea->get_visible_name(),
-            get_string('boostvalue', 'search_elastic'),
-            10,
-            PARAM_INT
-        ));
-    }
-
     // Chunking settings.
     $settings->add(new admin_setting_heading('chunkingsettings', get_string('chunkingsettings', 'search_elastic'), ''));
 
@@ -215,6 +199,26 @@ if ($hassiteconfig) {
     $chunkingstrategies = manager::get_strategies();
     foreach ($chunkingstrategies as $strategy) {
         $strategy->add_settings($settings);
+    }
+
+    // Hide unless chunking is enabled and this strategy is selected.
+    $settings->hide_if('search_elastic/chunksuccessthreshold', 'search_elastic/enablechunking', 'notchecked');
+    $settings->hide_if('search_elastic/chunkingstrategy', 'search_elastic/enablechunking', 'notchecked');
+
+    // BOOSTING SETTINGS.
+    $settings->add(new admin_setting_heading('boostsettings', get_string('boostsettings', 'search_elastic'), ''));
+    $searchareas = \core_search\manager::get_search_areas_list(true);
+    foreach ($searchareas as $areaid => $searcharea) {
+        $boostconfig = 'boost_' . $areaid;
+        // Replace the dash with an underscore, so it is a valid control name.
+        $boostconfig = str_replace('-', '_', $boostconfig);
+        $settings->add(new admin_setting_configtext(
+            "search_elastic/$boostconfig",
+            $searcharea->get_visible_name(),
+            get_string('boostvalue', 'search_elastic'),
+            10,
+            PARAM_INT
+        ));
     }
 
     $enrichsettings = new admin_externalpage(

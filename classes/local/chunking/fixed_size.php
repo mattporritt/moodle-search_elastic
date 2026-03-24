@@ -35,7 +35,7 @@ class fixed_size implements strategy_interface {
      * When chunking, we try to split at these word boundaries to avoid
      * cutting words in half.
      */
-    private const WORD_BOUNDARY_CHARS = [' ', '\n', '\t', '\r'];
+    public const WORD_BOUNDARY_CHARS = [" ", "\n", "\t", "\r"];
 
     /**
      * Default maximum chunk size in bytes (8 MB).
@@ -202,6 +202,17 @@ class fixed_size implements strategy_interface {
 
         if ($position >= $textlength) {
             return $textlength;
+        }
+
+        // Check if current position is already a boundary character.
+        // If so, skip forward past all consecutive boundaries.
+        $currentchar = substr($text, $position, 1);
+        if (in_array($currentchar, self::WORD_BOUNDARY_CHARS)) {
+            // Current position is a boundary. Skip forward to find the word start.
+            while ($position < $textlength && in_array(substr($text, $position, 1), self::WORD_BOUNDARY_CHARS)) {
+                $position++;
+            }
+            return $position;
         }
 
         // Check if we are already at the start of a word (previous char is a whitespace).

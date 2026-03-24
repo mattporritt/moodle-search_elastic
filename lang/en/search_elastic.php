@@ -48,7 +48,15 @@ $string['chunkingstrategy'] = 'Chunking Strategy';
 $string['chunkingstrategy_desc'] = 'Method used to split large documents into chunks.';
 $string['chunkonverlaptoolarge'] = 'Chunk overlap ({$a->overlap} words) is too large for the configured chunk size ({$a->maxsize} bytes, ~{$a->maxreasonable} words max). Overlap should be less than 50% of chunk size. Please reduce overlap to {$a->maxreasonable} words or less.';
 $string['chunksuccessthreshold'] = 'Chunk success threshold percentage';
-$string['chunksuccessthreshold_desc'] = 'Minimum percentage of chunks that must be successfully indexed for a document to be considered successfully indexed. For example, with a threshold of 50%, a document with 10 chunks must have at least 5 chunks indexed to be considered successful. If fewer chunks succeed, the document is logged as an error.';
+$string['chunksuccessthreshold_desc'] = 'Minimum percentage of chunks that must be successfully indexed for a document to be considered successfully indexed.
+
+Example with 50% threshold and 10 chunks:
+<br>
+✓ Success: 7 chunks indexed (any 7 out of 10) = 70%<br>
+✓ Success: 5 chunks indexed (any 5 out of 10) = 50%<br>
+✗ Failure: 4 chunks indexed (any 4 out of 10) = 40%<br>
+
+The chunk order does not matter. The threshold is based on total count, not which specific chunks succeed.';
 $string['clearsearch'] = 'Clear Search';
 $string['clearsearchdesc'] = 'Remove all search filters';
 $string['complexhelptext'] = 'The field to be searched may be specified by prefixing the search query with \'title:\', \'content:\', \'name:\', or \'intro:\'. For example, searching for \'title:news\' would return results with the word \'news\' in the title.
@@ -75,7 +83,22 @@ $string['deletedsuccessfully'] = 'Error ID {$a} has been deleted successfully.';
 $string['deleteobsoleteexception'] = 'Exception occured while deleting obsolete errors: {$a}';
 $string['documentid'] = 'Document ID';
 $string['enablechunking'] = 'Enable document chunking';
-$string['enablechunking_desc'] = 'When enabled, documents exceeding size limits will be automatically split into smaller chunks.';
+$string['enablechunking_desc'] = 'Automatically split large documents into smaller chunks to avoid Elasticsearch payload size limits.
+
+Platform limits:
+<ul>
+<li>AWS OpenSearch: 10-100 MB depending on the instance type (see https://docs.aws.amazon.com/opensearch-service/latest/developerguide/limits.html#network-limits)</li>
+<li>Self-hosted Elasticsearch: 100 MB by default (configurable via http.max_content_length)</li>
+</ul>
+
+Without chunking:
+<ul>
+<li>Documents exceeding your platform limit fail with "413 Request Entity Too Large"</li>
+<li>Documents that failed to index are not searchable</li>
+<li>Errors logged but indexing continues for other documents</li>
+</ul>
+
+Enable this if you have large files (PDFs, presentations, data files) that need to be searchable.';
 $string['enrichdesc'] = 'Global Search can enrich the indexed data used in search by extracting text and other data from files.
 The data extracted from files in Moodle is controlled by the following groups of settings.';
 $string['enrichsettings'] = 'Data enrichment settings';
@@ -94,7 +117,12 @@ $string['fixedsizestrategy'] = 'Fixed size';
 $string['fs_chunkmaxsize'] = 'Maximum chunk size (bytes)';
 $string['fs_chunkmaxsize_desc'] = 'Maximum size of each chunk in bytes.';
 $string['fs_chunkoverlapwords'] = 'Chunk overlap (words)';
-$string['fs_chunkoverlapwords_desc'] = 'Number of words to overlap between chunks to preserve context across boundaries.';
+$string['fs_chunkoverlapwords_desc'] = 'Number of words to overlap between chunks to preserve context across boundaries. The last N words of each chunk are repeated at the start of the next chunk.<br><br>
+Example with 10 words overlap:
+<br><br>
+Chunk 1: <em>"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, <br> when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, <br> remaining essentially unchanged. It was popularised in the 1960s with"</em>
+<br><br>
+Chunk 2 starts: <em>"remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, <br> and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."</em>';
 $string['fs_maxchunk'] = 'Max chunk';
 $string['fs_maxchunk_desc'] = 'Max chunk desc';
 $string['handle413retrychunkingdisabled'] = 'Failed to add document to index. Document too large ({$a->docsize} bytes exceeds {$a->maxsize} bytes limit). Enable chunking in plugin settings to index large documents. Doc ID: {$a->docid}';
@@ -213,6 +241,7 @@ $string['timecreated'] = 'Created';
 $string['timemodified'] = 'Timemodified';
 $string['timeout'] = 'Request timeout';
 $string['timeout_desc'] = 'Maximum time in seconds to wait for HTTP requests to complete. Defaults to 0 to wait indefinitely (the default behavior).';
+$string['type_chunking'] = 'Chunking';
 $string['type_indexing'] = 'Indexing';
 $string['type_tika'] = 'Tika';
 $string['usesimplequery'] = 'Use simple query';

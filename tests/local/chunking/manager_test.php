@@ -18,13 +18,11 @@ namespace search_elastic\local\chunking;
 
 use advanced_testcase;
 use search_elastic\test_chunking_manager;
-use search_elastic\test_chunking_strategy;
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/test_chunking_manager.php');
-require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/test_chunking_strategy.php');
 
 /**
  * Unit test for chunking manager.
@@ -59,15 +57,19 @@ final class manager_test extends advanced_testcase {
     public function test_get_configured_strategy(): void {
         // Since we only have fixed_size implementation available at the moment,
         // create a test strategy verify we are able to get the configured strategy.
-        $strategies = manager::get_strategies();
-        $teststrategy = new test_chunking_strategy();
+        $mockstrategy = $this->createMock(strategy_interface::class);
+        $mockstrategy->method('get_name')->willReturn('Test Strategy');
+        $mockstrategy->method('get_options')->willReturn([]);
+        $mockstrategy->method('chunk')->willReturn([]);
+        $mockstrategy->method('add_settings');
 
         // Inject via test manager.
-        test_chunking_manager::set_test_strategies(array_merge($strategies, ['test_strategy' => $teststrategy]));
+        $strategies = manager::get_strategies();
+        test_chunking_manager::set_test_strategies(array_merge($strategies, ['test_strategy' => $mockstrategy]));
         set_config('chunkingstrategy', 'test_strategy', 'search_elastic');
 
         $strategy = test_chunking_manager::get_configured_strategy();
-        $this->assertInstanceOf(test_chunking_strategy::class, $strategy);
+        $this->assertInstanceOf($mockstrategy::class, $strategy);
 
         // Clean up.
         test_chunking_manager::clear_test_strategies();
