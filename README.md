@@ -250,7 +250,7 @@ Platform limits:
 - Self-hosted Elasticsearch: 100 MB by default (configurable via `http.max_content_length`)
 
 To enable chunking:
-1. Navigate to `Site administration` > `Plugins` > `Search` > `Elastic`.
+1. Navigate to `Site administration > Plugins > Search > Elastic`.
 2. Scroll to "Document chunking settings".
 3. Enable document chunking.
 4. Save changes
@@ -271,7 +271,8 @@ This chunking strategy splits large documents into smaller chunks based on byte 
 
 How it works:
 
-1. Documents exceeding the `Request size ` setting are chunked. Request size value should match (or be slightly below) your Elasticsearch server's `http.max_content_length` limit. The request size setting can be found at `Site administration` > `Plugins` > `Search` > `Elastic > Plugin Settings > Basic settings > Request size`.
+1. Documents exceeding the `Request size ` setting are chunked. Request size value should match (or be slightly below) your Elasticsearch server's `http.max_content_length` limit. The request size setting can be found at `Site administration > Plugins > Search > Elastic > Plugin Settings > Basic settings > Request size`.
+
    **Note:** Setting this value in Moodle does NOT change your Elasticsearch server's actual payload limit. You must configure both independently.
    - Moodle setting: Request size (tells Moodle when to chunk)
    - Elasticsearch setting: `http.max_content_length` (controls what Elasticsearch accepts)
