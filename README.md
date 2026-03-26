@@ -244,6 +244,7 @@ Assuming you have already followed the basic installation steps and the file ind
 
 ## Document Chunking
 Large documents are automatically split into smaller chunks to avoid Elasticsearch payload size limits.
+
 Platform limits:
 - AWS OpenSearch: 10-100 MB depending on the instance type (see https://docs.aws.amazon.com/opensearch-service/latest/developerguide/limits.html#network-limits)
 - Self-hosted Elasticsearch: 100 MB by default (configurable via `http.max_content_length`)
