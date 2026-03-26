@@ -244,20 +244,14 @@ Assuming you have already followed the basic installation steps and the file ind
 
 ## Document Chunking
 Large documents are automatically split into smaller chunks to avoid Elasticsearch payload size limits.
-
 Platform limits:
-
 - AWS OpenSearch: 10-100 MB depending on the instance type (see https://docs.aws.amazon.com/opensearch-service/latest/developerguide/limits.html#network-limits)
 - Self-hosted Elasticsearch: 100 MB by default (configurable via `http.max_content_length`)
 
 To enable chunking:
-
 1. Navigate to `Site administration` > `Plugins` > `Search` > `Elastic`.
-
 2. Scroll to "Document chunking settings".
-
 3. Enable document chunking.
-
 4. Save changes
 
 ### Chunking Settings
@@ -278,20 +272,15 @@ How it works:
 
 1. Documents exceeding the `Request size ` setting are chunked. Request size value should match (or be slightly below) your Elasticsearch server's `http.max_content_length` limit. The request size setting can be found at `Site administration` > `Plugins` > `Search` > `Elastic > Plugin Settings > Basic settings > Request size`.
    **Note:** Setting this value in Moodle does NOT change your Elasticsearch server's actual payload limit. You must configure both independently.
-
    - Moodle setting: Request size (tells Moodle when to chunk)
    - Elasticsearch setting: `http.max_content_length` (controls what Elasticsearch accepts)
 
    **Example:**
-
    - Your Elasticsearch instance has a 10 MB payload limit
    - Set Moodle Request size to 10 MB (or 9 MB for safety margin)
    - Documents > 10 MB will be chunked
-
 2. Documents are split into chunks of the configured maximum chunk size (e.g., 1 MB, 5 MB)
-
 3. Documents are divided at exact byte boundaries
-
 4. Configurable word-based overlap between chunks preserves search context across boundaries
 
 ## Request Signing
