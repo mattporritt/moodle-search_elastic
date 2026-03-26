@@ -242,6 +242,58 @@ Assuming you have already followed the basic installation steps and the file ind
 
 **NOTE:** You will need a set of AWS API keys for an AWS IAM user with full Rekognition permissions. Setting this up is beyond the scope of this README. for further information see the [AWS Documentation](https://aws.amazon.com/rekognition/getting-started/).
 
+## Document Chunking
+Large documents are automatically split into smaller chunks to avoid Elasticsearch payload size limits.
+
+Platform limits:
+
+- AWS OpenSearch: 10-100 MB depending on the instance type (see https://docs.aws.amazon.com/opensearch-service/latest/developerguide/limits.html#network-limits)
+- Self-hosted Elasticsearch: 100 MB by default (configurable via `http.max_content_length`)
+
+To enable chunking:
+
+1. Navigate to `Site administration` > `Plugins` > `Search` > `Elastic`.
+
+2. Scroll to "Document chunking settings".
+
+3. Enable document chunking.
+
+4. Save changes
+
+### Chunking Settings
+
+| Setting                            | Default       | Description                                                  |
+| ---------------------------------- | ------------- | ------------------------------------------------------------ |
+| Enable document chunking           | Disabled      | Master switch for activating the chunking feature            |
+| Chunk success threshold percentage | 50            | Minimum percentage of chunks that must be successfully indexed for a document to be considered successfully indexed. <br /><br />Example with 50% threshold and 10 chunks:<br/>✓ Success: 7 chunks indexed (any 7 out of 10) = 70%<br/>✓ Success: 5 chunks indexed (any 5 out of 10) = 50%<br/>✗ Failure: 4 chunks indexed (any 4 out of 10) = 40%<br /><br />The chunk order does not matter. The threshold is based on total count, not which specific chunks succeed. |
+| Chunking Strategy                  | Fixed size    | Algorithm used to split documents into chunks.               |
+| Maximum chunk size (bytes)         | 8000000 bytes | Maximum size per chunk in bytes                              |
+| Chunk overlap (words)              | 100 words     | Number of words to overlap between chunks to preserve context across boundaries. The last N words of each chunk are repeated at the start of the next chunk. |
+
+ ### Fixed size Chunking Strategy
+
+This chunking strategy splits large documents into smaller chunks based on byte size.
+
+How it works:
+
+1. Documents exceeding the `Request size ` setting are chunked. Request size value should match (or be slightly below) your Elasticsearch server's `http.max_content_length` limit. The request size setting can be found at `Site administration` > `Plugins` > `Search` > `Elastic > Plugin Settings > Basic settings > Request size`.
+   **Note:** Setting this value in Moodle does NOT change your Elasticsearch server's actual payload limit. You must configure both independently.
+
+   - Moodle setting: Request size (tells Moodle when to chunk)
+   - Elasticsearch setting: `http.max_content_length` (controls what Elasticsearch accepts)
+
+   **Example:**
+
+   - Your Elasticsearch instance has a 10 MB payload limit
+   - Set Moodle Request size to 10 MB (or 9 MB for safety margin)
+   - Documents > 10 MB will be chunked
+
+2. Documents are split into chunks of the configured maximum chunk size (e.g., 1 MB, 5 MB)
+
+3. Documents are divided at exact byte boundaries
+
+4. Configurable word-based overlap between chunks preserves search context across boundaries
+
 ## Request Signing
 Amazon Web Services (AWS) provide Elasticsearch as a managed service. This makes it easy to provision and manage and Elasticsearch cluster.<br/>
 One of the ways you can secure access to your data in Elasticsearch when using AWS is to use request signing. [Request signing](http://docs.aws.amazon.com/general/latest/gr/signing_aws_api_requests.html) allows only valid signed requests to be accepted by the Elasticsearch endpoint. Requests that are unsigned are not authorised to access the endpoint.
