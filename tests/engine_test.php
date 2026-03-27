@@ -166,9 +166,9 @@ final class engine_test extends \advanced_testcase {
               'status' => '404',
           ],
           '503' => [
-              'code' => 200,
+              'code' => 503,
               'ok' => false,
-              'host' => '',
+              'host' => 'localhost',
               'searchengine' => 'elastic',
               'status' => '503',
           ],
@@ -204,7 +204,7 @@ final class engine_test extends \advanced_testcase {
             new Response($code, ['Content-Type' => 'application/json']),
         ]);
         if (isset($host)) {
-            set_config('hostname', '', 'search_elastic');
+            set_config('hostname', $host, 'search_elastic');
         }
         set_config('searchengine', $searchengine);
 
