@@ -21,6 +21,7 @@ use core_search\manager;
 use Exception;
 use search_elastic\engine;
 use search_elastic\enrich\text\tika;
+use search_elastic\local\chunking\manager as chunking_manager;
 use search_elastic\local\model\error;
 use stdClass;
 use stored_file;
@@ -186,7 +187,43 @@ class error_service {
      * @param  array|null $docdata Array of document data
      * @param  int $debuglevel The level at which the debugging statement should show
      */
-    public static function record_document_error(string $message, ?array $docdata = null, int $debuglevel = DEBUG_NORMAL): void {
+    public static function record_document_error(
+        string $message,
+        ?array $docdata = null,
+        int $debuglevel = DEBUG_NORMAL
+    ): void {
+        self::store_document_error($message, $docdata, $debuglevel, error::TYPE_INDEXING);
+    }
+
+    /**
+     * Record a chunking-related error for a document.
+     *
+     * @param  string $message Error message
+     * @param  array|null $docdata Array of document data
+     * @param  int $debuglevel The level at which the debugging statement should show
+     */
+    public static function record_chunking_error(
+        string $message,
+        ?array $docdata = null,
+        int $debuglevel = DEBUG_NORMAL
+    ): void {
+        self::store_document_error($message, $docdata, $debuglevel, error::TYPE_CHUNKING);
+    }
+
+    /**
+     * Core error recorder used by the public helpers.
+     *
+     * @param  string $message Error message
+     * @param  array|null $docdata Array of document data
+     * @param  int $debuglevel The level at which the debugging statement should show
+     * @param  string Error type
+     */
+    private static function store_document_error(
+        string $message,
+        ?array $docdata = null,
+        int $debuglevel = DEBUG_NORMAL,
+        string $errortype = error::TYPE_CHUNKING
+    ): void {
         if (is_null($docdata) || !isset($docdata['id'])) {
             return;
         }
@@ -197,7 +234,7 @@ class error_service {
             $documentinfo['itemid'],
             $documentinfo['contextid'],
             $documentinfo['areaid'],
-            error::TYPE_INDEXING,
+            $errortype,
             $message,
             $documentinfo['modified']
         );
@@ -346,7 +383,7 @@ class error_service {
         $searcharea->attach_files($document);
         $files = $document->get_files();
 
-        return empty($files) ? false : true;
+        return !empty($files);
     }
 
     /**
@@ -377,17 +414,20 @@ class error_service {
                 return ['success' => false, 'message' => 'Search area could not create document from record'];
             }
 
-            // Check document size before attempting to index.
-            $docdata = $document->export_for_engine();
-            $docsize = strlen(json_encode($docdata));
-            $maxsize = (int)$config->sendsize;
-            if ($docsize > $maxsize) {
-                // Can't index this document because it's too large.
-                $error->mark_failed();
-                return [
-                    'success' => false,
-                    'message' => "Document too large ($docsize) bytes exceeds $config->sendsize bytes limit).",
-                ];
+            $chunkingenabled = chunking_manager::is_chunking_enabled();
+            if (!$chunkingenabled) {
+                // Check document size before attempting to index.
+                $docdata = $document->export_for_engine();
+                $docsize = strlen(json_encode($docdata));
+                $maxsize = (int)$config->sendsize;
+                if ($docsize > $maxsize) {
+                    // Can't index this document because it's too large.
+                    $error->mark_failed();
+                    return [
+                        'success' => false,
+                        'message' => "Document too large ($docsize) bytes exceeds $config->sendsize bytes limit).",
+                    ];
+                }
             }
 
             // Index the parent document first.
@@ -413,18 +453,30 @@ class error_service {
             $fileerrorcount = 0;
             $filesskipped = 0;
 
+            $errordocid = explode('_', $error->get('docid'));
             foreach ($files as $file) {
                 $filedocdata = $document->export_file_for_engine($file);
-
-                // Check file document size.
-                $filesize = strlen(json_encode($filedocdata));
-                if ($filesize > $config->sendsize) {
-                    $filesskipped++;
-                    debugging("Skipping file (too large): {$file->get_filename()} ($filesize bytes, exceeds $maxsize bytes limit)");
+                // If the document ID is numeric, it means the index is for a file resource.
+                // There is no need to index all the files related to the parent document when
+                // we are only re-indexing a single file document.
+                if (is_numeric($errordocid) && ($errordocid[0] !== $filedocdata['id'])) {
                     continue;
                 }
 
-                $success = $engine->index_single_document($filedocdata);
+                if (!$chunkingenabled) {
+                    // Check file document size.
+                    $filesize = strlen(json_encode($filedocdata));
+                    if ($filesize > $config->sendsize) {
+                        $filesskipped++;
+                        debugging("Skipping file (too large): {$file->get_filename()} " .
+                            "($filesize bytes, exceeds $maxsize bytes limit)");
+                        continue;
+                    }
+                    $success = $engine->index_single_document($filedocdata);
+                } else {
+                    $success = $engine->retry_with_chunking($filedocdata);
+                }
+
                 if (!$success) {
                     $fileerrorcount++;
                 }

@@ -96,21 +96,30 @@ class document extends \core_search\document {
      * @var array
      */
     protected static $optionalfields = [
-            'userid' => [
-                    'type' => 'integer',
-            ],
-            'groupid' => [
-                    'type' => 'integer',
-            ],
-            'description1' => [
-                    'type' => 'text',
-            ],
-            'description2' => [
-                    'type' => 'text',
-            ],
-            'filetext' => [
-                    'type' => 'text',
-            ],
+        'userid' => [
+            'type' => 'integer',
+        ],
+        'groupid' => [
+            'type' => 'integer',
+        ],
+        'description1' => [
+            'type' => 'text',
+        ],
+        'description2' => [
+            'type' => 'text',
+        ],
+        'filetext' => [
+            'type' => 'text',
+        ],
+        'chunk_number' => [
+            'type' => 'integer',
+        ],
+        'chunk_total' => [
+            'type' => 'integer',
+        ],
+        'original_id' => [
+            'type' => 'keyword',
+        ],
     ];
 
     /**
@@ -230,7 +239,7 @@ class document extends \core_search\document {
         $filetext = '';
 
         $processors = $this->get_enrichment_processors();  // Make a list of enabled enrichment processors.
-        foreach ($processors as $processor) {  // Loop thorugh processors to see if they support this files mimetype.
+        foreach ($processors as $processor) {  // Loop through processors to see if they support this files mimetype.
             $proc = new $processor($this->config);
             if ($proc->can_analyze($file)) {  // Sequentially process the file apppending results to $filetext.
                 try {

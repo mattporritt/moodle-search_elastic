@@ -31,8 +31,11 @@
 
 namespace search_elastic;
 
+use search_elastic\local\chunking\manager;
+use search_elastic\local\chunking\fixed_size;
 use search_elastic\local\service\error_service;
 use stdClass;
+use Exception;
 
 /**
  * Elasticsearch engine.
@@ -337,10 +340,13 @@ class engine extends \core_search\engine {
                             ['match' => ['parentid' => $document->get('id')]],
                         ],
                 ]],
-                '_source' => ['id',
-                                  'modified',
-                                  'filecontenthash',
-                                  'title'],
+                '_source' => [
+                    'id',
+                    'modified',
+                    'filecontenthash',
+                    'title',
+                    'original_id',
+                ],
                 'from' => $start,
                 'size' => $rows,
                 ];
@@ -377,16 +383,85 @@ class engine extends \core_search\engine {
     }
 
     /**
-     * Given an array of files,
-     * remove these from the index.
+     * Given an array of files, remove these from the index.
      *
-     * @param object $idstodelete Files to remove from index.
+     * Handles both regular file documents and chunked file documents.
+     *
+     * @param array $idstodelete Array of file deletion info
      */
-    private function delete_indexed_files($idstodelete) {
+    private function delete_indexed_files(array $idstodelete) {
+        if (empty($idstodelete)) {
+            return;
+        }
+
         // Delete files that are no longer attached.
-        foreach ($idstodelete as $id => $type) {
-            // We directly delete the item using the client, as the engine delete_by_id won't work on file docs.
-            $this->delete_by_id($id);
+        foreach ($idstodelete as $deletion) {
+            $fileid = $deletion['id'];
+            $ischunk = $deletion['is_chunk'] ?? false;
+            if ($ischunk) {
+                $this->delete_by_original_id($fileid);
+            } else {
+                $this->delete_by_id($fileid);
+            }
+        }
+    }
+
+    /**
+     * Delete all documents in a specific search area.
+     *
+     * Handles both regular documents and chunked documents. For chunked documents,
+     * deletes all chunks associated with each original document.
+     *
+     * @param string $areaid Area ID to delete
+     * @return bool
+     */
+    private function delete_by_area($areaid): bool {
+        return $this->delete_by_query(
+            ['term' => ['areaid' => $areaid]],
+            "area {$areaid}"
+        );
+    }
+
+    /**
+     * Delete all chunks for a document by original_id.
+     *
+     * @param string $originaldocid The original document ID.
+     * @return bool
+     */
+    public function delete_by_original_id(string $originaldocid): bool {
+        return $this->delete_by_query(
+            ['term' => ['original_id' => $originaldocid]],
+            "original document {$originaldocid}"
+        );
+    }
+
+    /**
+     * Execute a delete_by_query operation.
+     *
+     * @param array $queryfilter The query filter (e.g. ['term' => ['areaid' => 'test']])
+     * @param string $description Description of what's being deleted for logging
+     * @return bool
+     */
+    private function delete_by_query(array $queryfilter, string $description): bool {
+        $url = $this->get_url() . '/' . $this->config->index . '/_delete_by_query';
+        $client = new esrequest();
+        $query = ['query' => $queryfilter];
+
+        try {
+            $response = $client->post($url, json_encode($query));
+            $responsecode = $response->getStatusCode();
+            $responsebody = json_decode($response->getBody());
+
+            if ($responsecode === 200) {
+                $deletedcount = $responsebody->deleted ?? 0;
+                return true;
+            }
+
+            debugging("Delete failed: " . json_encode($responsebody), DEBUG_DEVELOPER);
+            return false;
+        } catch (Exception $e) {
+            debugging("Failed to delete chunks for {$originaldocid}: " . $e->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
     }
 
@@ -401,40 +476,60 @@ class engine extends \core_search\engine {
         $rows = 500; // Maximum rows to process at a time.
         $files = $document->get_files(); // Get the attached files.
         // We do this progressively, so we can handle lots of files cleanly.
-         [ $numfound, $indexedfiles ] = $this->get_indexed_files($document, 0, $rows);
+        [$numfound, $indexedfiles] = $this->get_indexed_files($document, 0, $rows);
         $count = 0;
         $idstodelete = [];
+
+        // Track which original files we've already processed. Chunked files create multiple
+        // entries in Elasticsearch (e.g. file_123_c1, file_123_c2) with the same original_id.
+        // This map ensures we only process each original file once.
+        $processedoriginals = [];
 
         do {
             // Go through each indexed file. We want to not index any stored and unchanged ones, delete any missing ones.
             foreach ($indexedfiles as $indexedfile) {
                 $fileid = $indexedfile->_source->id;
 
-                if (isset($files[$fileid])) {
+                // Check if this is a chunk (has original_id field).
+                $originalfileid = $indexedfile->_source->original_id ?? $fileid;
+                $ischunk = isset($indexedfile->_source->original_id) && $indexedfile->_source->original_id !== $fileid;
+
+                // Skip if we already processed this original file.
+                if (isset($processedoriginals[$originalfileid])) {
+                    continue;
+                }
+
+                // Check against the original file ID (not chunk ID).
+                if (isset($files[$originalfileid])) {
                     // Check for changes that would mean we need to re-index the file. If so, just leave in $files.
                     // Filelib does not guarantee time modified is updated, so we will check important values.
-                    if ($indexedfile->_source->modified != $files[$fileid]->get_timemodified()) {
+                    $unchanged = $indexedfile->_source->modified == $files[$originalfileid]->get_timemodified()
+                        && strcmp($indexedfile->_source->title, $files[$originalfileid]->get_filename()) === 0
+                        && $indexedfile->_source->filecontenthash != $files[$originalfileid]->get_contenthash();
+
+                    // If the file is already indexed and unchanged, we can just remove it from the files array and skip it.
+                    if ($unchanged) {
+                        unset($files[$originalfileid]);
+                        $processedoriginals[$originalfileid] = true;
                         continue;
                     }
-                    if (strcmp($indexedfile->_source->title, $files[$fileid]->get_filename()) !== 0) {
-                        continue;
-                    }
-                    if ($indexedfile->_source->filecontenthash != $files[$fileid]->get_contenthash()) {
-                        continue;
-                    }
-                    // If the file is already indexed, we can just remove it from the files array and skip it.
-                    unset($files[$fileid]);
-                } else {
-                    // This means we have found a file that is no longer attached, so we need to delete from the index.
-                    // We do it later, since this is progressive, and it could reorder results.
-                    $idstodelete[$indexedfile->_source->id] = $indexedfile->_type;
                 }
+
+                // If we get here, it means we have found a file that is no longer attached, or has changed so we need
+                // to delete from the index. We do it later, since this is progressive, and it could reorder results.
+                $idstodelete[$originalfileid] = [
+                    'id' => $originalfileid,
+                    'is_chunk' => $ischunk,
+                    'type' => $indexedfile->_type,
+                ];
+
+                $processedoriginals[$originalfileid] = true;
             }
             $count += $rows;
 
             if ($count < $numfound) {
                 // If we haven't hit the total count yet, fetch the next batch.
-                 [ $numfound, $indexedfiles ] = $this->get_indexed_files($document, $count, $rows);
+                [$numfound, $indexedfiles] = $this->get_indexed_files($document, $count, $rows);
             }
         } while ($count < $numfound);
 
@@ -486,7 +581,7 @@ class engine extends \core_search\engine {
         $files = [];
         if (!$document->get_is_new()) {
             // If this isn't a new document, we need to check the exiting indexed files.
-             [$files, $idstodelete] = $this->filter_indexed_files($document);
+            [$files, $idstodelete] = $this->filter_indexed_files($document);
 
             // Delete files that are no longer attached.
             $this->delete_indexed_files($idstodelete);
@@ -494,16 +589,92 @@ class engine extends \core_search\engine {
             $files = $document->get_files();
         }
 
+        // Check if chunking is enabled.
+        $chunkingenabled = manager::is_chunking_enabled();
+
+        $strategy = null;
+        $options = [];
+        if ($chunkingenabled) {
+            // Get chunking strategy and options.
+            $strategy = manager::get_configured_strategy();
+            $options = manager::get_chunking_options();
+        }
+
         foreach ($files as $fileid => $file) {
             $filedocdata = $document->export_file_for_engine($file);
+            $filetext = $filedocdata['filetext'] ?? '';
 
-            $jsonpayload = $this->create_payload($filedocdata);
-            if ($jsonpayload) {
-                $this->batch_add_documents($jsonpayload);
+            $needschunking = false;
+            $contentchunks = [];
+            if ($chunkingenabled) {
+                // Check if chunking is needed for content.
+                if (!empty($filetext)) {
+                    $contentchunks = $strategy->chunk($filetext, $options);
+                }
+
+                // Determine if chunking occured.
+                $needschunking = count($contentchunks) > 1;
+            }
+
+            if (!$needschunking) {
+                $jsonpayload = $this->create_payload($filedocdata);
+                if ($jsonpayload) {
+                    $this->batch_add_documents($jsonpayload);
+                }
+            } else {
+                $this->add_file_chunks($filedocdata, $contentchunks);
             }
         }
 
         $this->batch_add_documents(false, false, true);
+    }
+
+    /**
+     * Add file document as multiple chunks to the batch payload.
+     *
+     * @param array $docdata The original file document data.
+     * @param array $filechunks The file chunks from strategy.
+     */
+    private function add_file_chunks($docdata, $filechunks): void {
+        $originaldocid = $docdata['id'];
+        $totalchunks = count($filechunks);
+        $successcount = 0;
+        $failedchunks = [];
+
+        for ($i = 0; $i < $totalchunks; $i++) {
+            $chunknumber = $i + 1;
+
+            try {
+                // Create chunk data.
+                $chunkdata = $this->create_chunk_data(
+                    $docdata,
+                    $chunknumber,
+                    $totalchunks,
+                    null,
+                    $filechunks[$i] ?? null
+                );
+
+                // Add to batch payload.
+                $jsonpayload = $this->create_payload($chunkdata);
+                $numdocsignored = $this->batch_add_documents($jsonpayload);
+                if ($jsonpayload && $numdocsignored == 0) {
+                    $successcount++;
+                } else {
+                    $failedchunks[] = $chunknumber;
+                }
+            } catch (Exception $e) {
+                $failedchunks[] = $chunknumber;
+                debugging("Exception creating chunk {$chunknumber}: {$e->getMessage()}");
+            }
+        }
+
+        $this->handle_chunk_results(
+            $originaldocid,
+            $docdata,
+            $totalchunks,
+            $successcount,
+            $failedchunks
+        );
     }
 
     /**
@@ -547,6 +718,17 @@ class engine extends \core_search\engine {
         $firstindexeddoc = 0;
         $partial = false;
 
+        // Check if chunking is enabled.
+        $chunkingenabled = manager::is_chunking_enabled();
+
+        $strategy = null;
+        $chunkingoptions = [];
+        if ($chunkingenabled) {
+            // Get chunking strategy and options.
+            $strategy = manager::get_configured_strategy();
+            $chunkingoptions = manager::get_chunking_options();
+        }
+
         // First we'll process all the documents, then if we
         // are processing files we'll itterate through again and just add the files.
         foreach ($iterator as $document) {
@@ -572,12 +754,29 @@ class engine extends \core_search\engine {
             $docdata = $document->export_for_engine();
 
             $numrecords++;
-            $jsonpayload = $this->create_payload($docdata);
 
-            if ($jsonpayload) {
-                $numdocsignored += $this->batch_add_documents($jsonpayload, true);
+            $needschunking = false;
+            $contentchunks = [];
+            if ($chunkingenabled) {
+                // Check if chunking is needed.
+                if (!empty($docdata['content'])) {
+                    $contentchunks = $strategy->chunk($docdata['content'], $chunkingoptions);
+                }
+                $needschunking = count($contentchunks) > 1;
+            }
+
+            if (!$needschunking) {
+                // Small document or chunking disabled - add to batch normally.
+                $jsonpayload = $this->create_payload($docdata);
+                if ($jsonpayload) {
+                    $numdocsignored += $this->batch_add_documents($jsonpayload, true);
+                } else {
+                    $numdocsignored++;
+                }
             } else {
-                $numdocsignored++;
+                // Large document - create chunks and add to batch.
+                $ignored = $this->batch_add_document_chunks($docdata, $contentchunks);
+                $numdocsignored += $ignored;
             }
 
             if ($options['indexfiles']) {
@@ -662,6 +861,57 @@ class engine extends \core_search\engine {
     }
 
     /**
+     * Add document chunks to the batch payload.
+     *
+     * @param array $docdata Original document data
+     * @param array $contentchunks Content chunks from strategy
+     * @return int 0 if document successfully indexed, 1 if document failed
+     */
+    private function batch_add_document_chunks($docdata, $contentchunks): bool {
+        $originaldocid = $docdata['id'];
+        $totalchunks = count($contentchunks);
+        $successcount = 0;
+        $failedchunks = [];
+
+        for ($i = 0; $i < $totalchunks; $i++) {
+            $chunknumber = $i + 1;
+
+            try {
+                // Create chunk data.
+                $chunkdata = $this->create_chunk_data(
+                    $docdata,
+                    $chunknumber,
+                    $totalchunks,
+                    $contentchunks[$i] ?? null
+                );
+
+                // Create payload and add to batch.
+                $jsonpayload = $this->create_payload($chunkdata);
+                $numdocsignored = $this->batch_add_documents($jsonpayload, false);
+                if ($jsonpayload && $numdocsignored == 0) {
+                    $successcount++;
+                } else {
+                    $failedchunks[] = $chunknumber;
+                }
+            } catch (Exception $e) {
+                $failedchunks[] = $chunknumber;
+                debugging("Exception creating chunk {$chunknumber}: " . $e->getMessage());
+            }
+        }
+
+        $documentsuccess = $this->handle_chunk_results(
+            $originaldocid,
+            $docdata,
+            $totalchunks,
+            $successcount,
+            $failedchunks
+        );
+
+        // Return document level failure count (0 or 1).
+        return $documentsuccess ? 0 : 1;
+    }
+
+    /**
      * Handle 413 payload too large error by retrying documents individually.
      *
      * @return int Number of documents ignored/failed.
@@ -681,24 +931,123 @@ class engine extends \core_search\engine {
             // Check if individual document is too large.
             $docsize = strlen(json_encode($doc));
             if ($docsize > $maxsize) {
-                $retryignored++;
-                $message = get_string('addfail', 'search_elastic') .
-                    " Document too large ($docsize bytes exceeds $maxsize bytes limit). Doc ID: ({$doc['id']})";
-                error_service::record_document_error($message, $doc);
-                continue;
+                // Document is too large - try chunk if enabled.
+                $chunkingenabled = manager::is_chunking_enabled();
+                if ($chunkingenabled) {
+                    if ($this->retry_with_chunking($doc)) {
+                        continue;
+                    } else {
+                        $retryignored++;
+                        error_service::record_document_error(
+                            get_string('handle413retryfailedchunking', 'search_elastic', [
+                                'docsize' => $docsize,
+                                'maxsize' => $maxsize,
+                                'docid' => $doc['id'],
+                            ]),
+                            $doc
+                        );
+                        continue;
+                    }
+                } else {
+                    $retryignored++;
+                        error_service::record_document_error(
+                            get_string('handle413retrychunkingdisabled', 'search_elastic', [
+                                'docsize' => $docsize,
+                                'maxsize' => $maxsize,
+                                'docid' => $doc['id'],
+                            ]),
+                            $doc
+                        );
+                    continue;
+                }
             }
 
+            // Document is small enough - try to index normally.
             if (!$this->index_single_document($doc)) {
                 $retryignored++;
-                $message = get_string('addfail', 'search_elastic') .
-                    " Failed on individual retry after 413. Doc ID: ({$doc['id']})";
-                error_service::record_document_error($message, $doc);
+                error_service::record_document_error(get_string('handle413retryfailed', 'search_elastic', $doc['id']), $doc);
             }
         }
 
         unset($payloaddocs);
 
         return $retryignored;
+    }
+
+    /**
+     * Retry indexing a large document with chunking.
+     *
+     * @param  array  $docdata [description]
+     * @return bool
+     */
+    public function retry_with_chunking(array $docdata): bool {
+        try {
+            // Get chunking strategy and options.
+            $strategy = manager::get_configured_strategy();
+            $options = manager::get_chunking_options();
+
+            // Check if content needs chunking.
+            $contentchunks = [];
+            if (!empty($docdata['content'])) {
+                $contentchunks = $strategy->chunk($docdata['content'], $options);
+            }
+
+            $filetextchunks = [];
+            if (!empty($docdata['filetext'])) {
+                $filetextchunks = $strategy->chunk($docdata['filetext'], $options);
+            }
+
+            $needschunking = count($contentchunks) > 1 || count($filetextchunks) > 1;
+            if (!$needschunking) {
+                // Chunking didn't help - document is still one piece and too large.
+                debugging("Document is too large but doesn't chunk into multiple pieces.");
+                return false;
+            }
+
+            // Create and index chunks.
+            $originaldocid = $docdata['id'];
+            $totalchunks = max(count($contentchunks), count($filetextchunks));
+            $successcount = 0;
+            $failedchunks = [];
+
+            for ($i = 0; $i < $totalchunks; $i++) {
+                $chunknumber = $i + 1;
+
+                try {
+                    // Create chunk data.
+                    $chunkdata = $this->create_chunk_data(
+                        $docdata,
+                        $chunknumber,
+                        $totalchunks,
+                        $contentchunks[$i] ?? null,
+                        $filetextchunks[$i] ?? null,
+                    );
+
+                    // Index this chunk using existing method.
+                    if ($this->index_single_document($chunkdata)) {
+                        $successcount++;
+                    } else {
+                        $failedchunks[] = $chunknumber;
+                    }
+                } catch (Exception $e) {
+                    $failedchunks[] = $chunknumber;
+                    debugging("Exception creating chunk {$chunknumber}: {$e->getMessage()}");
+                }
+            }
+
+            return $this->handle_chunk_results(
+                $originaldocid,
+                $docdata,
+                $totalchunks,
+                $successcount,
+                $failedchunks
+            );
+        } catch (Exception $e) {
+            debugging("Exception while chunking document {$docdata['id']} during 413 retry: " .
+                $e->getMessage(), DEBUG_DEVELOPER);
+            error_service::record_document_error("Chunking failed during 413 retry: {$e->getMessage()}", $docdata);
+            return false;
+        }
     }
 
     /**
@@ -848,33 +1197,225 @@ class engine extends \core_search\engine {
      */
     public function add_document($document, $fileindexing = false, $luceneversion = 0) {
         $docdata = $document->export_for_engine();
-        $url = $this->get_url();
+
         if (!$luceneversion) {
             $luceneversion = $this->get_es_lucene_version();
         }
-        $docprefix = '_';
-        if ($luceneversion < 8) {
-            $docprefix = '';
+
+        // Check if chunking is enabled.
+        $chunkingenabled = manager::is_chunking_enabled();
+
+        $needschunking = false;
+        if ($chunkingenabled) {
+            // Get chunking strategy and options.
+            $strategy = manager::get_configured_strategy();
+            $options = manager::get_chunking_options();
+
+            // Check if chunking is needed for content.
+            $contentchunks = [];
+            if (!empty($docdata['content'])) {
+                $contentchunks = $strategy->chunk($docdata['content'], $options);
+            }
+
+            // Determine if chunking occured.
+            $needschunking = (count($contentchunks)) > 1;
         }
-        $docurl = $url . '/' . $this->config->index . '/' . $docprefix . 'doc/' . $docdata['id'];
-        $jsondoc = json_encode($docdata);
 
-        $client = new \search_elastic\esrequest();
-        $response = $client->post($docurl, $jsondoc);
-        $responsecode = $response->getStatusCode();
+        if (!$needschunking) {
+            $url = $this->get_url();
+            $docprefix = '_';
+            if ($luceneversion < 8) {
+                $docprefix = '';
+            }
+            $docurl = $url . '/' . $this->config->index . '/' . $docprefix . 'doc/' . $docdata['id'];
+            $jsondoc = json_encode($docdata);
 
-        if ($responsecode !== 201 && $responsecode !== 200) {
-            $responsebody = json_decode($response->getBody());
-            error_service::record_document_error(get_string('addfail', 'search_elastic') .
-                    ' Error Type: ' . $responsebody->error->type .
-                    ' Error Reason: ' . $responsebody->error->reason, $docdata);
-            return false;
+            $client = new \search_elastic\esrequest();
+            $response = $client->post($docurl, $jsondoc);
+            $responsecode = $response->getStatusCode();
+
+            if ($responsecode !== 201 && $responsecode !== 200) {
+                $responsebody = json_decode($response->getBody());
+                error_service::record_document_error(get_string('addfail', 'search_elastic') .
+                        ' Error Type: ' . $responsebody->error->type .
+                        ' Error Reason: ' . $responsebody->error->reason, $docdata);
+                return false;
+            }
+
+            if ($fileindexing) {
+                // This will take care of updating all attached files in the index.
+                $this->process_document_files($document);
+            }
+
+            return true;
         }
 
+        // Large document and chunking enabled - index as chunks.
+        return $this->index_document_chunks($document, $docdata, $contentchunks, $fileindexing, $luceneversion);
+    }
+
+    /**
+     * Index document as multiple chunks.
+     *
+     * @param \core_search\document $document The original document object.
+     * @param array $docdata The original document data.
+     * @param array $contentchunks Content chunks from strategy.
+     * @param bool $fileindexing Whether to process the files.
+     * @param int $luceneversion Lucene version
+     * @return bool
+     */
+    private function index_document_chunks($document, $docdata, $contentchunks, $fileindexing, $luceneversion): bool {
+        $originaldocid = $docdata['id'];
+        $totalchunks = count($contentchunks);
+        $successcount = 0;
+        $failedchunks = [];
+
+        for ($i = 0; $i < $totalchunks; $i++) {
+            $chunknumber = $i + 1;
+
+            try {
+                // Create chunk data.
+                $chunkdata = $this->create_chunk_data(
+                    $docdata,
+                    $chunknumber,
+                    $totalchunks,
+                    $contentchunks[$i] ?? null
+                );
+
+                // Index this chunk using existing method.
+                if ($this->index_single_document($chunkdata)) {
+                    $successcount++;
+                } else {
+                    $failedchunks[] = $chunknumber;
+                }
+            } catch (Exception $e) {
+                $failedchunks[] = $chunknumber;
+                debugging("Failed to index chunk {$chunknumber} of {$totalchunks} for document {$originaldocid}", DEBUG_DEVELOPER);
+            }
+        }
+
+        // Process attached files.
         if ($fileindexing) {
-            // This will take care of updating all attached files in the index.
             $this->process_document_files($document);
         }
+
+        return $this->handle_chunk_results(
+            $originaldocid,
+            $docdata,
+            $totalchunks,
+            $successcount,
+            $failedchunks
+        );
+    }
+
+    /**
+     * Create chunk metadata for a document chunk.
+     *
+     * @param array $docdata Original document data
+     * @param int $chunknumber Current chunk number (index starts at 1)
+     * @param int $totalchunks Total number of chunks
+     * @param array|null $contentchunk Content chunk data (optional)
+     * @param array|null $filetextchunk Filetext chunk data (optional)
+     * @return array
+     */
+    private function create_chunk_data(
+        array $docdata,
+        int $chunknumber,
+        int $totalchunks,
+        ?array $contentchunk = null,
+        ?array $filetextchunk = null
+    ): array {
+        $originaldocid = $docdata['id'];
+
+        // Clone docdata to preserve original metadata.
+        $chunkdata = $docdata;
+
+        // Update ID with chunk suffix.
+        $chunkdata['id'] = "{$originaldocid}_c{$chunknumber}";
+
+        // Add chunk-specific fields.
+        $chunkdata['original_id'] = $originaldocid;
+        $chunkdata['chunk_number'] = $chunknumber;
+        $chunkdata['chunk_total'] = $totalchunks;
+
+        // Set chunked content.
+        if ($contentchunk !== null && isset($contentchunk['text'])) {
+            $chunkdata['content'] = $contentchunk['text'];
+        } else {
+            // Default to empty string, since the 'content' key is required in the document.
+            $chunkdata['content'] = '';
+        }
+
+        // Set chunked filetext.
+        if ($filetextchunk !== null && isset($filetextchunk['text'])) {
+            $chunkdata['filetext'] = $filetextchunk['text'];
+        }
+
+        return $chunkdata;
+    }
+
+    /**
+     * Handle chunk indexing results with threshold-based error logging.
+     *
+     * @param string $originaldocid
+     * @param array $docdata
+     * @param int $totalchunks
+     * @param int $successcount
+     * @param array $failedchunks
+     * @return bool True if success ration >=50%, false otherwise
+     */
+    private function handle_chunk_results(
+        string $originaldocid,
+        array $docdata,
+        int $totalchunks,
+        int $successcount,
+        array $failedchunks
+    ): bool {
+
+        $threshold = (int)$this->config->chunksuccessthreshold;
+        if ($threshold < 0 || $threshold > 100) {
+            debugging("Invalid chunk success threshold ({$threshold}). Using default 50%.");
+            $threshold = 50;
+        }
+
+        // Calculate success percentage.
+        $successpercentage = $totalchunks > 0 ? ($successcount / $totalchunks) * 100 : 0;
+
+        if ($successcount === 0) {
+            // TOTAL FAILURE - All chunks failed.
+            $message = get_string('chunkingfailed_total', 'search_elastic', [
+                'docid' => $originaldocid,
+                'total' => $totalchunks,
+            ]);
+            error_service::record_chunking_error($message, $docdata);
+            return false;
+        } else if ($successpercentage < $threshold) {
+            // Critical partial failure - less than 50% succeeded.
+            $message = get_string('chunkingfailed_critical', 'search_elastic', [
+                'docid' => $originaldocid,
+                'success' => $successcount,
+                'total' => $totalchunks,
+                'percentage' => round($successpercentage),
+                'threshold' => $threshold,
+                'failed' => implode(', ', $failedchunks),
+            ]);
+            error_service::record_chunking_error($message, $docdata);
+            return false;
+        } else if ($successcount < $totalchunks) {
+            // Above threshold but not 100%.
+            $message = get_string('chunkingfailed_partial', 'search_elastic', [
+                'docid' => $originaldocid,
+                'success' => $successcount,
+                'total' => $totalchunks,
+                'percentage' => round($successpercentage),
+                'threshold' => $threshold,
+                'failed' => implode(', ', $failedchunks),
+            ]);
+            // Log as warning, not error since document is partially searchable.
+            debugging($message, DEBUG_NORMAL);
+        }
+
+        // Success - All chunks indexed.
         return true;
     }
 
@@ -883,9 +1424,12 @@ class engine extends \core_search\engine {
      *
      * @param \stdClass $results The raw search result documents.
      * @param int $limit The number of results to return.
+     * @param array $seenitems Tracking map for deduplication across pagination.
+     * @param array $seencounts Counter of unique documents seen so far.
+     * @param array $deletiondocs Tracking map for deleted documents.
      * @return array $docs The found result documents.
      */
-    private function compile_results($results, $limit) {
+    private function compile_results($results, $limit, &$seenitems, &$seencounts, &$deletiondocs) {
         $docs = [];
         $doccount = 0;
 
@@ -894,19 +1438,34 @@ class engine extends \core_search\engine {
             if (!$searcharea) {
                 continue;
             }
+
+            // Get document ID for deduplication.
+            $originalid = $result->_source->original_id ?? $result->_id;
             $access = $searcharea->check_access($result->_source->itemid);
 
             if ($access == \core_search\manager::ACCESS_DELETED) {
-                $this->delete_by_id($result->_id);
-            } else if ($access == \core_search\manager::ACCESS_GRANTED && $doccount < $limit) {
-                // Add hightlighting to document.
-                $highlightedresult = $this->highlight_result($result);
+                // Queue for async deletion.
+                if (!isset($deletiondocs[$originalid])) {
+                    $deletiondocs[$originalid] = [
+                        'docid' => $originalid,
+                        'is_chunk' => isset($result->_source->original_id) && $result->_source->original_id !== $result->_id,
+                        'chunk_id' => $result->_id, // ID that matched which could be a chunk ID.
+                    ];
+                }
+            } else if ($access == \core_search\manager::ACCESS_GRANTED) {
+                $itemkey = $result->_source->areaid . ':' . $result->_source->itemid;
+                if (!array_key_exists($itemkey, $seenitems) && $doccount < $limit) {
+                    // Add hightlighting to document.
+                    $highlightedresult = $this->highlight_result($result);
+                    $docs[] = $this->to_document($searcharea, (array)$highlightedresult->_source);
+                    $seenitems[$itemkey] = true;
+                    $doccount++;
+                }
 
-                $docs[] = $this->to_document($searcharea, (array)$highlightedresult->_source);
-                $doccount++;
-            }
-            if ($access == \core_search\manager::ACCESS_GRANTED) {
-                $this->totalresultdocs++;
+                if (!array_key_exists($itemkey, $seencounts)) {
+                    $this->totalresultdocs++;
+                    $seencounts[$itemkey] = true;
+                }
             }
 
             // The search backend might have returned up to 10 times the results we need.
@@ -917,6 +1476,28 @@ class engine extends \core_search\engine {
         }
 
         return $docs;
+    }
+
+    /**
+     * Queue document deletions as an ad-hoc task.
+     *
+     * Batches multiple deletions into a single task.
+     *
+     * @param array $deletiondocs
+     */
+    private function queue_document_deletions(array $deletiondocs) {
+        if (empty($deletiondocs)) {
+            return;
+        }
+
+        // Create ad-hoc task.
+        $task = new \search_elastic\task\delete_document_task();
+
+        // Set custom data.
+        $task->set_custom_data(['deletiondocs' => array_values($deletiondocs)]);
+
+        // Queue the task.
+        \core\task\manager::queue_adhoc_task($task, true);
     }
 
     /**
@@ -941,6 +1522,10 @@ class engine extends \core_search\engine {
         if ($limit == 0) {
             $limit = $returnlimit;
         }
+
+        $seenitems = [];
+        $seencounts = [];
+        $deletiondocs = [];
 
         // We need to make multiple calls to the search backend if:
         // The number of results in $docs is less than $returnlimit
@@ -995,10 +1580,15 @@ class engine extends \core_search\engine {
                 } else {
                     $totalhits = $results->hits->total;
                 }
-                $docs = array_merge($docs, $this->compile_results($results, $limit));
+                $docs = array_merge($docs, $this->compile_results($results, $limit, $seenitems, $seencounts, $deletiondocs));
                 $docoffest += count($results->hits->hits);
             }
         } while ((count($docs) < $limit) && ($totalhits > \search_elastic\query::MAX_RESULTS) && ($docoffest < $totalhits));
+
+        // Queue deleted documents for async deletion.
+        if (!empty($deletiondocs)) {
+            $this->queue_document_deletions($deletiondocs);
+        }
 
         // TODO: handle negative cases and errors.
         return $docs;
@@ -1052,21 +1642,9 @@ class engine extends \core_search\engine {
                 $returnval = true;
             }
         } else {
-            $url = $url . '/_search';
-            // TODO: move this to request class and check query construction.
-            $query = ['query' => [
-                                'bool' => [
-                                    'must' => [
-                                        'match' => ['areaid' => $areaid],
-                                    ],
-                                ],
-                            ]];
-            $results = json_decode($client->post($url, json_encode($query))->getBody());
-            if (isset($results->hits)) {
-                foreach ($results->hits->hits as $result) {
-                    $this->delete_by_id($result->_id);
-                }
-            }
+            // Delete all documents in a specific area.
+            $this->delete_by_area($areaid);
+            $returnval = true;
         }
         return $returnval;
     }

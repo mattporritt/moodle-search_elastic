@@ -24,6 +24,7 @@
 
 use search_elastic\admin_setting_check;
 use search_elastic\check\server_ready_check;
+use search_elastic\local\chunking\manager;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -165,6 +166,44 @@ if ($hassiteconfig) {
         )]),
         0
     ));
+
+    // Chunking settings.
+    $settings->add(new admin_setting_heading('chunkingsettings', get_string('chunkingsettings', 'search_elastic'), ''));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'search_elastic/enablechunking',
+        get_string('enablechunking', 'search_elastic'),
+        get_string('enablechunking_desc', 'search_elastic'),
+        0
+    ));
+
+    $settings->add(new admin_setting_configtext(
+        'search_elastic/chunksuccessthreshold',
+        get_string('chunksuccessthreshold', 'search_elastic'),
+        get_string('chunksuccessthreshold_desc', 'search_elastic'),
+        50,
+        PARAM_INT
+    ));
+
+    // Strategy selection.
+    $defaultstrategy = 'search_elastic\\local\\chunking\\fixed_size';
+    $strategies = manager::get_strategy_options();
+    $settings->add(new admin_setting_configselect(
+        'search_elastic/chunkingstrategy',
+        get_string('chunkingstrategy', 'search_elastic'),
+        get_string('chunkingstrategy_desc', 'search_elastic'),
+        $defaultstrategy,
+        $strategies
+    ));
+
+    $chunkingstrategies = manager::get_strategies();
+    foreach ($chunkingstrategies as $strategy) {
+        $strategy->add_settings($settings);
+    }
+
+    // Hide unless chunking is enabled and this strategy is selected.
+    $settings->hide_if('search_elastic/chunksuccessthreshold', 'search_elastic/enablechunking', 'notchecked');
+    $settings->hide_if('search_elastic/chunkingstrategy', 'search_elastic/enablechunking', 'notchecked');
 
     // BOOSTING SETTINGS.
     $settings->add(new admin_setting_heading('boostsettings', get_string('boostsettings', 'search_elastic'), ''));
