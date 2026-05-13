@@ -327,7 +327,7 @@ class engine extends \core_search\engine {
      * @return array   A two element array, the first is the total number of availble results, the second is an array
      *                 of documents for the current request.
      */
-    private function get_indexed_files($document, $start = 0, $rows = 500) {
+    protected function get_indexed_files($document, $start = 0, $rows = 500) {
         $url = $this->get_url();
         $indexeurl = $url . '/' . $this->config->index . '/_search';
         $client = new \search_elastic\esrequest();
@@ -505,7 +505,7 @@ class engine extends \core_search\engine {
                     // Filelib does not guarantee time modified is updated, so we will check important values.
                     $unchanged = $indexedfile->_source->modified == $files[$originalfileid]->get_timemodified()
                         && strcmp($indexedfile->_source->title, $files[$originalfileid]->get_filename()) === 0
-                        && $indexedfile->_source->filecontenthash != $files[$originalfileid]->get_contenthash();
+                        && $indexedfile->_source->filecontenthash == $files[$originalfileid]->get_contenthash();
 
                     // If the file is already indexed and unchanged, we can just remove it from the files array and skip it.
                     if ($unchanged) {
