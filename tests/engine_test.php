@@ -1430,6 +1430,82 @@ final class engine_test extends \advanced_testcase {
     }
 
     /**
+     * Test that unchanged file (same hash, time and name) should be skipped and
+     * not re-indexed and not deleted from the index.
+     */
+    public function test_unchanged_file_is_skipped(): void {
+        $this->resetAfterTest();
+
+        $timemodified = time();
+        $contenthash = hash('sha1', 'testhash');
+
+        $file = $this->createMock(\stored_file::class);
+        $file->method('get_id')->willReturn(100000);
+        $file->method('get_timemodified')->willReturn($timemodified);
+        $file->method('get_contenthash')->willReturn($contenthash);
+        $file->method('get_filename')->willReturn('test.pdf');
+
+        $doc = $this->createMock(\core_search\document::class);
+        $doc->method('get_is_new')->willReturn(false);
+        $doc->method('get_files')->willReturn([100000 => $file]);
+        $doc->method('get')->willReturnMap([
+            ['id', 'parent_doc_123'],
+            ['areaid', 'core_mocksearch-mock_search_area'],
+        ]);
+
+        // Simulate that elasticsearch already has this file with the same hash, time and name.
+        $hit = (object)[
+            '_type' => 'doc',
+            '_source' => (object)[
+                'id' => 100000,
+                'modified' => $timemodified,
+                'filecontenthash' => $contenthash,
+                'title' => 'test.pdf',
+                'original_id' => null,
+            ],
+        ];
+
+        $engine = new class () extends \search_elastic\testable_engine {
+            /**
+             * @var array Hits returned by get_indexed_files().
+             */
+            private array $mockhits = [];
+
+            /**
+             * Set the hits that get_indexed_files() will return.
+             * @param array $hits
+             */
+            public function set_indexed_files(array $hits): void {
+                $this->mockhits = $hits;
+            }
+
+            #[\Override]
+            public function get_indexed_files($document, $start = 0, $rows = 500): array {
+                return [count($this->mockhits), $this->mockhits];
+            }
+
+            /**
+             * Exposes private filter_indexed_files() for unit testing via reflection.
+             * @param \core_search\document $document $document
+             * @return array
+             */
+            public function call_filter_indexed_files(\core_search\document $document): array {
+                $method = new \ReflectionMethod(engine::class, 'filter_indexed_files');
+                $method->setAccessible(true);
+                return $method->invoke($this, $document);
+            }
+        };
+        $engine->set_indexed_files([$hit]);
+        [$filestoreindex, $idstodelete] = $engine->call_filter_indexed_files($doc);
+
+        // Unchanged file should not be queued for re-indexing.
+        $this->assertArrayNotHasKey(100000, $filestoreindex);
+
+        // Unchanged file should not be scheduled for deletion.
+        $this->assertArrayNotHasKey(100000, $idstodelete);
+    }
+
+    /**
      * Helper method to create a test payload from document arrays.
      * @param array $docs
      * @return string
