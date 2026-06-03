@@ -147,7 +147,7 @@ final class document_test extends \advanced_testcase {
 
         // Mock out and add missing data to stub record object.
         $builder = $this->getMockBuilder('\search_elastic\document');
-        $builder->setMethods(['_']);
+        $builder->onlyMethods([]);
         $builder->setConstructorArgs(['1', 'core_mocksearch', 'mock_search_area']);
         $stub = $builder->getMock();
 
@@ -197,7 +197,7 @@ final class document_test extends \advanced_testcase {
 
         // Mock out and add missing data to stub record object.
         $builder = $this->getMockBuilder('\search_elastic\document');
-        $builder->setMethods(['_']);
+        $builder->onlyMethods([]);
         $builder->setConstructorArgs(['1', 'core_mocksearch', 'mock_search_area']);
         $stub = $builder->getMock();
 
