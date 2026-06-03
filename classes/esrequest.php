@@ -60,7 +60,7 @@ class esrequest {
 
         $config = [
             'timeout' => $timeout != null ? $timeout : (isset($this->config->timeout) ? intval($this->config->timeout) : 0),
-            'connect_timeout' => intval($this->config->connecttimeout),
+            'connect_timeout' => isset($this->config->connecttimeout) ? intval($this->config->connecttimeout) : 5,
         ];
 
         // Allow the caller to instantiate the Guzzle client with a custom handler.
