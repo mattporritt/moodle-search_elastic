@@ -66,10 +66,10 @@ final class server_ready_check_test extends advanced_testcase {
      * Tests check result.
      *
      * @param string $hostname
-     * @param string $expectedstatus
+     * @param string $status
      * @dataProvider server_ready_provider
      */
-    public function test_check(string $hostname, string $expectedstatus): void {
+    public function test_check(string $hostname, string $status): void {
         $this->resetAfterTest();
         set_config('hostname', $hostname, 'search_elastic');
 
@@ -86,7 +86,7 @@ final class server_ready_check_test extends advanced_testcase {
 
         $check = new server_ready_check($stack);
         $result = $check->get_result();
-        $this->assertEquals($expectedstatus, $result->get_status());
+        $this->assertEquals($status, $result->get_status());
     }
 
     /**
