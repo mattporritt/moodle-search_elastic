@@ -93,10 +93,10 @@ final class esrequest_test extends \advanced_testcase {
      * The GuzzleHttp exception is no longer be throwed
      */
     public function test_get_unreachable_host(): void {
-        $this->expectException(\GuzzleHttp\Exception\ConnectException::class);
         $url = 'http://unreachable:9020';
         $client = new \search_elastic\esrequest();
         $response = $client->get($url);
+        $this->assertEquals(503, $response->getStatusCode());
     }
 
     /**
