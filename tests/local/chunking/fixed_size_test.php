@@ -107,9 +107,9 @@ final class fixed_size_test extends advanced_testcase {
      * @dataProvider chunk_overlap_provider
      * @param int $maxsize
      * @param int $overlap
-     * @param int $exceptednumchunks
+     * @param int $expectednumchunks
      */
-    public function test_chunk_with_overlap(int $maxsize, int $overlap, int $exceptednumchunks): void {
+    public function test_chunk_with_overlap(int $maxsize, int $overlap, int $expectednumchunks): void {
         $rec = new stdClass();
         $rec->content = <<<EOF
         Lorem Ipsum is simply dummy text of the printing and typesetting industry.
@@ -128,11 +128,12 @@ final class fixed_size_test extends advanced_testcase {
         $options = [
             'maxsize' => $maxsize,
             'overlap' => $overlap,
+            'expectednumchunks' => $expectednumchunks,
         ];
 
         $chunkingstrategy = new fixed_size();
         $chunks = $chunkingstrategy->chunk($docdata['content'], $options);
-        $this->assertCount($exceptednumchunks, $chunks);
+        $this->assertCount($expectednumchunks, $chunks);
 
         // Last chunk should include end of text.
         $lastchunk = $chunks[count($chunks) - 1]['text'];
