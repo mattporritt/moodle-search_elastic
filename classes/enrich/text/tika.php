@@ -110,45 +110,19 @@ class tika extends base_enrich {
      *
      * @return boolean
      */
-    private function tika_server_ready() {
-        $returnval = false;
-        $client = new \search_elastic\esrequest();
-        $url = '';
-        // Check if we have a valid set of config.
-        if (! empty($this->config->tikahostname) && ! empty($this->config->tikaport)) {
-            $port = $this->config->tikaport;
-            $hostname = rtrim($this->config->tikahostname, "/");
-            $url = $hostname . ':' . $port;
+    private function tika_server_ready(): bool {
+        if (empty($this->tikahostname) || empty($this->tikaport)) {
+            return false;
         }
 
-        // Check we can reach Tika server.
-        if ($url !== '') {
-            $response = $client->get($url);
-            $responsecode = $response->getStatusCode();
-            if ($responsecode == 200) {
-                $returnval = true;
-            }
+        try {
+            $url = $this->tikahostname . ':' . $this->tikaport;
+            $response = (new \search_elastic\esrequest())->get($url);
+            return $response->getStatusCode() == 200;
+        } catch (Throwable) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+            // Connection failed due to unreachable host or connection refused.
+            return false;
         }
-
-        return $returnval;
-    }
-
-    /**
-     * Checks if supplied file is can be analyzed by this enrichment class.
-     *
-     * @param \stored_file $file File to check.
-     * @return boolean
-     */
-    public function can_analyze($file) {
-        $cananalyze = parent::can_analyze($file);
-
-        // If we can analyze this type of file
-        // check if tika is configured and available.
-        if ($cananalyze) {
-            $cananalyze = $this->tika_server_ready();
-        }
-
-        return $cananalyze;
     }
 
     /**
@@ -209,12 +183,12 @@ class tika extends base_enrich {
      * @return string $filetext Text of file description labels.
      */
     public function analyze_file($file) {
-        $filetext = '';
+        if (!$this->tika_server_ready()) {
+            throw new Exception('Tika server unavailable');
+        }
 
         $client = new \search_elastic\esrequest();
-        $filetext = $this->extract_text($file, $client);
-
-        return $filetext;
+        return $this->extract_text($file, $client);
     }
 
     /**
