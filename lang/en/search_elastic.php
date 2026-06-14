@@ -156,6 +156,7 @@ $string['nostrategies'] = 'No available chunking strategy found.';
 $string['order_newest'] = 'Newest first';
 $string['order_oldest'] = 'Oldest first';
 $string['parentid'] = 'Parent ID';
+$string['links'] = 'Links';
 $string['pluginname'] = 'Elastic';
 $string['pluginname_help'] = 'Search backend for the Elasticsearch search engine';
 

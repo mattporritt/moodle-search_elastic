@@ -55,6 +55,7 @@ class errors extends system_report {
         $this->add_columns_from_entity($errorentity->get_entity_name(), [
             'docid',
             'areaid',
+            'links',
             'errortype',
             'errormessage',
             'status',
@@ -162,6 +163,7 @@ class errors extends system_report {
         return [
             'error:docid',
             'error:areaid',
+            'error:links',
             'error:errortype',
             'error:errormessage',
             'error:status',

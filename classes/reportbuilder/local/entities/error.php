@@ -16,15 +16,17 @@
 
 namespace search_elastic\reportbuilder\local\entities;
 
+use context;
 use core_search\manager;
 use core_reportbuilder\local\entities\base;
 use core_reportbuilder\local\filters\{date, select, text, number};
 use core_reportbuilder\local\helpers\format;
 use core_reportbuilder\local\report\{column, filter};
-use search_elastic\local\model\error as error_model;
-use lang_string;
-use stdClass;
 use html_writer;
+use lang_string;
+use moodle_url;
+use stdClass;
+use search_elastic\local\model\error as error_model;
 
 /**
  * Report builder entity for Elasticsearch indexing errors.
@@ -104,6 +106,27 @@ class error extends base {
                 return isset($searchareas[$value]) ? $searchareas[$value]->get_visible_name() : s($value);
             })
             ->set_is_sortable(true);
+
+        $columns[] = (new column(
+            'links',
+            new lang_string('links', 'search_elastic'),
+            $this->get_entity_name()
+        ))
+            ->add_joins($this->get_joins())
+            ->set_type(column::TYPE_TEXT)
+            ->add_join("LEFT JOIN {context} rawctx ON rawctx.id = {$alias}.contextid")
+            ->add_join("LEFT JOIN {course_modules} rawcm ON rawcm.id = rawctx.instanceid AND rawctx.contextlevel = " . CONTEXT_MODULE)
+            ->add_join("LEFT JOIN {modules} rawmod ON rawmod.id = rawcm.module")
+            ->add_field("{$alias}.docid", 'rawdocid')
+            ->add_field("{$alias}.parentid", 'rawparentid')
+            ->add_field("rawctx.contextlevel", 'rawcontextlevel')
+            ->add_field("rawctx.instanceid", 'rawinstanceid')
+            ->add_field("rawcm.course", 'rawcourseid')
+            ->add_field("rawcm.id", 'rawcmid')
+            ->add_field("rawmod.name", 'rawmodulename')
+            ->add_callback(static function ($value, stdClass $row): string {
+                return self::render_links($row);
+            });
 
         $typeoptions = $this->get_error_type_options();
         $columns[] = (new column(
@@ -340,5 +363,101 @@ class error extends base {
             error_model::STATUS_FAILED => get_string('status_failed', 'search_elastic'),
             error_model::STATUS_OBSOLETE => get_string('status_obsolete', 'search_elastic'),
         ];
+    }
+
+    /**
+     * Render course, activity and file links for a row.
+     *
+     * @param stdClass $row
+     * @return string
+     */
+    private static function render_links(stdClass $row): string {
+        $links = [];
+
+        if ($courseurl = self::get_course_url($row)) {
+            $links[] = html_writer::link($courseurl, get_string('course'));
+        }
+
+        if ($activityurl = self::get_activity_url($row)) {
+            $links[] = html_writer::link($activityurl, get_string('activity'));
+        }
+
+        if ($fileurl = self::get_file_url($row)) {
+            $links[] = html_writer::link($fileurl, get_string('file'));
+        }
+
+        return $links ? implode(' | ', $links) : '-';
+    }
+
+    /**
+     * Return the course URL for the row, if it can be resolved.
+     *
+     * @param stdClass $row
+     * @return moodle_url|null
+     */
+    private static function get_course_url(stdClass $row): ?moodle_url {
+        $contextlevel = isset($row->rawcontextlevel) ? (int)$row->rawcontextlevel : null;
+
+        if ($contextlevel === CONTEXT_COURSE && !empty($row->rawinstanceid)) {
+            return new moodle_url('/course/view.php', ['id' => (int)$row->rawinstanceid]);
+        }
+
+        if ($contextlevel === CONTEXT_MODULE && !empty($row->rawcourseid)) {
+            return new moodle_url('/course/view.php', ['id' => (int)$row->rawcourseid]);
+        }
+
+        return null;
+    }
+
+    /**
+     * Return the activity URL for the row, if it can be resolved.
+     *
+     * @param stdClass $row
+     * @return moodle_url|null
+     */
+    private static function get_activity_url(stdClass $row): ?moodle_url {
+        if (empty($row->rawcmid) || empty($row->rawmodulename)) {
+            return null;
+        }
+
+        return new moodle_url('/mod/' . $row->rawmodulename . '/view.php', ['id' => (int)$row->rawcmid]);
+    }
+
+    /**
+     * Return a direct file URL for the row, if it represents a file document.
+     *
+     * @param stdClass $row
+     * @return moodle_url|null
+     */
+    private static function get_file_url(stdClass $row): ?moodle_url {
+        if (empty($row->rawdocid) || empty($row->rawparentid) || (string)$row->rawdocid === (string)$row->rawparentid) {
+            return null;
+        }
+
+        if (!is_numeric($row->rawdocid)) {
+            return null;
+        }
+
+        static $filecache = [];
+        $docid = (int)$row->rawdocid;
+
+        if (!array_key_exists($docid, $filecache)) {
+            $file = get_file_storage()->get_file_by_id($docid);
+            $filecache[$docid] = $file ?: null;
+        }
+
+        $file = $filecache[$docid];
+        if (!$file) {
+            return null;
+        }
+
+        return moodle_url::make_pluginfile_url(
+            $file->get_contextid(),
+            $file->get_component(),
+            $file->get_filearea(),
+            $file->get_itemid(),
+            $file->get_filepath(),
+            $file->get_filename()
+        );
     }
 }
