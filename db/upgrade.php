@@ -110,5 +110,26 @@ function xmldb_search_elastic_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025062708, 'search', 'elastic');
     }
 
+    if ($oldversion < 2026061600) {
+        $table = new xmldb_table('search_elastic_errors');
+
+        $field = new xmldb_field('fileid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'docid');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Backfill fileid for existing rows where docid is a plain integer (file documents).
+        // File docids are purely numeric and non-file docids always contain '-' (e.g. mod_assign-activity-123).
+        $docidcast = $DB->sql_cast_char2int('docid');
+        $DB->execute("UPDATE {search_elastic_errors} SET fileid = {$docidcast} WHERE docid NOT LIKE '%-%'");
+
+        $index = new xmldb_index('fileid', XMLDB_INDEX_NOTUNIQUE, ['fileid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        upgrade_plugin_savepoint(true, 2026061600, 'search', 'elastic');
+    }
+
     return true;
 }

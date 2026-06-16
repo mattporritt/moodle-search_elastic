@@ -118,6 +118,11 @@ class error extends persistent {
                 'null' => NULL_ALLOWED,
                 'default' => null,
             ],
+            'fileid' => [
+                'type' => PARAM_INT,
+                'null' => NULL_ALLOWED,
+                'default' => null,
+            ],
         ];
     }
 

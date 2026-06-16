@@ -97,6 +97,7 @@ class error_service {
         global $DB;
 
         $now = time();
+        $fileid = is_numeric($documentid) ? (int)$documentid : null;
 
         $select = $DB->sql_compare_text('docid') . ' = :docid AND errortype = :errortype';
         $params = [
@@ -118,6 +119,7 @@ class error_service {
             // Create new error.
             $error = new error();
             $error->set('docid', $documentid);
+            $error->set('fileid', $fileid);
             $error->set('itemid', $itemid);
             $error->set('areaid', $areaid);
             $error->set('errortype', $errortype);

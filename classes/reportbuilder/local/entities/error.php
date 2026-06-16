@@ -16,7 +16,6 @@
 
 namespace search_elastic\reportbuilder\local\entities;
 
-use context;
 use core_search\manager;
 use core_reportbuilder\local\entities\base;
 use core_reportbuilder\local\filters\{date, select, text, number};
@@ -117,13 +116,18 @@ class error extends base {
             ->add_join("LEFT JOIN {context} rawctx ON rawctx.id = {$alias}.contextid")
             ->add_join("LEFT JOIN {course_modules} rawcm ON rawcm.id = rawctx.instanceid AND rawctx.contextlevel = " . CONTEXT_MODULE)
             ->add_join("LEFT JOIN {modules} rawmod ON rawmod.id = rawcm.module")
-            ->add_field("{$alias}.docid", 'rawdocid')
-            ->add_field("{$alias}.parentid", 'rawparentid')
+            ->add_join("LEFT JOIN {files} rawfile ON rawfile.id = {$alias}.fileid")
             ->add_field("rawctx.contextlevel", 'rawcontextlevel')
             ->add_field("rawctx.instanceid", 'rawinstanceid')
             ->add_field("rawcm.course", 'rawcourseid')
             ->add_field("rawcm.id", 'rawcmid')
             ->add_field("rawmod.name", 'rawmodulename')
+            ->add_field("rawfile.contextid", 'rawfilecontextid')
+            ->add_field("rawfile.component", 'rawfilecomponent')
+            ->add_field("rawfile.filearea", 'rawfilefilearea')
+            ->add_field("rawfile.itemid", 'rawfileitemid')
+            ->add_field("rawfile.filepath", 'rawfilefilepath')
+            ->add_field("rawfile.filename", 'rawfilefilename')
             ->add_callback(static function ($value, stdClass $row): string {
                 return self::render_links($row);
             });
@@ -430,34 +434,17 @@ class error extends base {
      * @return moodle_url|null
      */
     private static function get_file_url(stdClass $row): ?moodle_url {
-        if (empty($row->rawdocid) || empty($row->rawparentid) || (string)$row->rawdocid === (string)$row->rawparentid) {
-            return null;
-        }
-
-        if (!is_numeric($row->rawdocid)) {
-            return null;
-        }
-
-        static $filecache = [];
-        $docid = (int)$row->rawdocid;
-
-        if (!array_key_exists($docid, $filecache)) {
-            $file = get_file_storage()->get_file_by_id($docid);
-            $filecache[$docid] = $file ?: null;
-        }
-
-        $file = $filecache[$docid];
-        if (!$file) {
+        if (empty($row->rawfilecontextid) || empty($row->rawfilefilename)) {
             return null;
         }
 
         return moodle_url::make_pluginfile_url(
-            $file->get_contextid(),
-            $file->get_component(),
-            $file->get_filearea(),
-            $file->get_itemid(),
-            $file->get_filepath(),
-            $file->get_filename()
+            (int)$row->rawfilecontextid,
+            $row->rawfilecomponent,
+            $row->rawfilefilearea,
+            (int)$row->rawfileitemid,
+            $row->rawfilefilepath,
+            $row->rawfilefilename
         );
     }
 }
