@@ -31,9 +31,11 @@ require_once($CFG->dirroot . '/search/tests/fixtures/testable_core_search.php');
 require_once($CFG->dirroot . '/search/tests/fixtures/mock_search_area.php');
 require_once($CFG->dirroot . '/search/engine/elastic/tests/fixtures/testable_engine.php');
 
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 
 /**
@@ -89,14 +91,19 @@ final class esrequest_test extends \advanced_testcase {
     }
 
     /**
-     * Test that unreachable host must return 503
-     * The GuzzleHttp exception is no longer be throwed
+     * Test that connection failures are not converted into fake responses.
      */
     public function test_get_unreachable_host(): void {
         $url = 'http://unreachable:9020';
-        $client = new \search_elastic\esrequest();
-        $response = $client->get($url);
-        $this->assertEquals(503, $response->getStatusCode());
+        $mock = new MockHandler([
+            new ConnectException('Could not resolve host: unreachable', new Request('GET', $url)),
+        ]);
+        $stack = HandlerStack::create($mock);
+
+        $this->expectException(ConnectException::class);
+
+        $client = new \search_elastic\esrequest($stack);
+        $client->get($url);
     }
 
     /**
