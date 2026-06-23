@@ -106,31 +106,88 @@ class error extends base {
             })
             ->set_is_sortable(true);
 
+        $courseexpr = "CASE WHEN rawctx.contextlevel = " . CONTEXT_COURSE . " THEN rawctx.instanceid ELSE rawcm.course END";
+
         $columns[] = (new column(
-            'links',
-            new lang_string('links', 'search_elastic'),
+            'course',
+            new lang_string('course'),
             $this->get_entity_name()
         ))
             ->add_joins($this->get_joins())
-            ->set_type(column::TYPE_TEXT)
-            ->add_join("LEFT JOIN {context} rawctx ON rawctx.id = {$alias}.contextid")
-            ->add_join("LEFT JOIN {course_modules} rawcm ON rawcm.id = rawctx.instanceid AND rawctx.contextlevel = " . CONTEXT_MODULE)
-            ->add_join("LEFT JOIN {modules} rawmod ON rawmod.id = rawcm.module")
-            ->add_join("LEFT JOIN {files} rawfile ON rawfile.id = {$alias}.fileid")
-            ->add_field("rawctx.contextlevel", 'rawcontextlevel')
-            ->add_field("rawctx.instanceid", 'rawinstanceid')
-            ->add_field("rawcm.course", 'rawcourseid')
-            ->add_field("rawcm.id", 'rawcmid')
-            ->add_field("rawmod.name", 'rawmodulename')
-            ->add_field("rawfile.contextid", 'rawfilecontextid')
-            ->add_field("rawfile.component", 'rawfilecomponent')
-            ->add_field("rawfile.filearea", 'rawfilefilearea')
-            ->add_field("rawfile.itemid", 'rawfileitemid')
-            ->add_field("rawfile.filepath", 'rawfilefilepath')
-            ->add_field("rawfile.filename", 'rawfilefilename')
+            ->set_type(column::TYPE_INTEGER)
+            ->add_joins([
+                "LEFT JOIN {context} rawctx ON rawctx.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} rawcm ON rawcm.id = rawctx.instanceid AND rawctx.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {course} rawcourse ON rawcourse.id = $courseexpr",
+            ])
+            ->add_field($courseexpr, 'rawcourseid')
+            ->add_field("rawcourse.shortname", 'rawcourseshortname')
             ->add_callback(static function ($value, stdClass $row): string {
-                return self::render_links($row);
-            });
+                if (empty($value) || empty($row->rawcourseshortname)) {
+                    return '-';
+                }
+                return html_writer::link(
+                    new moodle_url('/course/view.php', ['id' => (int)$value]),
+                    $row->rawcourseshortname
+                );
+            })
+            ->set_is_sortable(true);
+
+        $columns[] = (new column(
+            'activity',
+            new lang_string('activity'),
+            $this->get_entity_name()
+        ))
+            ->add_joins($this->get_joins())
+            ->set_type(column::TYPE_INTEGER)
+            ->add_joins([
+                "LEFT JOIN {context} rawctx ON rawctx.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} rawcm ON rawcm.id = rawctx.instanceid AND rawctx.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {modules} rawmod ON rawmod.id = rawcm.module",
+            ])
+            ->add_fields("rawcm.id rawcmid, rawmod.name rawmodulename")
+            ->add_callback(static function ($value, stdClass $row): string {
+                if (empty($value) || empty($row->rawmodulename)) {
+                    return '-';
+                }
+                return html_writer::link(
+                    new moodle_url('/mod/' . $row->rawmodulename . '/view.php', ['id' => (int)$value]),
+                    $row->rawmodulename
+                );
+            })
+            ->set_is_sortable(true);
+
+        $columns[] = (new column(
+            'file',
+            new lang_string('file'),
+            $this->get_entity_name()
+        ))
+            ->add_joins($this->get_joins())
+            ->set_type(column::TYPE_INTEGER)
+            ->add_join("LEFT JOIN {files} rawfile ON rawfile.id = {$alias}.fileid")
+            ->add_fields(
+                "{$alias}.fileid rawfileid, rawfile.contextid rawfilecontextid,
+                rawfile.component rawfilecomponent, rawfile.filearea rawfilefilearea,
+                rawfile.itemid rawfileitemid, rawfile.filepath rawfilefilepath,
+                rawfile.filename rawfilefilename"
+            )
+            ->add_callback(static function ($value, stdClass $row): string {
+                if (empty($row->rawfilecontextid) || empty($row->rawfilefilename)) {
+                    return '-';
+                }
+                return html_writer::link(
+                    moodle_url::make_pluginfile_url(
+                        (int)$row->rawfilecontextid,
+                        $row->rawfilecomponent,
+                        $row->rawfilefilearea,
+                        (int)$row->rawfileitemid,
+                        $row->rawfilefilepath,
+                        $row->rawfilefilename
+                    ),
+                    $row->rawfilefilename
+                );
+            })
+            ->set_is_sortable(true);
 
         $typeoptions = $this->get_error_type_options();
         $columns[] = (new column(
@@ -234,7 +291,7 @@ class error extends base {
     /**
      * Return list of all available filters.
      *
-     * @return []
+     * @return array
      */
     protected function get_all_filters(): array {
         $alias = $this->get_table_alias('search_elastic_errors');
@@ -340,6 +397,49 @@ class error extends base {
         ))
             ->add_joins($this->get_joins());
 
+        $courseexpr = "CASE WHEN rawctx.contextlevel = " . CONTEXT_COURSE . " THEN rawctx.instanceid ELSE rawcm.course END";
+
+        // Course filter.
+        $filters[] = (new filter(
+            text::class,
+            'course',
+            new lang_string('course'),
+            $this->get_entity_name(),
+            'rawcourse.shortname'
+        ))
+            ->add_joins($this->get_joins())
+            ->add_joins([
+                "LEFT JOIN {context} rawctx ON rawctx.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} rawcm ON rawcm.id = rawctx.instanceid AND rawctx.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {course} rawcourse ON rawcourse.id = $courseexpr",
+            ]);
+
+        // Activity type filter.
+        $filters[] = (new filter(
+            text::class,
+            'activity',
+            new lang_string('activity'),
+            $this->get_entity_name(),
+            'rawmod.name'
+        ))
+            ->add_joins($this->get_joins())
+            ->add_joins([
+                "LEFT JOIN {context} rawctx ON rawctx.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} rawcm ON rawcm.id = rawctx.instanceid AND rawctx.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {modules} rawmod ON rawmod.id = rawcm.module",
+            ]);
+
+        // File filter.
+        $filters[] = (new filter(
+            text::class,
+            'file',
+            new lang_string('file'),
+            $this->get_entity_name(),
+            'rawfile.filename'
+        ))
+            ->add_joins($this->get_joins())
+            ->add_join("LEFT JOIN {files} rawfile ON rawfile.id = {$alias}.fileid");
+
         return $filters;
     }
 
@@ -369,82 +469,4 @@ class error extends base {
         ];
     }
 
-    /**
-     * Render course, activity and file links for a row.
-     *
-     * @param stdClass $row
-     * @return string
-     */
-    private static function render_links(stdClass $row): string {
-        $links = [];
-
-        if ($courseurl = self::get_course_url($row)) {
-            $links[] = html_writer::link($courseurl, get_string('course'));
-        }
-
-        if ($activityurl = self::get_activity_url($row)) {
-            $links[] = html_writer::link($activityurl, get_string('activity'));
-        }
-
-        if ($fileurl = self::get_file_url($row)) {
-            $links[] = html_writer::link($fileurl, get_string('file'));
-        }
-
-        return $links ? implode(' | ', $links) : '-';
-    }
-
-    /**
-     * Return the course URL for the row, if it can be resolved.
-     *
-     * @param stdClass $row
-     * @return moodle_url|null
-     */
-    private static function get_course_url(stdClass $row): ?moodle_url {
-        $contextlevel = isset($row->rawcontextlevel) ? (int)$row->rawcontextlevel : null;
-
-        if ($contextlevel === CONTEXT_COURSE && !empty($row->rawinstanceid)) {
-            return new moodle_url('/course/view.php', ['id' => (int)$row->rawinstanceid]);
-        }
-
-        if ($contextlevel === CONTEXT_MODULE && !empty($row->rawcourseid)) {
-            return new moodle_url('/course/view.php', ['id' => (int)$row->rawcourseid]);
-        }
-
-        return null;
-    }
-
-    /**
-     * Return the activity URL for the row, if it can be resolved.
-     *
-     * @param stdClass $row
-     * @return moodle_url|null
-     */
-    private static function get_activity_url(stdClass $row): ?moodle_url {
-        if (empty($row->rawcmid) || empty($row->rawmodulename)) {
-            return null;
-        }
-
-        return new moodle_url('/mod/' . $row->rawmodulename . '/view.php', ['id' => (int)$row->rawcmid]);
-    }
-
-    /**
-     * Return a direct file URL for the row, if it represents a file document.
-     *
-     * @param stdClass $row
-     * @return moodle_url|null
-     */
-    private static function get_file_url(stdClass $row): ?moodle_url {
-        if (empty($row->rawfilecontextid) || empty($row->rawfilefilename)) {
-            return null;
-        }
-
-        return moodle_url::make_pluginfile_url(
-            (int)$row->rawfilecontextid,
-            $row->rawfilecomponent,
-            $row->rawfilefilearea,
-            (int)$row->rawfileitemid,
-            $row->rawfilefilepath,
-            $row->rawfilefilename
-        );
-    }
 }
