@@ -31,7 +31,6 @@
         <INDEX NAME="status" UNIQUE="false" FIELDS="status"/>
         <INDEX NAME="errortype" UNIQUE="false" FIELDS="errortype"/>
         <INDEX NAME="parentid" UNIQUE="false" FIELDS="parentid"/>
-        <INDEX NAME="fileid" UNIQUE="false" FIELDS="fileid"/>
       </INDEXES>
     </TABLE>
   </TABLES>

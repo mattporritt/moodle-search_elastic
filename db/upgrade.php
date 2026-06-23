@@ -123,11 +123,6 @@ function xmldb_search_elastic_upgrade($oldversion) {
         $docidcast = $DB->sql_cast_char2int('docid');
         $DB->execute("UPDATE {search_elastic_errors} SET fileid = {$docidcast} WHERE docid NOT LIKE '%-%'");
 
-        $index = new xmldb_index('fileid', XMLDB_INDEX_NOTUNIQUE, ['fileid']);
-        if (!$dbman->index_exists($table, $index)) {
-            $dbman->add_index($table, $index);
-        }
-
         upgrade_plugin_savepoint(true, 2026061600, 'search', 'elastic');
     }
 
