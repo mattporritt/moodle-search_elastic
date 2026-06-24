@@ -168,7 +168,6 @@ class errors extends system_report {
         return [
             'error:docid',
             'error:areaid',
-            'error:links',
             'error:errortype',
             'error:errormessage',
             'error:status',

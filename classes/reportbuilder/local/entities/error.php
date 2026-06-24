@@ -16,9 +16,11 @@
 
 namespace search_elastic\reportbuilder\local\entities;
 
+use core_component;
 use core_search\manager;
 use core_reportbuilder\local\entities\base;
 use core_reportbuilder\local\filters\{date, select, text, number};
+use core_reportbuilder\local\helpers\database;
 use core_reportbuilder\local\helpers\format;
 use core_reportbuilder\local\report\{column, filter};
 use html_writer;
@@ -77,6 +79,7 @@ class error extends base {
      */
     protected function get_all_columns(): array {
         $alias = $this->get_table_alias('search_elastic_errors');
+        [$ctxalias, $cmalias, $coursealias, $modalias, $filealias] = database::generate_aliases(5);
 
         $columns[] = (new column(
             'docid',
@@ -106,7 +109,11 @@ class error extends base {
             })
             ->set_is_sortable(true);
 
-        $courseexpr = "CASE WHEN rawctx.contextlevel = " . CONTEXT_COURSE . " THEN rawctx.instanceid ELSE rawcm.course END";
+        $courseexpr = "CASE
+        WHEN {$ctxalias}.contextlevel = " . CONTEXT_COURSE . " THEN {$ctxalias}.instanceid
+        WHEN {$ctxalias}.contextlevel = " . CONTEXT_MODULE . " THEN {$cmalias}.course
+        ELSE NULL
+        END";
 
         $columns[] = (new column(
             'course',
@@ -116,46 +123,48 @@ class error extends base {
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_INTEGER)
             ->add_joins([
-                "LEFT JOIN {context} rawctx ON rawctx.id = {$alias}.contextid",
-                "LEFT JOIN {course_modules} rawcm ON rawcm.id = rawctx.instanceid AND rawctx.contextlevel = " . CONTEXT_MODULE,
-                "LEFT JOIN {course} rawcourse ON rawcourse.id = $courseexpr",
+                "LEFT JOIN {context} {$ctxalias} ON {$ctxalias}.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} {$cmalias} ON {$cmalias}.id = {$ctxalias}.instanceid
+                           AND {$ctxalias}.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {course} {$coursealias} ON {$coursealias}.id = {$courseexpr}",
             ])
             ->add_field($courseexpr, 'rawcourseid')
-            ->add_field("rawcourse.shortname", 'rawcourseshortname')
+            ->add_field("{$coursealias}.fullname", 'rawcoursefullname')
             ->add_callback(static function ($value, stdClass $row): string {
-                if (empty($value) || empty($row->rawcourseshortname)) {
+                if (empty($value) || empty($row->rawcoursefullname)) {
                     return '-';
                 }
                 return html_writer::link(
                     new moodle_url('/course/view.php', ['id' => (int)$value]),
-                    $row->rawcourseshortname
+                    $row->rawcoursefullname
                 );
-            })
-            ->set_is_sortable(true);
+            });
+
+        $activitynames = $this->get_activity_type_options();
 
         $columns[] = (new column(
             'activity',
-            new lang_string('activity'),
+            new lang_string('activitytype', 'search_elastic'),
             $this->get_entity_name()
         ))
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_INTEGER)
             ->add_joins([
-                "LEFT JOIN {context} rawctx ON rawctx.id = {$alias}.contextid",
-                "LEFT JOIN {course_modules} rawcm ON rawcm.id = rawctx.instanceid AND rawctx.contextlevel = " . CONTEXT_MODULE,
-                "LEFT JOIN {modules} rawmod ON rawmod.id = rawcm.module",
+                "LEFT JOIN {context} {$ctxalias} ON {$ctxalias}.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} {$cmalias} ON {$cmalias}.id = {$ctxalias}.instanceid
+                           AND {$ctxalias}.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {modules} {$modalias} ON {$modalias}.id = {$cmalias}.module",
             ])
-            ->add_fields("rawcm.id rawcmid, rawmod.name rawmodulename")
-            ->add_callback(static function ($value, stdClass $row): string {
+            ->add_fields("{$cmalias}.id rawcmid, {$modalias}.name rawmodulename")
+            ->add_callback(static function ($value, stdClass $row) use ($activitynames): string {
                 if (empty($value) || empty($row->rawmodulename)) {
                     return '-';
                 }
                 return html_writer::link(
                     new moodle_url('/mod/' . $row->rawmodulename . '/view.php', ['id' => (int)$value]),
-                    $row->rawmodulename
+                    $activitynames[$row->rawmodulename] ?? $row->rawmodulename
                 );
-            })
-            ->set_is_sortable(true);
+            });
 
         $columns[] = (new column(
             'file',
@@ -164,12 +173,12 @@ class error extends base {
         ))
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_INTEGER)
-            ->add_join("LEFT JOIN {files} rawfile ON rawfile.id = {$alias}.fileid")
+            ->add_join("LEFT JOIN {files} {$filealias} ON {$filealias}.id = {$alias}.fileid")
             ->add_fields(
-                "{$alias}.fileid rawfileid, rawfile.contextid rawfilecontextid,
-                rawfile.component rawfilecomponent, rawfile.filearea rawfilefilearea,
-                rawfile.itemid rawfileitemid, rawfile.filepath rawfilefilepath,
-                rawfile.filename rawfilefilename"
+                "{$alias}.fileid rawfileid, {$filealias}.contextid rawfilecontextid,
+                {$filealias}.component rawfilecomponent, {$filealias}.filearea rawfilefilearea,
+                {$filealias}.itemid rawfileitemid, {$filealias}.filepath rawfilefilepath,
+                {$filealias}.filename rawfilefilename"
             )
             ->add_callback(static function ($value, stdClass $row): string {
                 if (empty($row->rawfilecontextid) || empty($row->rawfilefilename)) {
@@ -186,8 +195,7 @@ class error extends base {
                     ),
                     $row->rawfilefilename
                 );
-            })
-            ->set_is_sortable(true);
+            });
 
         $typeoptions = $this->get_error_type_options();
         $columns[] = (new column(
@@ -295,6 +303,7 @@ class error extends base {
      */
     protected function get_all_filters(): array {
         $alias = $this->get_table_alias('search_elastic_errors');
+        [$ctxalias, $cmalias, $coursealias, $modalias, $filealias] = database::generate_aliases(5);
 
         // Document ID filter.
         $filters[] = (new filter(
@@ -397,7 +406,11 @@ class error extends base {
         ))
             ->add_joins($this->get_joins());
 
-        $courseexpr = "CASE WHEN rawctx.contextlevel = " . CONTEXT_COURSE . " THEN rawctx.instanceid ELSE rawcm.course END";
+        $courseexpr = "CASE
+        WHEN {$ctxalias}.contextlevel = " . CONTEXT_COURSE . " THEN {$ctxalias}.instanceid
+        WHEN {$ctxalias}.contextlevel = " . CONTEXT_MODULE . " THEN {$cmalias}.course
+        ELSE NULL
+        END";
 
         // Course filter.
         $filters[] = (new filter(
@@ -405,29 +418,32 @@ class error extends base {
             'course',
             new lang_string('course'),
             $this->get_entity_name(),
-            'rawcourse.shortname'
+            "{$coursealias}.fullname"
         ))
             ->add_joins($this->get_joins())
             ->add_joins([
-                "LEFT JOIN {context} rawctx ON rawctx.id = {$alias}.contextid",
-                "LEFT JOIN {course_modules} rawcm ON rawcm.id = rawctx.instanceid AND rawctx.contextlevel = " . CONTEXT_MODULE,
-                "LEFT JOIN {course} rawcourse ON rawcourse.id = $courseexpr",
+                "LEFT JOIN {context} {$ctxalias} ON {$ctxalias}.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} {$cmalias} ON {$cmalias}.id = {$ctxalias}.instanceid
+                           AND {$ctxalias}.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {course} {$coursealias} ON {$coursealias}.id = {$courseexpr}",
             ]);
 
         // Activity type filter.
         $filters[] = (new filter(
-            text::class,
+            select::class,
             'activity',
-            new lang_string('activity'),
+            new lang_string('activitytype', 'search_elastic'),
             $this->get_entity_name(),
-            'rawmod.name'
+            "{$modalias}.name"
         ))
             ->add_joins($this->get_joins())
             ->add_joins([
-                "LEFT JOIN {context} rawctx ON rawctx.id = {$alias}.contextid",
-                "LEFT JOIN {course_modules} rawcm ON rawcm.id = rawctx.instanceid AND rawctx.contextlevel = " . CONTEXT_MODULE,
-                "LEFT JOIN {modules} rawmod ON rawmod.id = rawcm.module",
-            ]);
+                "LEFT JOIN {context} {$ctxalias} ON {$ctxalias}.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} {$cmalias} ON {$cmalias}.id = {$ctxalias}.instanceid
+                           AND {$ctxalias}.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {modules} {$modalias} ON {$modalias}.id = {$cmalias}.module",
+            ])
+            ->set_options($this->get_activity_type_options());
 
         // File filter.
         $filters[] = (new filter(
@@ -435,12 +451,32 @@ class error extends base {
             'file',
             new lang_string('file'),
             $this->get_entity_name(),
-            'rawfile.filename'
+            "{$filealias}.filename"
         ))
             ->add_joins($this->get_joins())
-            ->add_join("LEFT JOIN {files} rawfile ON rawfile.id = {$alias}.fileid");
+            ->add_join("LEFT JOIN {files} {$filealias} ON {$filealias}.id = {$alias}.fileid");
 
         return $filters;
+    }
+
+    /**
+     * Returns a map of module name to localised plugin name for all installed activity modules.
+     * Result is cached for the lifetime of the request.
+     *
+     * @return array ['assign' => 'Assignment', 'forum' => 'Forum', ...]
+     */
+    private function get_activity_type_options(): array {
+        static $options = null;
+        if ($options !== null) {
+            return $options;
+        }
+
+        $options = [];
+        foreach (array_keys(core_component::get_plugin_list('mod')) as $modname) {
+            $options[$modname] = get_string('pluginname', 'mod_' . $modname);
+        }
+        asort($options);
+        return $options;
     }
 
     /**
@@ -468,5 +504,4 @@ class error extends base {
             error_model::STATUS_OBSOLETE => get_string('status_obsolete', 'search_elastic'),
         ];
     }
-
 }

@@ -29,6 +29,7 @@ $string['advsettings'] = 'Advanced settings';
 $string['all'] = 'All';
 $string['apikey'] = 'API key';
 $string['apikey_help'] = 'Some Elasticsearch providers such as  Elastic Cloud require API key to authorize HTTP requests.';
+$string['activitytype'] = 'Activity type';
 $string['areaid'] = 'Area ID';
 $string['aws'] = 'AWS';
 $string['basicsettings'] = 'Basic settings';
@@ -156,7 +157,6 @@ $string['nostrategies'] = 'No available chunking strategy found.';
 $string['order_newest'] = 'Newest first';
 $string['order_oldest'] = 'Oldest first';
 $string['parentid'] = 'Parent ID';
-$string['links'] = 'Links';
 $string['pluginname'] = 'Elastic';
 $string['pluginname_help'] = 'Search backend for the Elasticsearch search engine';
 
