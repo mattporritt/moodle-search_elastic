@@ -136,14 +136,14 @@ class error extends base {
                 }
                 return html_writer::link(
                     new moodle_url('/course/view.php', ['id' => (int)$value]),
-                    $row->rawcoursefullname
+                    format_string($row->rawcoursefullname)
                 );
             });
 
         $activitynames = $this->get_activity_type_options();
 
         $columns[] = (new column(
-            'activity',
+            'activitytype',
             new lang_string('activitytype', 'search_elastic'),
             $this->get_entity_name()
         ))
@@ -193,7 +193,7 @@ class error extends base {
                         $row->rawfilefilepath,
                         $row->rawfilefilename
                     ),
-                    $row->rawfilefilename
+                    format_string($row->rawfilefilename)
                 );
             });
 
@@ -431,7 +431,7 @@ class error extends base {
         // Activity type filter.
         $filters[] = (new filter(
             select::class,
-            'activity',
+            'activitytype',
             new lang_string('activitytype', 'search_elastic'),
             $this->get_entity_name(),
             "{$modalias}.name"
