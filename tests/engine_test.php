@@ -130,8 +130,10 @@ final class engine_test extends \advanced_testcase {
             $this->generator->teardown();
             $this->generator = null;
         }
-        $this->engine->delete();
-        sleep(1);
+        if ($this->engine) {
+            $this->engine->delete();
+            sleep(1);
+        }
         parent::tearDown();
     }
 
