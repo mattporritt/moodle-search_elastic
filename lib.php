@@ -30,6 +30,7 @@
  * @return string
  */
 function search_elastic_output_fragment_new_enrich_form($args) {
+    require_capability('moodle/site:config', \core\context\system::instance());
     $serialiseddata = json_decode($args['jsonformdata']);
     $customdata = [];
     parse_str($serialiseddata, $customdata);

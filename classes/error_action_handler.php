@@ -116,7 +116,8 @@ class error_action_handler {
                 notification::success(get_string('deletedobsoleteerrors', 'search_elastic', $obsoletecount));
             }
         } catch (Exception $e) {
-            notification::error(get_string('deleteobsoleteexception', 'search_elastic', $e->getMessage()));
+            debugging('search_elastic: delete_all_obsolete failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            notification::error(get_string('deleteobsoleteexception', 'search_elastic'));
         }
 
         redirect($pageurl);
