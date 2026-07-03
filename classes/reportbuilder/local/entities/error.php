@@ -101,7 +101,7 @@ class error extends base {
             ->add_callback(static function ($value, stdClass $row): string {
                 // Get search area display name.
                 $searchareas = manager::get_search_areas_list(true);
-                return isset($searchareas[$value]) ? $searchareas[$value]->get_visible_name() : $value;
+                return isset($searchareas[$value]) ? $searchareas[$value]->get_visible_name() : s($value);
             })
             ->set_is_sortable(true);
 
@@ -115,7 +115,7 @@ class error extends base {
             ->set_type(column::TYPE_TEXT)
             ->add_field("{$alias}.errortype")
             ->add_callback(static function ($value, stdClass $row) use ($typeoptions): string {
-                return $typeoptions[$row->errortype] ?? $row->errortype;
+                return $typeoptions[$row->errortype] ?? s($row->errortype);
             })
             ->set_is_sortable(true);
 
@@ -141,7 +141,7 @@ class error extends base {
             ->set_type(column::TYPE_TEXT)
             ->add_field("{$alias}.status")
             ->add_callback(static function ($value, stdClass $row) use ($statusoptions): string {
-                $statustext = $statusoptions[$row->status] ?? $row->status;
+                $statustext = $statusoptions[$row->status] ?? s($row->status);
 
                 $statusclasses = [
                     error_model::STATUS_RETRYING => 'badge-info',

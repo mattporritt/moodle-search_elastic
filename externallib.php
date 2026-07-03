@@ -57,7 +57,7 @@ class search_elastic_external extends external_api {
                     0
                 ),
                 'title' => new external_value(PARAM_TEXT, 'Show results that match this title', VALUE_DEFAULT, ''),
-                'limit' => new external_value(PARAM_TEXT, 'Limit results to this number', VALUE_DEFAULT, '100'),
+                'limit' => new external_value(PARAM_INT, 'Limit results to this number', VALUE_DEFAULT, '100'),
                 'courseids' => new external_multiple_structure(
                     new external_value(PARAM_INT, 'Course ids'),
                     'List of course ids. If empty return all courses.',
@@ -103,7 +103,7 @@ class search_elastic_external extends external_api {
         );
 
         // Context validation.
-        $context = context_user::instance($USER->id);
+        $context = \core\context\system::instance();
         self::validate_context($context);
 
         // Capability checking.

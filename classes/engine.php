@@ -1563,7 +1563,7 @@ class engine extends \core_search\engine {
                 }
 
                 $msg = get_string('queryerror', 'search_elastic', [
-                    'reason' => $results->error->root_cause[0]->reason,
+                    'reason' => s($results->error->root_cause[0]->reason ?? ''),
                     'help' => $helptext,
                 ]);
 
