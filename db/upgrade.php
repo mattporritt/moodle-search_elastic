@@ -110,7 +110,7 @@ function xmldb_search_elastic_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025062708, 'search', 'elastic');
     }
 
-    if ($oldversion < 2026061600) {
+    if ($oldversion < 2026051404) {
         $table = new xmldb_table('search_elastic_errors');
 
         $field = new xmldb_field('fileid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'docid');
@@ -123,7 +123,7 @@ function xmldb_search_elastic_upgrade($oldversion) {
         $docidcast = $DB->sql_cast_char2int('docid');
         $DB->execute("UPDATE {search_elastic_errors} SET fileid = {$docidcast} WHERE docid NOT LIKE '%-%'");
 
-        upgrade_plugin_savepoint(true, 2026061600, 'search', 'elastic');
+        upgrade_plugin_savepoint(true, 2026051404, 'search', 'elastic');
     }
 
     return true;
