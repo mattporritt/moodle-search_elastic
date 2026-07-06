@@ -16,15 +16,18 @@
 
 namespace search_elastic\reportbuilder\local\entities;
 
+use core_component;
 use core_search\manager;
 use core_reportbuilder\local\entities\base;
 use core_reportbuilder\local\filters\{date, select, text, number};
+use core_reportbuilder\local\helpers\database;
 use core_reportbuilder\local\helpers\format;
 use core_reportbuilder\local\report\{column, filter};
-use search_elastic\local\model\error as error_model;
-use lang_string;
-use stdClass;
 use html_writer;
+use lang_string;
+use moodle_url;
+use stdClass;
+use search_elastic\local\model\error as error_model;
 
 /**
  * Report builder entity for Elasticsearch indexing errors.
@@ -76,6 +79,7 @@ class error extends base {
      */
     protected function get_all_columns(): array {
         $alias = $this->get_table_alias('search_elastic_errors');
+        [$ctxalias, $cmalias, $coursealias, $modalias, $filealias] = database::generate_aliases(5);
 
         $columns[] = (new column(
             'docid',
@@ -104,6 +108,94 @@ class error extends base {
                 return isset($searchareas[$value]) ? $searchareas[$value]->get_visible_name() : s($value);
             })
             ->set_is_sortable(true);
+
+        $courseexpr = "CASE
+        WHEN {$ctxalias}.contextlevel = " . CONTEXT_COURSE . " THEN {$ctxalias}.instanceid
+        WHEN {$ctxalias}.contextlevel = " . CONTEXT_MODULE . " THEN {$cmalias}.course
+        ELSE NULL
+        END";
+
+        $columns[] = (new column(
+            'course',
+            new lang_string('course'),
+            $this->get_entity_name()
+        ))
+            ->add_joins($this->get_joins())
+            ->set_type(column::TYPE_INTEGER)
+            ->add_joins([
+                "LEFT JOIN {context} {$ctxalias} ON {$ctxalias}.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} {$cmalias} ON {$cmalias}.id = {$ctxalias}.instanceid
+                           AND {$ctxalias}.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {course} {$coursealias} ON {$coursealias}.id = {$courseexpr}",
+            ])
+            ->add_field($courseexpr, 'rawcourseid')
+            ->add_field("{$coursealias}.fullname", 'rawcoursefullname')
+            ->add_callback(static function ($value, stdClass $row): string {
+                if (empty($value) || empty($row->rawcoursefullname)) {
+                    return '-';
+                }
+                return html_writer::link(
+                    new moodle_url('/course/view.php', ['id' => (int)$value]),
+                    format_string($row->rawcoursefullname)
+                );
+            });
+
+        $activitynames = $this->get_activity_type_options();
+
+        $columns[] = (new column(
+            'activitytype',
+            new lang_string('activitytype', 'search_elastic'),
+            $this->get_entity_name()
+        ))
+            ->add_joins($this->get_joins())
+            ->set_type(column::TYPE_INTEGER)
+            ->add_joins([
+                "LEFT JOIN {context} {$ctxalias} ON {$ctxalias}.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} {$cmalias} ON {$cmalias}.id = {$ctxalias}.instanceid
+                           AND {$ctxalias}.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {modules} {$modalias} ON {$modalias}.id = {$cmalias}.module",
+            ])
+            ->add_fields("{$cmalias}.id rawcmid, {$modalias}.name rawmodulename")
+            ->add_callback(static function ($value, stdClass $row) use ($activitynames): string {
+                if (empty($value) || empty($row->rawmodulename)) {
+                    return '-';
+                }
+                return html_writer::link(
+                    new moodle_url('/mod/' . $row->rawmodulename . '/view.php', ['id' => (int)$value]),
+                    $activitynames[$row->rawmodulename] ?? $row->rawmodulename
+                );
+            });
+
+        $columns[] = (new column(
+            'file',
+            new lang_string('file'),
+            $this->get_entity_name()
+        ))
+            ->add_joins($this->get_joins())
+            ->set_type(column::TYPE_INTEGER)
+            ->add_join("LEFT JOIN {files} {$filealias} ON {$filealias}.id = {$alias}.fileid")
+            ->add_fields(
+                "{$alias}.fileid rawfileid, {$filealias}.contextid rawfilecontextid,
+                {$filealias}.component rawfilecomponent, {$filealias}.filearea rawfilefilearea,
+                {$filealias}.itemid rawfileitemid, {$filealias}.filepath rawfilefilepath,
+                {$filealias}.filename rawfilefilename"
+            )
+            ->add_callback(static function ($value, stdClass $row): string {
+                if (empty($row->rawfilecontextid) || empty($row->rawfilefilename)) {
+                    return '-';
+                }
+                return html_writer::link(
+                    moodle_url::make_pluginfile_url(
+                        (int)$row->rawfilecontextid,
+                        $row->rawfilecomponent,
+                        $row->rawfilefilearea,
+                        (int)$row->rawfileitemid,
+                        $row->rawfilefilepath,
+                        $row->rawfilefilename
+                    ),
+                    format_string($row->rawfilefilename)
+                );
+            });
 
         $typeoptions = $this->get_error_type_options();
         $columns[] = (new column(
@@ -207,10 +299,11 @@ class error extends base {
     /**
      * Return list of all available filters.
      *
-     * @return []
+     * @return array
      */
     protected function get_all_filters(): array {
         $alias = $this->get_table_alias('search_elastic_errors');
+        [$ctxalias, $cmalias, $coursealias, $modalias, $filealias] = database::generate_aliases(5);
 
         // Document ID filter.
         $filters[] = (new filter(
@@ -313,7 +406,77 @@ class error extends base {
         ))
             ->add_joins($this->get_joins());
 
+        $courseexpr = "CASE
+        WHEN {$ctxalias}.contextlevel = " . CONTEXT_COURSE . " THEN {$ctxalias}.instanceid
+        WHEN {$ctxalias}.contextlevel = " . CONTEXT_MODULE . " THEN {$cmalias}.course
+        ELSE NULL
+        END";
+
+        // Course filter.
+        $filters[] = (new filter(
+            text::class,
+            'course',
+            new lang_string('course'),
+            $this->get_entity_name(),
+            "{$coursealias}.fullname"
+        ))
+            ->add_joins($this->get_joins())
+            ->add_joins([
+                "LEFT JOIN {context} {$ctxalias} ON {$ctxalias}.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} {$cmalias} ON {$cmalias}.id = {$ctxalias}.instanceid
+                           AND {$ctxalias}.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {course} {$coursealias} ON {$coursealias}.id = {$courseexpr}",
+            ]);
+
+        // Activity type filter.
+        $filters[] = (new filter(
+            select::class,
+            'activitytype',
+            new lang_string('activitytype', 'search_elastic'),
+            $this->get_entity_name(),
+            "{$modalias}.name"
+        ))
+            ->add_joins($this->get_joins())
+            ->add_joins([
+                "LEFT JOIN {context} {$ctxalias} ON {$ctxalias}.id = {$alias}.contextid",
+                "LEFT JOIN {course_modules} {$cmalias} ON {$cmalias}.id = {$ctxalias}.instanceid
+                           AND {$ctxalias}.contextlevel = " . CONTEXT_MODULE,
+                "LEFT JOIN {modules} {$modalias} ON {$modalias}.id = {$cmalias}.module",
+            ])
+            ->set_options($this->get_activity_type_options());
+
+        // File filter.
+        $filters[] = (new filter(
+            text::class,
+            'file',
+            new lang_string('file'),
+            $this->get_entity_name(),
+            "{$filealias}.filename"
+        ))
+            ->add_joins($this->get_joins())
+            ->add_join("LEFT JOIN {files} {$filealias} ON {$filealias}.id = {$alias}.fileid");
+
         return $filters;
+    }
+
+    /**
+     * Returns a map of module name to localised plugin name for all installed activity modules.
+     * Result is cached for the lifetime of the request.
+     *
+     * @return array ['assign' => 'Assignment', 'forum' => 'Forum', ...]
+     */
+    private function get_activity_type_options(): array {
+        static $options = null;
+        if ($options !== null) {
+            return $options;
+        }
+
+        $options = [];
+        foreach (array_keys(core_component::get_plugin_list('mod')) as $modname) {
+            $options[$modname] = get_string('pluginname', 'mod_' . $modname);
+        }
+        asort($options);
+        return $options;
     }
 
     /**

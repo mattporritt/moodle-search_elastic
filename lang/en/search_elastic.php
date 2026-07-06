@@ -29,6 +29,7 @@ $string['advsettings'] = 'Advanced settings';
 $string['all'] = 'All';
 $string['apikey'] = 'API key';
 $string['apikey_help'] = 'Some Elasticsearch providers such as  Elastic Cloud require API key to authorize HTTP requests.';
+$string['activitytype'] = 'Activity type';
 $string['areaid'] = 'Area ID';
 $string['aws'] = 'AWS';
 $string['basicsettings'] = 'Basic settings';

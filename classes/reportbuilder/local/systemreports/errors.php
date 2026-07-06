@@ -55,6 +55,9 @@ class errors extends system_report {
         $this->add_columns_from_entity($errorentity->get_entity_name(), [
             'docid',
             'areaid',
+            'course',
+            'activitytype',
+            'file',
             'errortype',
             'errormessage',
             'status',
@@ -68,6 +71,9 @@ class errors extends system_report {
         $this->add_filters_from_entity($errorentity->get_entity_name(), [
             'docid',
             'areaid',
+            'course',
+            'activitytype',
+            'file',
             'errortype',
             'errormessage',
             'status',
