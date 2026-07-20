@@ -168,6 +168,47 @@ final class error_service_test extends advanced_testcase {
     }
 
     /**
+     * Data provider for test_save_error_fileid.
+     *
+     * @return array
+     */
+    public static function save_error_fileid_provider(): array {
+        return [
+            'plain file docid' => ['123', 123],
+            'chunked file docid' => ['123_c1', 123],
+            'chunked file docid, later chunk' => ['456_c12', 456],
+            'non-file docid' => ['mod_assign-activity-123', null],
+            'chunked non-file docid' => ['mod_assign-activity-123_c1', null],
+            'non-numeric docid' => ['test_doc_123', null],
+        ];
+    }
+
+    /**
+     * Test that save_error correctly derives fileid from the docid, including
+     * chunked file docids (e.g. '123_c1') produced when chunking is enabled.
+     *
+     * @dataProvider save_error_fileid_provider
+     * @param string $docid Document ID to save the error against.
+     * @param int|null $expectedfileid Expected fileid stored on the error record.
+     */
+    public function test_save_error_fileid(string $docid, ?int $expectedfileid): void {
+        global $DB;
+
+        error_service::save_error(
+            $docid,
+            456,
+            $this->coursecontext->id,
+            'core_mocksearch-mock_search_area',
+            error::TYPE_INDEXING,
+            'Test error message',
+            time()
+        );
+
+        $error = $DB->get_record('search_elastic_errors', ['docid' => $docid]);
+        $this->assertEquals($expectedfileid, $error->fileid);
+    }
+
+    /**
      * Test get_error_count_by_status method.
      */
     public function test_get_error_count_by_status(): void {

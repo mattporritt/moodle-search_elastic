@@ -97,7 +97,7 @@ class error_service {
         global $DB;
 
         $now = time();
-        $fileid = is_numeric($documentid) ? (int)$documentid : null;
+        $fileid = self::extract_fileid($documentid);
 
         $select = $DB->sql_compare_text('docid') . ' = :docid AND errortype = :errortype';
         $params = [
@@ -133,6 +133,23 @@ class error_service {
             $error->set('parentid', $parentid);
             $error->create();
         }
+    }
+
+    /**
+     * Extracts the file id from a file document id, handling chunked docids.
+     *
+     * File docids are purely numeric, optionally with a chunk suffix when chunking is
+     * enabled (e.g. '123' or '123_c1'). Non-file docids always contain a '-'
+     * (e.g. mod_assign-activity-123 or mod_assign-activity-123_c1).
+     *
+     * @param string $documentid Document ID that may represent a file.
+     * @return int|null The file id, or null if the document id is not a file document.
+     */
+    private static function extract_fileid($documentid): ?int {
+        if (preg_match('/^(\d+)(?:_c\d+)?$/', (string)$documentid, $matches)) {
+            return (int) $matches[1];
+        }
+        return null;
     }
 
     /**
