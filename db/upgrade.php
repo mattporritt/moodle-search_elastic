@@ -110,7 +110,7 @@ function xmldb_search_elastic_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025062708, 'search', 'elastic');
     }
 
-    if ($oldversion < 2026051404) {
+    if ($oldversion < 2026051405) {
         $table = new xmldb_table('search_elastic_errors');
 
         $field = new xmldb_field('fileid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'docid');
@@ -134,7 +134,7 @@ function xmldb_search_elastic_upgrade($oldversion) {
         }
         $rs->close();
 
-        upgrade_plugin_savepoint(true, 2026051404, 'search', 'elastic');
+        upgrade_plugin_savepoint(true, 2026051405, 'search', 'elastic');
     }
 
     return true;
