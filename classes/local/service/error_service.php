@@ -145,8 +145,8 @@ class error_service {
      * @param string $documentid Document ID that may represent a file.
      * @return int|null The file id, or null if the document id is not a file document.
      */
-    private static function extract_fileid($documentid): ?int {
-        if (preg_match('/^(\d+)(?:_c\d+)?$/', (string)$documentid, $matches)) {
+    private static function extract_fileid(string $documentid): ?int {
+        if (preg_match('/^(\d+)(?:_c\d+)?$/', $documentid, $matches)) {
             return (int) $matches[1];
         }
         return null;

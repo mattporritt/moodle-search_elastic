@@ -124,15 +124,18 @@ function xmldb_search_elastic_upgrade($oldversion) {
         // (e.g. mod_assign-activity-123 or mod_assign-activity-123_c1), so filtering those
         // out first and then stripping any chunk suffix in PHP avoids relying on a DB cast
         // that can fail or silently truncate on docids like '123_c1'.
-        $select = $DB->sql_like('docid', ':pattern', true, true, true);
+        $select = $DB->sql_like('docid', ':pattern', true, true, true) . ' AND fileid IS NULL';
         $rs = $DB->get_recordset_select('search_elastic_errors', $select, ['pattern' => '%-%']);
-        foreach ($rs as $record) {
-            if (preg_match('/^(\d+)(?:_c\d+)?$/', $record->docid, $matches)) {
-                $record->fileid = (int) $matches[1];
-                $DB->update_record('search_elastic_errors', $record);
+        try {
+            foreach ($rs as $record) {
+                if (preg_match('/^(\d+)(?:_c\d+)?$/', $record->docid, $matches)) {
+                    $record->fileid = (int) $matches[1];
+                    $DB->update_record('search_elastic_errors', $record);
+                }
             }
+        } finally {
+            $rs->close();
         }
-        $rs->close();
 
         upgrade_plugin_savepoint(true, 2026051405, 'search', 'elastic');
     }
