@@ -102,6 +102,42 @@ final class document_test extends \advanced_testcase {
     }
 
     /**
+     * Test that @@PLUGINFILE@@ tokens and associated file paths are stripped from text.
+     */
+    public function test_pluginfile_token_stripped(): void {
+        $text = 'some content with a file @@PLUGINFILE@@/path/to/file.jpg and some more text';
+        $expected = 'some content with a file  and some more text';
+
+        $builder = $this->getMockBuilder('\search_elastic\document');
+        $builder->disableOriginalConstructor();
+        $stub = $builder->getMock();
+
+        $method = new \ReflectionMethod('\search_elastic\document', 'format_text');
+        $method->setAccessible(true);
+        $proxy = $method->invoke($stub, $text);
+
+        $this->assertEquals($expected, $proxy);
+    }
+
+    /**
+     * Test that @@PLUGINFILE@@ with highlighting markers is handled correctly.
+     */
+    public function test_pluginfile_with_highlighting(): void {
+        $text = '@@PLUGINFILE@@/path/to/file.jpg @@HI_S@@search term@@HI_E@@ description';
+        $expected = ' <span class="highlight">search term</span> description';
+
+        $builder = $this->getMockBuilder('\search_elastic\document');
+        $builder->disableOriginalConstructor();
+        $stub = $builder->getMock();
+
+        $method = new \ReflectionMethod('\search_elastic\document', 'format_text');
+        $method->setAccessible(true);
+        $proxy = $method->invoke($stub, $text);
+
+        $this->assertEquals($expected, $proxy);
+    }
+
+    /**
      * Test getting enrichment processors.
      */
     public function test_get_enrichment_processors(): void {
