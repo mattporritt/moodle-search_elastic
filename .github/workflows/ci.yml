@@ -5,8 +5,7 @@ on: [push, pull_request]
 jobs:
   ci:
     uses: catalyst/catalyst-moodle-workflows/.github/workflows/ci.yml@main
-    secrets:
-      moodle_org_token: ${{ secrets.MOODLE_ORG_TOKEN }}
+    secrets: inherit
     with:
       disable_grunt: true
-      release_branches: MOODLE_404_STABLE
+      enable_composer_publish: true
